@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, List
 
-from music_room.models import Playlist
+from music_room.models import Playlist, Track
 from music_room.serializers import PlaylistSerializer
 from ws.base import BaseConsumer, TargetsEnum, Action, Message, BasePayload
 from music_room.services import PlaylistService
@@ -27,11 +27,23 @@ class ResponsePayload:
     @dataclass
     class Playlist(BasePayload):
         playlist: Playlist
-        who_change: str
+        change_message: str
 
     @dataclass
     class Playlists(BasePayload):
         playlists: List[Playlist]
+
+
+def check_playlist(f: Callable):
+    def wrapper(self):
+        try:
+            playlist = Playlist.objects.get(id=int(self.scope['url_route']['kwargs']['playlist_id']))
+            return f(self, playlist)
+        except Playlist.DoesNotExist:
+            self.close(code=401)
+            return
+
+    return wrapper
 
 
 class PlaylistConsumer(BaseConsumer):
@@ -80,26 +92,35 @@ class PlaylistRetrieveConsumer(BaseConsumer):
     authed = True
     playlist_id = None
 
-    def connect(self):
-        self.playlist_id = int(self.scope['url_route']['kwargs']['playlist_id'])
+    # TODO Add permission for connect (only for accessed users)
+
+    @check_playlist
+    def connect(self, playlist: Playlist):
+        self.playlist_id = playlist.id
         self.broadcast_group = f'playlist-{self.playlist_id}'
         super(PlaylistRetrieveConsumer, self).connect()
 
-    def playlist(self, event, before_send: Callable = None):
+    def playlist(self, event, before_send: Callable = None, change_message=None):
         request_payload_type = RequestPayload.ModifyPlaylistTracks
         action = Action(event='playlist_changed', system=event['system'])
 
         def action_for_target(message: Message, payload: request_payload_type):
             action.params = ResponsePayload.Playlist(
                 playlist=PlaylistSerializer(PlaylistService(self.playlist_id).playlist).data,
-                who_change=message.initiator_user.username
+                change_message=change_message.format(
+                    message.initiator_user.username,
+                    Track.objects.get(id=payload.track_id).name
+                )
             ).to_data()
             return action
 
         def action_for_initiator(message: Message, payload: request_payload_type):
             action.params = ResponsePayload.Playlist(
                 playlist=PlaylistSerializer(PlaylistService(self.playlist_id).playlist).data,
-                who_change=message.initiator_user.username
+                change_message=change_message.format(
+                    message.initiator_user.username,
+                    Track.objects.get(id=payload.track_id).name
+                )
             ).to_data()
             return action
 
@@ -116,11 +137,11 @@ class PlaylistRetrieveConsumer(BaseConsumer):
             playlist = PlaylistService(self.playlist_id)
             playlist.add_track(payload.track_id)
 
-        self.playlist(event, before_send)
+        self.playlist(event, before_send, change_message='{} add track {} to playlist')
 
     def remove_track(self, event):
         def before_send(message: Message, payload: RequestPayload.ModifyPlaylistTracks):
             playlist = PlaylistService(self.playlist_id)
             playlist.remove_track(payload.track_id)
 
-        self.playlist(event, before_send)
+        self.playlist(event, before_send, change_message='{} remove track {} from playlist')

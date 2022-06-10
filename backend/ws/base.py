@@ -315,8 +315,8 @@ class BaseConsumer(JsonWebsocketConsumer):
         self.join_group(self.broadcast_group)
 
     def send_json(self, content, close=False):
-        # if 'system' in content:
-        #     content.pop('system')
+        if 'system' in content:
+            content.pop('system')
         super(BaseConsumer, self).send_json(content, close)
 
     def cache_system(self):
