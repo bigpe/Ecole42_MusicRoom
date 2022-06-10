@@ -113,8 +113,20 @@ class Player:
 
     def shuffle(self):
         tracks = list(self.play_session.playlist.tracks.all())
-        self.play_session.track_queue.clear()
+        self.play_session.track_queue.all().delete()
         for i in range(len(tracks)):
             random_track = random.choice(tracks)
             session_track = SessionTrack.objects.create(track=tracks.pop(tracks.index(random_track)), order=i)
             self.play_session.track_queue.add(session_track)
+
+    def pause_track(self):
+        self.current_track.state = SessionTrack.States.paused
+        self.current_track.save()
+
+    def resume_track(self):
+        self.current_track.state = SessionTrack.States.playing
+        self.current_track.save()
+
+    def stop_track(self):
+        self.current_track.state = SessionTrack.States.stopped
+        self.current_track.save()

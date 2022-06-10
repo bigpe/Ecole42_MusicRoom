@@ -88,4 +88,25 @@ class PlayerConsumer(BaseConsumer):
 
         self.session(event, before_send)
 
+    def pause_track(self, event):
+        def before_send(message: Message, payload: RequestPayload.PlayTrack):
+            player = Player(payload.play_session_id)
+            player.pause_track()
+
+        self.session(event, before_send)
+
+    def resume_track(self, event):
+        def before_send(message: Message, payload: RequestPayload.PlayTrack):
+            player = Player(payload.play_session_id)
+            player.resume_track()
+
+        self.session(event, before_send)
+
+    def stop_track(self, event):
+        def before_send(message: Message, payload: RequestPayload.PlayTrack):
+            player = Player(payload.play_session_id)
+            player.stop_track()
+
+        self.session(event, before_send)
+
 
