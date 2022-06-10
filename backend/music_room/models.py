@@ -45,7 +45,7 @@ class SessionTrack(models.Model, BootstrapMixin):
         (States.paused, 'Paused'),
     )
 
-    state = models.CharField(max_length=50, choices=StatesChoice, default=StatesChoice[0])
+    state = models.CharField(max_length=50, choices=StatesChoice, default=States.stopped)
     track = models.ForeignKey(Track, models.CASCADE)
     votes = models.ManyToManyField(User)
     votes_count = models.PositiveIntegerField(default=0)
@@ -70,4 +70,4 @@ class PlaySession(models.Model, BootstrapMixin):
 
     playlist = models.ForeignKey(Playlist, models.CASCADE)
     track_queue = models.ManyToManyField(SessionTrack)
-    mode = models.CharField(max_length=50, choices=ModeChoice, default=ModeChoice[0])
+    mode = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)

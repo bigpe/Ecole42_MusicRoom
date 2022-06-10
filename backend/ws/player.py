@@ -40,7 +40,7 @@ class PlayerConsumer(BaseConsumer):
     authed = True
     custom_target_resolver = {CustomTargetEnum.for_accessed: for_accessed}
 
-    def _play_track(self, event, before_send: Callable = None):
+    def session(self, event, before_send: Callable = None):
         request_payload_type = RequestPayload.PlayTrack
         action = Action(event='session_change', system=event['system'])
 
@@ -65,18 +65,27 @@ class PlayerConsumer(BaseConsumer):
             player = Player(payload.play_session_id)
             player.play_track(payload.track_id)
 
-        self._play_track(event, before_send)
+        self.session(event, before_send)
 
     def play_next_track(self, event):
         def before_send(message: Message, payload: RequestPayload.PlayTrack):
             player = Player(payload.play_session_id)
             player.play_next()
 
-        self._play_track(event, before_send)
+        self.session(event, before_send)
 
     def play_previous_track(self, event):
         def before_send(message: Message, payload: RequestPayload.PlayTrack):
             player = Player(payload.play_session_id)
             player.play_previous()
 
-        self._play_track(event, before_send)
+        self.session(event, before_send)
+
+    def shuffle(self, event):
+        def before_send(message: Message, payload: RequestPayload.PlayTrack):
+            player = Player(payload.play_session_id)
+            player.shuffle()
+
+        self.session(event, before_send)
+
+
