@@ -1,7 +1,9 @@
+import random
+
 from django.contrib.auth.models import User
 from django.db import models
 
-from bootstrap.utils import BootstrapMixin
+from bootstrap.utils import BootstrapMixin, BootstrapGeneric
 
 
 class Track(models.Model, BootstrapMixin):
@@ -33,7 +35,7 @@ class PlaylistAccess(models.Model, BootstrapMixin):
     playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='access_users')
 
 
-class SessionTrack(models.Model, BootstrapMixin):
+class SessionTrack(models.Model):
     class States:
         stopped = 'stopped'
         playing = 'playing'
@@ -55,7 +57,11 @@ class SessionTrack(models.Model, BootstrapMixin):
         ordering = ['-votes_count', 'order']
 
     def __str__(self):
-        return f'{self.id}-{self.order}'
+        return f'{self.id}-{self.state}-{self.order}'
+
+    class Bootstrap(BootstrapGeneric):
+        state = 'stopped'
+        votes_count = 0
 
 
 class PlaySession(models.Model, BootstrapMixin):
@@ -71,3 +77,10 @@ class PlaySession(models.Model, BootstrapMixin):
     playlist = models.ForeignKey(Playlist, models.CASCADE)
     track_queue = models.ManyToManyField(SessionTrack)
     mode = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)
+
+    class Bootstrap(BootstrapGeneric):
+        @staticmethod
+        def after_bootstrap(model):
+            for i, track in enumerate(model.track_queue.all()):
+                track.order = i
+                track.save()

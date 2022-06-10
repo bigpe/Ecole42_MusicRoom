@@ -30,6 +30,7 @@ XLSX_PLACEHOLDER = ContentFile(open(BASE_DIR.joinpath('placeholder.xlsx'), 'rb')
 def rgetattr(obj, attr, *args):
     def _getattr(obj, attr):
         return getattr(obj, attr, *args)
+
     return functools.reduce(_getattr, [obj] + attr.split('.'))
 
 
@@ -39,6 +40,7 @@ class BootstrapGeneric:
     bootstrap_date_end = '2021-05-01'
     bootstrap_time_start = '12:00'
     bootstrap_time_end = '15:00'
+    after_bootstrap = None
 
     def __init__(self, model,
                  bootstrap_logs=True,
@@ -152,6 +154,9 @@ class BootstrapGeneric:
             if bootstrap_logs and bootstrap_logs_fields:
                 [print(log) for log in logs]
 
+            if self.after_bootstrap:
+                self.after_bootstrap(obj)
+
     @staticmethod
     def get_field_name(field):
         field_name = field.attname
@@ -236,9 +241,10 @@ class BootstrapGeneric:
         field_name = self.get_field_name(field)
         has_field_generator = hasattr(self, field_name)
         field_generator = getattr(self, field_name) if has_field_generator else None
-        field_choices = getattr(field, 'choices', [])
-        if field_choices:
-            field_generator = [choice[0] for choice in field_choices]
+        if not field_generator:
+            field_choices = getattr(field, 'choices', [])
+            if field_choices:
+                field_generator = [choice[0] for choice in field_choices]
         return field_generator
 
     def bootstrap_string(self, obj, field):
@@ -312,12 +318,12 @@ class BootstrapGeneric:
         person = self.__generator.Person(self.bootstrap_language)
         text = self.__generator.Text(self.bootstrap_language)
         default = {
-                "person": person.full_name(),
-                "gender": person.gender(),
-                "age": person.age(),
-                "email": person.email(),
-                "description": text.quote(),
-            }
+            "person": person.full_name(),
+            "gender": person.gender(),
+            "age": person.age(),
+            "email": person.email(),
+            "description": text.quote(),
+        }
         return self.bootstrap_field(obj, field, default)
 
     def bootstrap_ip(self, obj, field):

@@ -120,13 +120,16 @@ class Player:
             self.play_session.track_queue.add(session_track)
 
     def pause_track(self):
-        self.current_track.state = SessionTrack.States.paused
-        self.current_track.save()
+        track: SessionTrack = self.current_track
+        track.state = SessionTrack.States.paused
+        track.save()
 
     def resume_track(self):
-        self.current_track.state = SessionTrack.States.playing
-        self.current_track.save()
+        track: SessionTrack = self.current_track
+        track.state = SessionTrack.States.playing
+        track.save()
 
     def stop_track(self):
-        self.current_track.state = SessionTrack.States.stopped
-        self.current_track.save()
+        track: SessionTrack = self.current_track
+        track.state = SessionTrack.States.stopped
+        track.save()

@@ -120,6 +120,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 INSTALLED_APPS += ['rest_framework', 'music_room', 'bootstrap', 'channels']
 
 BOOTSTRAP_ENABLED = True
+BOOTSTRAP_PRUNE = True
 
 ASGI_APPLICATION = 'django_app.asgi.application'
 
