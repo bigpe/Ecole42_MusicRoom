@@ -1,9 +1,11 @@
 import random
 from typing import Callable
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from .models import PlaySession, SessionTrack
+
+User = get_user_model()
 
 
 def lookup_play_session(f: Callable):

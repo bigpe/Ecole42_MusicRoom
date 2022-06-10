@@ -35,6 +35,27 @@ def for_accessed(message: Union[Message, RequestPayload.PlayTrack]):
     return False
 
 
+def get_player(f: Callable):
+    def wrapper(*args):
+        message: Message = args[0]
+        payload: RequestPayload.PlayTrack = args[1]
+        player = Player(payload.play_session_id)
+        return f(*args, player)
+
+    return wrapper
+
+
+def only_for_author(f: Callable):
+    def wrapper(*args):
+        message: Message = args[0]
+        payload: RequestPayload.PlayTrack = args[1]
+        player: Player = args[2]
+        if message.user == player.play_session.playlist.author:
+            return f(*args)
+
+    return wrapper
+
+
 class PlayerConsumer(BaseConsumer):
     broadcast_group = 'player'
     authed = True
@@ -61,52 +82,57 @@ class PlayerConsumer(BaseConsumer):
         )
 
     def play_track(self, event):
-        def before_send(message: Message, payload: RequestPayload.PlayTrack):
-            player = Player(payload.play_session_id)
+        @get_player
+        @only_for_author
+        def before_send(message: Message, payload: RequestPayload.PlayTrack, player: Player):
             player.play_track(payload.track_id)
 
         self.session(event, before_send)
 
     def play_next_track(self, event):
-        def before_send(message: Message, payload: RequestPayload.PlayTrack):
-            player = Player(payload.play_session_id)
+        @get_player
+        @only_for_author
+        def before_send(message: Message, payload: RequestPayload.PlayTrack, player: Player):
             player.play_next()
 
         self.session(event, before_send)
 
     def play_previous_track(self, event):
-        def before_send(message: Message, payload: RequestPayload.PlayTrack):
-            player = Player(payload.play_session_id)
+        @get_player
+        @only_for_author
+        def before_send(message: Message, payload: RequestPayload.PlayTrack, player: Player):
             player.play_previous()
 
         self.session(event, before_send)
 
     def shuffle(self, event):
-        def before_send(message: Message, payload: RequestPayload.PlayTrack):
-            player = Player(payload.play_session_id)
+        @get_player
+        @only_for_author
+        def before_send(message: Message, payload: RequestPayload.PlayTrack, player: Player):
             player.shuffle()
 
         self.session(event, before_send)
 
     def pause_track(self, event):
-        def before_send(message: Message, payload: RequestPayload.PlayTrack):
-            player = Player(payload.play_session_id)
+        @get_player
+        @only_for_author
+        def before_send(message: Message, payload: RequestPayload.PlayTrack, player: Player):
             player.pause_track()
 
         self.session(event, before_send)
 
     def resume_track(self, event):
-        def before_send(message: Message, payload: RequestPayload.PlayTrack):
-            player = Player(payload.play_session_id)
+        @get_player
+        @only_for_author
+        def before_send(message: Message, payload: RequestPayload.PlayTrack, player: Player):
             player.resume_track()
 
         self.session(event, before_send)
 
     def stop_track(self, event):
-        def before_send(message: Message, payload: RequestPayload.PlayTrack):
-            player = Player(payload.play_session_id)
+        @get_player
+        @only_for_author
+        def before_send(message: Message, payload: RequestPayload.PlayTrack, player: Player):
             player.stop_track()
 
         self.session(event, before_send)
-
-

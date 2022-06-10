@@ -117,7 +117,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-INSTALLED_APPS += ['rest_framework', 'music_room', 'bootstrap', 'channels']
+INSTALLED_APPS += ['music_room', 'rest_framework', 'bootstrap', 'channels']
 
 BOOTSTRAP_ENABLED = True
 BOOTSTRAP_PRUNE = True
@@ -129,3 +129,5 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
     }
 }
+
+AUTH_USER_MODEL = 'music_room.User'

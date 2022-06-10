@@ -1,9 +1,12 @@
-import random
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-
 from bootstrap.utils import BootstrapMixin, BootstrapGeneric
+
+
+class User(AbstractUser):
+    ...
+    # playlists: Playlist
 
 
 class Track(models.Model, BootstrapMixin):
@@ -27,6 +30,7 @@ class Playlist(models.Model, BootstrapMixin):
     name = models.CharField(max_length=150)
     type = models.CharField(max_length=50, choices=TypesChoice, default=Types.public)
     tracks = models.ManyToManyField(Track)
+    author = models.ForeignKey(User, models.CASCADE, related_name='playlists')
     # access_users: PlaylistAccess
 
 
