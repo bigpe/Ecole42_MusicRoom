@@ -8,28 +8,30 @@ from .models import PlaySession, SessionTrack
 User = get_user_model()
 
 
-def lookup_play_session(f: Callable):
-    def wrapper(self, play_session, *args):
-        if isinstance(play_session, int):
-            play_session = PlaySession.objects.get(id=play_session)
-        return f(self, play_session, *args)
-
-    return wrapper
-
-
-def lookup_track(f: Callable):
-    def wrapper(*args, **kwargs):
-        self = args[0]
-        track = args[1]
-        if isinstance(track, int):
-            track = SessionTrack.objects.get(id=track)
-        return f(self, track)
-
-    return wrapper
-
-
 class Player:
-    @lookup_play_session
+    class Decorators:
+        @staticmethod
+        def lookup_play_session(f: Callable):
+            def wrapper(self, play_session, *args):
+                if isinstance(play_session, int):
+                    try:
+                        play_session = PlaySession.objects.get(id=play_session)
+                    except PlaySession.DoesNotExist:
+                        play_session = None
+                return f(self, play_session, *args)
+
+            return wrapper
+
+        @staticmethod
+        def lookup_track(f: Callable):
+            def wrapper(self, track, *args):
+                if isinstance(track, int):
+                    track = SessionTrack.objects.get(id=track)
+                return f(self, track, *args)
+
+            return wrapper
+
+    @Decorators.lookup_play_session
     def __init__(self, play_session: [int, PlaySession]):
         self.play_session: PlaySession = play_session
 
@@ -49,7 +51,7 @@ class Player:
             return self.play_track(self.current_track)
         return self.play_track(self.previous_track)
 
-    @lookup_track
+    @Decorators.lookup_track
     def play_track(self, track: [int, SessionTrack]) -> SessionTrack:
         first_track = self.current_track
         next_track = self.next_track

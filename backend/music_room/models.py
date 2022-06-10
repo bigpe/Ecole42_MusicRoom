@@ -12,7 +12,7 @@ class User(AbstractUser):
 
 
 @receiver(post_save, sender=User)
-def post_notification(instance: User, created, **kwargs):
+def user_post_save(instance: User, created, **kwargs):
     if not created:
         return
 
@@ -72,7 +72,7 @@ class SessionTrack(models.Model):
         ordering = ['-votes_count', 'order']
 
     def __str__(self):
-        return f'{self.id}-{self.state}-{self.order}'
+        return f'{self.track.id}-{self.state}-{self.order}'
 
     class Bootstrap(BootstrapGeneric):
         state = 'stopped'
@@ -92,6 +92,7 @@ class PlaySession(models.Model, BootstrapMixin):
     playlist = models.ForeignKey(Playlist, models.CASCADE)
     track_queue = models.ManyToManyField(SessionTrack)
     mode = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)
+    author = models.ForeignKey(User, models.CASCADE)
 
     class Bootstrap(BootstrapGeneric):
         @staticmethod
@@ -99,3 +100,16 @@ class PlaySession(models.Model, BootstrapMixin):
             for i, track in enumerate(model.track_queue.all()):
                 track.order = i
                 track.save()
+
+
+@receiver(post_save, sender=PlaySession)
+def play_session_post_save(instance: PlaySession, created, **kwargs):
+    if not created:
+        return
+
+    PlaySession.objects.filter(author=instance.author).exclude(id=instance.id).delete()
+
+    tracks = instance.playlist.tracks.all()
+    for i, track in enumerate(tracks):
+        session_track = SessionTrack.objects.create(track=track, order=i)
+        instance.track_queue.add(session_track)

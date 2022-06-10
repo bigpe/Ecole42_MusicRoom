@@ -196,6 +196,7 @@ class TargetsEnum:
     """Broadcast targets"""
     for_all = 'for_all'  #: For all users in broadcast group
     for_user = 'for_user'  #: For specific user
+    only_for_initiator = 'only_for_initiator'  #: For initiator user
 
 
 class Message:
@@ -211,6 +212,8 @@ class Message:
 
     @property
     def is_target(self):
+        if self.target == TargetsEnum.only_for_initiator and self.is_initiator:
+            return True
         if self.is_initiator:
             return False
         if self.target == TargetsEnum.for_all:

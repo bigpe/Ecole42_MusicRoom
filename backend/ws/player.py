@@ -7,16 +7,18 @@ from music_room.service import Player
 from ws.base import BaseConsumer, TargetsEnum, Action, Message, BasePayload
 
 
-@dataclass
 class RequestPayload:
+    @dataclass
     class PlayTrack(BasePayload):
         play_session_id: int
         track_id: int = None
-        next: bool = False
-        previous: bool = False
+
+    @dataclass
+    class CreateSession(BasePayload):
+        playlist_id: int
+        shuffle: bool = False
 
 
-@dataclass
 class ResponsePayload:
     class PlayTrack(BasePayload):
         track_id: int
@@ -40,6 +42,8 @@ def get_player(f: Callable):
         message: Message = args[0]
         payload: RequestPayload.PlayTrack = args[1]
         player = Player(payload.play_session_id)
+        if not player.play_session:
+            return Action(event='error', params={'message': 'Session not found'}, system=message.system.to_data())
         return f(*args, player)
 
     return wrapper
@@ -50,8 +54,26 @@ def only_for_author(f: Callable):
         message: Message = args[0]
         payload: RequestPayload.PlayTrack = args[1]
         player: Player = args[2]
-        if message.user == player.play_session.playlist.author:
-            return f(*args)
+
+        if message.user != player.play_session.author:
+            return Action(
+                event='error',
+                params={'message': 'Only session author cat navigate player'},
+                system=message.system.to_data()
+            )
+        return f(*args)
+
+    return wrapper
+
+
+def check_play_session(f: Callable):
+    def wrapper(*args):
+        message: Message = args[0]
+        payload: RequestPayload.PlayTrack = args[1]
+        player = Player(payload.play_session_id)
+        if not player.play_session:
+            return
+        return f(*args)
 
     return wrapper
 
@@ -61,14 +83,36 @@ class PlayerConsumer(BaseConsumer):
     authed = True
     custom_target_resolver = {CustomTargetEnum.for_accessed: for_accessed}
 
+    def create_session(self, event):
+        def action_for_initiator(message: Message, payload: RequestPayload.CreateSession):
+            play_session = PlaySession.objects.create(playlist_id=payload.playlist_id, author=message.initiator_user)
+            payload = RequestPayload.CreateSession(**payload.to_data())
+            if payload.shuffle:
+                player = Player(play_session)
+                player.shuffle()
+                play_session = player.play_session
+            return Action(
+                event='session_created',
+                params={'session': PlaySessionSerializer(play_session).data},
+                system=event['system']
+            )
+
+        self.send_broadcast(
+            event,
+            action_for_initiator=action_for_initiator,
+            target=TargetsEnum.only_for_initiator
+        )
+
     def session(self, event, before_send: Callable = None):
         request_payload_type = RequestPayload.PlayTrack
-        action = Action(event='session_change', system=event['system'])
+        action = Action(event='session_changed', system=event['system'])
 
+        @check_play_session
         def action_for_target(message: Message, payload: request_payload_type):
             action.params = {'session': PlaySessionSerializer(Player(payload.play_session_id).play_session).data}
             return action
 
+        @check_play_session
         def action_for_initiator(message: Message, payload: request_payload_type):
             action.params = {'session': PlaySessionSerializer(Player(payload.play_session_id).play_session).data}
             return action
