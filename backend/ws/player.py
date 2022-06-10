@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Union
 
-from music_room.models import PlaySession
+from music_room.models import PlaySession, Playlist
 from music_room.serializers import PlaySessionSerializer
 from music_room.service import Player
 from ws.base import BaseConsumer, TargetsEnum, Action, Message, BasePayload
@@ -26,38 +26,38 @@ class CustomTargetEnum(TargetsEnum):
     for_accessed = 'for_accessed'
 
 
+def for_accessed(message: Union[Message, RequestPayload.PlayTrack]):
+    play_session = PlaySession.objects.get(id=message.play_session_id)
+    if play_session.playlist.type == Playlist.Types.public:
+        return True
+    if message.user in play_session.playlist.access_users.values_list('id', flat=True):
+        return True
+    return False
+
+
 class PlayerConsumer(BaseConsumer):
     broadcast_group = 'player'
     authed = True
-    custom_target_resolver = {
-        CustomTargetEnum.for_accessed:
-            lambda message: message.user in PlaySession.objects.get(
-                id=message.play_session_id).playlist.access_users.values_list('id', flat=True)
-    }
+    custom_target_resolver = {CustomTargetEnum.for_accessed: for_accessed}
 
     def _play_track(self, event, before_send: Callable = None):
         request_payload_type = RequestPayload.PlayTrack
+        action = Action(event='session_change', system=event['system'])
 
         def action_for_target(message: Message, payload: request_payload_type):
-            return Action(
-                event='play_track',
-                system=event['system'],
-                params=list(Player(payload.play_session_id).play_session.track_queue.all().values_list('id', flat=True))
-            )
+            action.params = {'session': PlaySessionSerializer(Player(payload.play_session_id).play_session).data}
+            return action
 
         def action_for_initiator(message: Message, payload: request_payload_type):
-            return Action(
-                event='play_track',
-                system=event['system'],
-                params=PlaySessionSerializer(Player(payload.play_session_id).play_session).data
-            )
+            action.params = {'session': PlaySessionSerializer(Player(payload.play_session_id).play_session).data}
+            return action
 
         self.send_broadcast(
             event,
             action_for_target=action_for_target,
             action_for_initiator=action_for_initiator,
             before_send=before_send,
-            target=CustomTargetEnum.for_all
+            target=CustomTargetEnum.for_accessed
         )
 
     def play_track(self, event):
