@@ -22,10 +22,13 @@ from django.urls import re_path
 from .middleware import AuthMiddlewareFromPath
 
 from ws.player import PlayerConsumer
+from ws.playlist import PlaylistConsumer, PlaylistRetrieveConsumer
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareFromPath(URLRouter([
-        re_path(r'^player/(?P<user_id>[\d]+)/', PlayerConsumer.as_asgi()),
+        re_path(r'^player/(?P<user_id>\d+)/', PlayerConsumer.as_asgi()),
+        re_path(r'^playlist/(?P<user_id>\d+)/', PlaylistConsumer.as_asgi()),
+        re_path(r'^playlist/(?P<playlist_id>\d+)/(?P<user_id>\d+)/', PlaylistRetrieveConsumer.as_asgi()),
     ])),
 })

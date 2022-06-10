@@ -13,15 +13,15 @@ except Exception:
 from music_room.models import PlaySession
 from django.contrib.auth.models import User
 
-session: PlaySession = PlaySession.objects.first()
+play_session:PlaySession = PlaySession.objects.first()
 
 #
-session.shuffle()
-print(session.track_queue.all())
-# session.previous_track.vote(User.objects.first())
-track = session.previous_track
-session.play_next()
-session.play_previous()
+play_session.shuffle()
+print(play_session.track_queue.all())
+# play_session.previous_track.vote(User.objects.first())
+track = play_session.previous_track
+play_session.play_next()
+play_session.play_previous()
 
-# print(session.track_queue.all().values('votes'))
+# print(play_session.track_queue.all().values('votes'))
 

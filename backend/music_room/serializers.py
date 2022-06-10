@@ -10,6 +10,8 @@ class TrackSerializer(serializers.ModelSerializer):
 
 
 class PlaylistSerializer(serializers.ModelSerializer):
+    tracks = TrackSerializer(many=True)
+
     class Meta:
         model = Playlist
         fields = '__all__'

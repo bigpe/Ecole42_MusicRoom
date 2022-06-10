@@ -3,12 +3,12 @@ from typing import Callable
 
 from django.contrib.auth import get_user_model
 
-from .models import PlaySession, SessionTrack
+from music_room.models import PlaySession, SessionTrack
 
 User = get_user_model()
 
 
-class Player:
+class PlayerService:
     class Decorators:
         @staticmethod
         def lookup_play_session(f: Callable):
