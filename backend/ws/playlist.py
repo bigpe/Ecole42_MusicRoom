@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Union, List
+from typing import Callable, List
 
 from music_room.models import Playlist
 from music_room.serializers import PlaylistSerializer
@@ -38,15 +38,9 @@ class PlaylistConsumer(BaseConsumer):
     broadcast_group = 'playlist'
     authed = True
 
-    def playlists(self, event, before_send: Callable = None):
+    def playlists(self, event, before_send: Callable = None, payload_type=None):
         request_payload_type = RequestPayload.ModifyPlaylists
         action = Action(event='playlists_changed', system=event['system'])
-
-        def action_for_target(message: Message, payload: request_payload_type):
-            action.params = ResponsePayload.Playlists(
-                playlists=PlaylistSerializer(message.user.playlists.all(), many=True).data,
-            ).to_data()
-            return action
 
         def action_for_initiator(message: Message, payload: request_payload_type):
             action.params = ResponsePayload.Playlists(
@@ -56,25 +50,24 @@ class PlaylistConsumer(BaseConsumer):
 
         self.send_broadcast(
             event,
-            action_for_target=action_for_target,
             action_for_initiator=action_for_initiator,
             before_send=before_send,
-            target=TargetsEnum.for_all
+            target=TargetsEnum.only_for_initiator,
+            payload_type=payload_type
         )
 
     def rename_playlist(self, event):
         def before_send(message: Message, payload: RequestPayload.ModifyPlaylist):
             playlist = PlaylistService(payload.playlist_id)
-            playlist.change_name(payload.playlist_name)
+            playlist.rename(payload.playlist_name)
 
         self.playlists(event, before_send)
 
     def add_playlist(self, event):
         def before_send(message: Message, payload: RequestPayload.ModifyPlaylists):
-            payload = RequestPayload.ModifyPlaylists(**payload.to_data())
             Playlist.objects.create(name=payload.playlist_name, type=payload.type, author=message.initiator_user)
 
-        self.playlists(event, before_send)
+        self.playlists(event, before_send, payload_type=RequestPayload.ModifyPlaylists)
 
     def remove_playlist(self, event):
         def before_send(message: Message, payload: RequestPayload.ModifyPlaylist):

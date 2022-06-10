@@ -91,7 +91,6 @@ class PlayerConsumer(BaseConsumer):
     def create_session(self, event):
         def action_for_initiator(message: Message, payload: RequestPayload.CreateSession):
             play_session = PlaySession.objects.create(playlist_id=payload.playlist_id, author=message.initiator_user)
-            payload = RequestPayload.CreateSession(**payload.to_data())
             if payload.shuffle:
                 play_session = PlayerService(play_session)
                 play_session.shuffle()
@@ -105,7 +104,8 @@ class PlayerConsumer(BaseConsumer):
         self.send_broadcast(
             event,
             action_for_initiator=action_for_initiator,
-            target=TargetsEnum.only_for_initiator
+            target=TargetsEnum.only_for_initiator,
+            payload_type=RequestPayload.CreateSession,
         )
 
     def session(self, event, before_send: Callable = None):

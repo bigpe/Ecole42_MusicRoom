@@ -42,6 +42,6 @@ class PlaylistService:
     def remove_track(self, track: [int, Track]):
         self.playlist.tracks.remove(track)
 
-    def change_name(self, name: str):
+    def rename(self, name: str):
         self.playlist.name = name
         self.playlist.save()

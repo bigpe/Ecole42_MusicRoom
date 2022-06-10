@@ -380,8 +380,12 @@ class BaseConsumer(JsonWebsocketConsumer):
 
     @safe
     def send_broadcast(self, event, action_for_target: Callable = None, action_for_initiator: Callable = None,
-                       target=TargetsEnum.for_user, before_send: Callable = None, system_before_send: Callable = None):
+                       target=TargetsEnum.for_user, before_send: Callable = None,
+                       system_before_send: Callable = None, payload_type: BasePayload() = None):
         payload = BasePayload(**event['params'])
+        if payload_type:
+            payload = payload_type(**payload.to_data())
+
         message = Message(
             **payload.to_data(),
             system=MessageSystem(
