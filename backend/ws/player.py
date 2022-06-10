@@ -54,6 +54,14 @@ def get_play_session(f: Callable):
     return wrapper
 
 
+def restore_play_session(f: Callable):
+    def wrapper(self):
+        play_session = PlaySession.objects.filter(author=self.get_user()).first()
+        return f(self, play_session)
+
+    return wrapper
+
+
 def only_for_author(f: Callable):
     def wrapper(*args):
         message: Message = args[0]
@@ -87,6 +95,13 @@ class PlayerConsumer(BaseConsumer):
     broadcast_group = 'player'
     authed = True
     custom_target_resolver = {CustomTargetEnum.for_accessed: for_accessed}
+
+    @restore_play_session
+    def connect(self, play_session: PlaySession):
+        super(PlayerConsumer, self).connect()
+        self.send_json(ResponsePayload.PlaySession(
+            play_session=PlaySessionSerializer(play_session).data if play_session else None
+        ).to_data())
 
     def create_session(self, event):
         def action_for_initiator(message: Message, payload: RequestPayload.CreateSession):
