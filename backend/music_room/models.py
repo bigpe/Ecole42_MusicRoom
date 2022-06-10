@@ -1,12 +1,23 @@
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 from bootstrap.utils import BootstrapMixin, BootstrapGeneric
 
 
 class User(AbstractUser):
     ...
     # playlists: Playlist
+
+
+@receiver(post_save, sender=User)
+def post_notification(instance: User, created, **kwargs):
+    if not created:
+        return
+
+    favourites_playlist = Playlist.objects.create(name='Favourites', type=Playlist.Types.private, author=instance)
+    instance.playlists.add(favourites_playlist)
 
 
 class Track(models.Model, BootstrapMixin):

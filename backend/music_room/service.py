@@ -65,7 +65,6 @@ class Player:
         next_track.save()
         last_track.save()
 
-
         # first_track = self.current_track
         # next_track = self.next_track
         # last_track = self.previous_track
