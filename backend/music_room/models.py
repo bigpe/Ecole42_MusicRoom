@@ -73,7 +73,7 @@ class SessionTrack(models.Model):
         (States.paused, 'Paused'),
     )
 
-    #: SessionChanged track state
+    #: Session track state
     state: States = models.CharField(max_length=50, choices=StatesChoice, default=States.stopped)
     #: Track object
     track: Track = models.ForeignKey(Track, models.CASCADE)

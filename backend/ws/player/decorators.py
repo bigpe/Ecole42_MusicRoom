@@ -13,7 +13,7 @@ def get_play_session(f: Callable):
     def wrapper(self: BaseEvent, message: Message, payload: payload_type, *args):
         play_session = PlayerService(payload.play_session_id)
         if not play_session.play_session:
-            return Action(event='error', payload={'message': 'SessionChanged not found'}, system=message.system.to_data())
+            return Action(event='error', payload={'message': 'Session not found'}, system=message.system.to_data())
         return f(self, message, payload, play_session, *args)
 
     return wrapper

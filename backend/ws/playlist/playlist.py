@@ -14,6 +14,7 @@ class PlaylistsConsumer(BaseConsumer):
 
     class PlaylistsChanged(BaseEvent):
         request_payload_type = RequestPayload.ModifyPlaylists
+        hidden = True
 
         def action_for_initiator(self, message: Message, payload: request_payload_type):
             action = Action(
@@ -65,6 +66,7 @@ class PlaylistRetrieveConsumer(BaseConsumer):
         request_payload_type = RequestPayload.ModifyPlaylistTracks
         change_message = None
         target = TargetsEnum.for_all
+        hidden = True
 
         def playlist(self, message: Message, payload: request_payload_type, playlist: PlaylistModel):
             action = Action(event=str(EventsList.playlist_changed), system=self.event['system'])

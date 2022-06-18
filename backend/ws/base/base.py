@@ -209,6 +209,14 @@ class BaseEvent:
 
     def __init__(self, event):
         self.event = event
+        if self.hidden:
+            action = Action(
+                event=ActionsEnum.error,
+                payload=ResponsePayload.ActionNotExist().to_data(),
+                system=ActionSystem()
+            )
+            self.consumer.send_json(content=action.to_data())
+            return
         self.consumer.send_broadcast(
             event,
             action_for_target=self.action_for_target,
