@@ -131,3 +131,7 @@ CHANNEL_LAYERS = {
 }
 
 AUTH_USER_MODEL = 'music_room.User'
+
+import django_heroku
+
+django_heroku.settings(locals())
