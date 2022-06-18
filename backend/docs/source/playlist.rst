@@ -6,13 +6,18 @@ Playlist
 Where send data?
 ++++++++++++++++
 
-All playlists :obj:`.rename_playlist` :obj:`.add_playlist` :obj:`.remove_playlist`
+All playlists
 """""""""""""""""""""
+:obj:`.rename_playlist` :obj:`.add_playlist` :obj:`.remove_playlist`
+
+
 .. note::
    **/ws/playlist/<str:token/user_id>/**
 
-Current showed playlist :obj:`.add_track` :obj:`.remove_track`
+Current showed playlist
 """""""""""""""""""""""""
+:obj:`.add_track` :obj:`.remove_track`
+
 .. note::
    **/ws/playlist/<int:playlist_id>/<str:token/user_id>/**
 
