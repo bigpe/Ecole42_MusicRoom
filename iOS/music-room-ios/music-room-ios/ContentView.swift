@@ -9,6 +9,10 @@ import SwiftUI
 import MusicKit
 
 struct ContentView: View {
+    private static let testUserID = "12"
+    
+    private var webSocketPlayer = try? WebSocketPlayer(userID: testUserID)
+    private var webSocketPlaylist = try? WebSocketPlaylist(userID: testUserID)
     
     @State
     private var artworkURL: URL?
@@ -17,16 +21,20 @@ struct ContentView: View {
     private func requestUpdatedSearchResults(for searchTerm: String) {
         Task {
             if searchTerm.isEmpty {
-//                self.reset()
+                await reset()
             } else {
                 do {
                     if MusicAuthorization.currentStatus == .notDetermined {
                         _ = await MusicAuthorization.request()
                     }
                     
-                    // Issue a catalog search request for albums matching the search term.
-                    var searchRequest = MusicCatalogSearchRequest(term: searchTerm, types: [Song.self])
+                    var searchRequest = MusicCatalogSearchRequest(
+                        term: searchTerm,
+                        types: [Song.self]
+                    )
+                    
                     searchRequest.limit = 5
+                    
                     let searchResponse = try await searchRequest.response()
                     
                     guard
@@ -65,13 +73,17 @@ struct ContentView: View {
                     AsyncImage(url: artworkURL) { phase in
                         switch phase {
                         case .empty:
-                            ProgressView()
+                            EmptyView()
+                            
                         case .success(let image):
-                            image.resizable()
+                            image
+                                .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .cornerRadius(8, antialiased: true)
+                            
                         case .failure:
                             EmptyView()
+                            
                         @unknown default:
                             EmptyView()
                         }
@@ -109,7 +121,13 @@ struct ContentView: View {
                 }
                 
                 Button {
-                    requestUpdatedSearchResults(for: "Skyfall")
+                    Task {
+                        do {
+                            try await webSocketPlayer?.createSession()
+                        } catch {
+                            print(error)
+                        }
+                    }
                 } label: {
                     Image(systemName: "play.fill")
                         .font(.system(size: 48))
