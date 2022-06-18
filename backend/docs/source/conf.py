@@ -16,6 +16,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+print(str(Path(__file__).parent.parent.parent))
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'django_app.settings'
 
 import django
@@ -38,7 +40,6 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.coverage',
     'sphinx_autodoc_typehints',
-    'sphinx_exec_code',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,5 +62,4 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-exec_code_working_dir = str(Path(__file__).parent.parent.parent)
 autodoc_member_order = 'bysource'
