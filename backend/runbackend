@@ -8,6 +8,10 @@ python3 manage.py makemigrations
 
 python3 manage.py migrate
 
+if [ "$BOOTSTRAP_ENABLED" = "1" ]; then \
+    python3 manage.py bootstrap --all
+fi
+
 if [ "$CREATE_SUPER_USER" = "1" ]; then \
     cat create_superuser.py | python3 manage.py shell
 fi

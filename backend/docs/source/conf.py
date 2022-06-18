@@ -16,8 +16,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-print(str(Path(__file__).parent.parent.parent))
-
 os.environ['DJANGO_SETTINGS_MODULE'] = 'django_app.settings'
 
 import django
