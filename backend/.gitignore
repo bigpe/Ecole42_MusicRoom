@@ -3,3 +3,5 @@ static/
 media/
 __pycache__/
 *.py[cod]
+docs/build/
+staticfiles/

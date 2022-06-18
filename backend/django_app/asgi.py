@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 
 import os
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rush01.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_app.settings')
 
 import django
 
