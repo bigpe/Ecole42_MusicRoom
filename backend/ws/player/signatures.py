@@ -16,6 +16,10 @@ class RequestPayload:
         playlist_id: int  #: Already created playlist id
         shuffle: bool = False  #: If you need create session with shuffle tracks in playlist
 
+    @dataclass
+    class RemoveSession(BasePayload):
+        play_session_id: int  #: Already started play session id
+
 
 class ResponsePayload:
     @dataclass

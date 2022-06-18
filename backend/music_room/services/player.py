@@ -40,7 +40,7 @@ class PlayerService:
     @staticmethod
     def vote(track: SessionTrack, user: User):
         track.votes.remove(user) if user in track.votes.all() else track.votes.add(user)
-        track.votes_count = track.votes.count()
+        track.votes_count = track.votes.all().count()
         track.save()
 
     def play_next(self) -> SessionTrack:
@@ -111,7 +111,7 @@ class PlayerService:
 
     @property
     def next_track(self) -> SessionTrack:
-        if self.play_session.track_queue.count() >= 2:
+        if self.play_session.track_queue.all().count() >= 2:
             return self.play_session.track_queue.all()[1]
         else:
             return self.current_track
@@ -137,4 +137,9 @@ class PlayerService:
     def stop_track(self):
         track: SessionTrack = self.current_track
         track.state = SessionTrack.States.stopped
+        track.save()
+
+    def freeze_session(self):
+        track: SessionTrack = self.play_session.track_queue.filter(state=SessionTrack.States.playing).first()
+        track.state = SessionTrack.States.paused
         track.save()

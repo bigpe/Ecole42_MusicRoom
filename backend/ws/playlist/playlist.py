@@ -56,11 +56,10 @@ class PlaylistRetrieveConsumer(BaseConsumer):
 
     # TODO Add permission for connect (only for accessed users)
 
-    @auth
     @get_playlist
-    def connect(self, playlist: PlaylistModel):
+    def after_connect(self, playlist: PlaylistModel):
         self.broadcast_group = f'playlist-{playlist.id}'
-        super(PlaylistRetrieveConsumer, self).connect()
+        self.join_group(self.broadcast_group)
 
     class PlaylistChanged(BaseEvent):
         request_payload_type = RequestPayload.ModifyPlaylistTracks

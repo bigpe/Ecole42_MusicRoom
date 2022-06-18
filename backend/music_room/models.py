@@ -78,7 +78,7 @@ class SessionTrack(models.Model):
     #: Track object
     track: Track = models.ForeignKey(Track, models.CASCADE)
     #: Votes user for next play
-    votes: List[User] = models.ManyToManyField(User)
+    votes: Union[List[User], Manager] = models.ManyToManyField(User)
     #: Votes count for next play
     votes_count: int = models.PositiveIntegerField(default=0)
     #: Tracks order in queue

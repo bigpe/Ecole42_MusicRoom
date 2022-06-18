@@ -32,6 +32,16 @@ Create Session
 .. autoclass:: ws.player.PlayerConsumer.CreateSession
    :inherited-members:
 
+Remove Session
+"""""""""""""""""""
+.. autoattribute:: ws.player.EventsList.remove_session
+   :noindex:
+
+.. seealso::
+   :obj:`.Examples.remove_session_request`
+.. autoclass:: ws.player.PlayerConsumer.RemoveSession
+   :inherited-members:
+
 Play Track
 """""""""""""""""""
 .. autoattribute:: ws.player.EventsList.play_track
@@ -149,6 +159,7 @@ Requests
 """"""""""""""""""""
 
 .. autoattribute:: Examples.create_session_request
+.. autoattribute:: Examples.remove_session_request
 .. autoattribute:: Examples.play_track_request
 .. autoattribute:: Examples.play_next_track_request
 .. autoattribute:: Examples.play_previous_track_request

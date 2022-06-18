@@ -42,6 +42,16 @@ class BaseConsumer(JsonWebsocketConsumer):
     def connect(self):
         self.cache_system()
         self.join_group(self.broadcast_group)
+        self.after_connect()
+
+    def after_connect(self):
+        ...
+
+    def before_disconnect(self):
+        ...
+
+    def disconnect(self, code):
+        self.before_disconnect()
 
     def send_json(self, content, close=False):
         if 'system' in content:

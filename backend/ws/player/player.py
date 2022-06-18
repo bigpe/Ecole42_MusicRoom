@@ -4,7 +4,7 @@ from music_room.models import PlaySession, Playlist
 from music_room.serializers import PlaySessionSerializer
 from music_room.services.player import PlayerService
 from ws.base import BaseConsumer, TargetsEnum, Action, Message, BaseEvent, camel_to_dot, ActionSystem, auth
-from .decorators import restore_play_session, check_play_session, only_for_author, get_play_session
+from .decorators import restore_play_session, check_play_session, only_for_author, get_play_session, get_playlist
 from .signatures import RequestPayload, ResponsePayload, CustomTargetEnum
 
 
@@ -22,13 +22,16 @@ class PlayerConsumer(BaseConsumer):
     authed = True
     custom_target_resolver = {CustomTargetEnum.for_accessed: for_accessed}
 
-    @auth
     @restore_play_session
-    def connect(self, play_session: PlaySession):
-        super(PlayerConsumer, self).connect()
+    def after_connect(self, play_session: PlaySession):
         self.send_json(ResponsePayload.PlaySession(
             play_session=PlaySessionSerializer(play_session).data if play_session else None
         ).to_data())
+
+    @restore_play_session
+    def before_disconnect(self, play_session: PlaySession):
+        if play_session:
+            PlayerService(play_session).freeze_session()
 
     class CreateSession(BaseEvent):
         """Create play session"""
@@ -36,17 +39,25 @@ class PlayerConsumer(BaseConsumer):
         response_payload_type = ResponsePayload.PlaySession
         target = TargetsEnum.only_for_initiator
 
-        def action_for_initiator(self, message: Message, payload: request_payload_type):
-            play_session = PlaySession.objects.create(playlist_id=payload.playlist_id, author=message.initiator_user)
+        @get_playlist
+        def action_for_initiator(self, message: Message, payload: request_payload_type, playlist: Playlist):
+            play_session = PlaySession.objects.create(playlist=playlist, author=message.initiator_user)
             if payload.shuffle:
                 play_session = PlayerService(play_session)
                 play_session.shuffle()
                 play_session = play_session.play_session
             return Action(
-                event='session_created',
+                event=str(EventsList.create_session),
                 payload=ResponsePayload.PlaySession(play_session=PlaySessionSerializer(play_session).data).to_data(),
                 system=self.event['system']
             )
+
+    class RemoveSession(BaseEvent):
+        """Remove play session"""
+        request_payload_type = RequestPayload.RemoveSession
+
+        def before_send(self, message: Message, payload: request_payload_type):
+            PlaySession.objects.filter(id=payload.play_session_id).delete()
 
     class Session(BaseEvent):
         request_payload_type = RequestPayload.ModifyTrack
@@ -149,6 +160,7 @@ class PlayerConsumer(BaseConsumer):
 class EventsList:
     session_changed: PlayerConsumer.Session = 'session.changed'
     create_session: PlayerConsumer.CreateSession = camel_to_dot(PlayerConsumer.CreateSession.__name__)
+    remove_session: PlayerConsumer.RemoveSession = camel_to_dot(PlayerConsumer.RemoveSession.__name__)
     play_track: PlayerConsumer.PlayTrack = camel_to_dot(PlayerConsumer.PlayTrack.__name__)
     play_next_track: PlayerConsumer.PlayNextTrack = camel_to_dot(PlayerConsumer.PlayNextTrack.__name__)
     play_previous_track: PlayerConsumer.PlayPreviousTrack = camel_to_dot(PlayerConsumer.PlayPreviousTrack.__name__)
@@ -168,6 +180,12 @@ class Examples:
     create_session_request = Action(
         event=str(EventsList.create_session),
         payload=RequestPayload.CreateSession(playlist_id=1, shuffle=True).to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
+    remove_session_request = Action(
+        event=str(EventsList.remove_session),
+        payload=RequestPayload.RemoveSession(play_session_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 

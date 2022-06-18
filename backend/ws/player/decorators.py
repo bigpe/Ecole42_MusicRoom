@@ -1,6 +1,6 @@
 from typing import Callable
 
-from music_room.models import PlaySession
+from music_room.models import PlaySession, Playlist
 from music_room.services import PlayerService
 from ws.base import BaseEvent, Action, Message
 
@@ -54,5 +54,19 @@ def check_play_session(f: Callable):
         if not play_session.play_session:
             return
         return f(self, message, payload, *args)
+
+    return wrapper
+
+
+def get_playlist(f: Callable):
+    from ws.player.player import RequestPayload
+
+    payload_type = RequestPayload.CreateSession
+
+    def wrapper(self: BaseEvent, message: Message, payload: payload_type, *args):
+        playlist = Playlist.objects.filter(id=payload.playlist_id, author=self.consumer.get_user()).first()
+        if not playlist:
+            return Action(event='error', payload={'message': 'Playlist not found'}, system=message.system.to_data())
+        return f(self, message, payload, playlist, *args)
 
     return wrapper
