@@ -9,5 +9,3 @@ sphinx-autodoc-typehints
 django-heroku
 drf-yasg
 drf-yasg[validation]
-
-
