@@ -1,0 +1,9 @@
+django
+djangorestframework
+mimesis
+channels
+daphne
+sphinx
+sphinx-rtd-theme
+sphinx-autodoc-typehints
+sphinx_exec_code

@@ -17,7 +17,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 
-from .utils import safe
+from .utils import safe, camel_to_snake, user_cache_key
 
 User = get_user_model()
 
@@ -68,7 +68,7 @@ def check_payload(f):
             def action_for_initiator(message: Message, payload):
                 return Action(
                     event=ActionsEnum.error,
-                    params=ResponsePayloads.PayloadSignatureWrong(required=required_payload).to_data(),
+                    params=ResponsePayload.PayloadSignatureWrong(required=required_payload).to_data(),
                     system=self.get_systems()
                 )
 
@@ -85,7 +85,7 @@ def check_recipient(f):
         else:
             action = Action(
                 event=ActionsEnum.error,
-                params=ResponsePayloads.RecipientNotExist().to_data(),
+                params=ResponsePayload.RecipientNotExist().to_data(),
                 system=ActionSystem(**message.system.to_data())
             )
             return action
@@ -101,7 +101,7 @@ def check_recipient_not_me(f):
         else:
             action = Action(
                 event=ActionsEnum.error,
-                params=ResponsePayloads.RecipientIsMe().to_data(),
+                params=ResponsePayload.RecipientIsMe().to_data(),
                 system=ActionSystem(**message.system.to_data())
             )
             return action
@@ -266,7 +266,7 @@ class BasePayload:
         return self.to_data()
 
 
-class ResponsePayloads:
+class ResponsePayload:
     """List of response params signatures"""
 
     @dataclass
@@ -296,18 +296,20 @@ class ResponsePayloads:
         message: str  #: Error message
 
 
-def user_cache_key(user: User):
-    return f'user-{user.id}'
-
-
-def get_system_cache(user: User):
-    return cache.get(user_cache_key(user), {})
-
-
 class BaseConsumer(JsonWebsocketConsumer):
     broadcast_group = None
     authed = True
     custom_target_resolver = {}
+
+    def __init__(self):
+        super(BaseConsumer, self).__init__()
+        attributes = list(filter(lambda attr: not attr.startswith('_') and not attr.startswith('__'), dir(self)))
+        classes = list(filter(lambda cls: hasattr(getattr(self, cls), '__base__'), attributes))
+        events = list(filter(lambda e: issubclass(getattr(self, e), BaseEvent), classes))
+        for event in events:
+            event_class = getattr(self, event)
+            event_class.consumer = self
+            setattr(self, camel_to_snake(event), event_class)
 
     @auth
     def connect(self):
@@ -356,7 +358,7 @@ class BaseConsumer(JsonWebsocketConsumer):
                 unexpected = str(e).split('argument')[1].strip().replace("'", '')
                 action = Action(
                     event=ActionsEnum.error,
-                    params=ResponsePayloads.ActionSignatureWrong(unexpected=unexpected).to_data(),
+                    params=ResponsePayload.ActionSignatureWrong(unexpected=unexpected).to_data(),
                     system=self.get_systems()
                 )
                 self.send_json(content=action.to_data())
@@ -366,7 +368,7 @@ class BaseConsumer(JsonWebsocketConsumer):
                 if not action_handler:
                     action = Action(
                         event=ActionsEnum.error,
-                        params=ResponsePayloads.ActionNotExist().to_data(),
+                        params=ResponsePayload.ActionNotExist().to_data(),
                         system=self.get_systems()
                     )
                     self.send_json(content=action.to_data())
@@ -380,7 +382,7 @@ class BaseConsumer(JsonWebsocketConsumer):
 
     @safe
     def send_broadcast(self, event, action_for_target: Callable = None, action_for_initiator: Callable = None,
-                       target=TargetsEnum.for_user, before_send: Callable = None,
+                       target=TargetsEnum.for_all, before_send: Callable = None,
                        system_before_send: Callable = None, payload_type: BasePayload() = None):
         payload = BasePayload(**event['params'])
         if payload_type:
@@ -403,7 +405,7 @@ class BaseConsumer(JsonWebsocketConsumer):
         if (message.target == TargetsEnum.for_user and not message.target_user) and message.is_initiator:
             action = Action(
                 event=ActionsEnum.error,
-                params=ResponsePayloads.RecipientNotExist().to_data(),
+                params=ResponsePayload.RecipientNotExist().to_data(),
                 system=ActionSystem(**message.system.to_data())
             )
             self.send_json(content=action.to_data())
@@ -441,14 +443,40 @@ class BaseConsumer(JsonWebsocketConsumer):
         Other Parameters
         -------
         Response Initiator
-            :obj:`.Action` :obj:`.ResponsePayloads.Error`
+            :obj:`.Action` :obj:`.ResponsePayload.Error`
         """
 
-        def action_for_initiator(message: Message, payload: ResponsePayloads.Error):
+        def action_for_initiator(message: Message, payload: ResponsePayload.Error):
             return Action(
                 event=ActionsEnum.error,
-                params=ResponsePayloads.Error(message=payload.message).to_data(),
+                params=ResponsePayload.Error(message=payload.message).to_data(),
                 system=event['system']
             )
 
         self.send_broadcast(event, action_for_initiator=action_for_initiator)
+
+
+class BaseEvent:
+    request_payload_type = BasePayload
+    target = TargetsEnum.for_all
+    consumer: BaseConsumer = None
+
+    def __init__(self, event):
+        self.event = event
+        self.consumer.send_broadcast(
+            event,
+            action_for_target=self.action_for_target,
+            action_for_initiator=self.action_for_initiator,
+            target=self.target,
+            before_send=self.before_send,
+            payload_type=self.request_payload_type
+        )
+
+    def before_send(self, message: Message, payload: request_payload_type):
+        ...
+
+    def action_for_initiator(self, message: Message, payload: request_payload_type):
+        ...
+
+    def action_for_target(self, message: Message, payload: request_payload_type):
+        ...

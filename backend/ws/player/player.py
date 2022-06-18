@@ -1,22 +1,24 @@
 from dataclasses import dataclass
-from typing import Callable, Union
+from typing import Callable, Union, Optional
 
 from music_room.models import PlaySession, Playlist
 from music_room.serializers import PlaySessionSerializer
 from music_room.services.player import PlayerService
-from ws.base import BaseConsumer, TargetsEnum, Action, Message, BasePayload
+from ws.base import BaseConsumer, TargetsEnum, Action, Message, BasePayload, BaseEvent
 
 
 class RequestPayload:
     @dataclass
     class ModifyTrack(BasePayload):
-        play_session_id: int
-        track_id: int = None
+        """Modify track"""
+        play_session_id: int  #: Already started play session id
+        track_id: Optional[int] = None  # Optional, track id for any actions
 
     @dataclass
     class CreateSession(BasePayload):
-        playlist_id: int
-        shuffle: bool = False
+        """Create Session"""
+        playlist_id: int  #: Already created playlist id
+        shuffle: bool = False  #: If you need create session with shuffle tracks in playlist
 
 
 class ResponsePayload:
@@ -43,13 +45,13 @@ def for_accessed(message: Union[Message, RequestPayload.ModifyTrack]):
 
 
 def get_play_session(f: Callable):
-    def wrapper(*args):
-        message: Message = args[0]
-        payload: RequestPayload.ModifyTrack = args[1]
+    payload_type = RequestPayload.ModifyTrack
+
+    def wrapper(self: BaseEvent, message: Message, payload: payload_type, *args):
         play_session = PlayerService(payload.play_session_id)
         if not play_session.play_session:
             return Action(event='error', params={'message': 'Session not found'}, system=message.system.to_data())
-        return f(*args, play_session)
+        return f(self, message, payload, play_session, *args)
 
     return wrapper
 
@@ -63,30 +65,28 @@ def restore_play_session(f: Callable):
 
 
 def only_for_author(f: Callable):
-    def wrapper(*args):
-        message: Message = args[0]
-        payload: RequestPayload.ModifyTrack = args[1]
-        play_session: PlayerService = args[2]
+    payload_type = RequestPayload.ModifyTrack
 
+    def wrapper(self: BaseEvent, message: Message, payload: payload_type, play_session: PlayerService, *args):
         if message.user != play_session.play_session.author:
             return Action(
                 event='error',
                 params={'message': 'Only session author cat navigate player'},
                 system=message.system.to_data()
             )
-        return f(*args)
+        return f(self, message, payload, play_session, *args)
 
     return wrapper
 
 
 def check_play_session(f: Callable):
-    def wrapper(*args):
-        message: Message = args[0]
-        payload: RequestPayload.ModifyTrack = args[1]
+    payload_type = RequestPayload.ModifyTrack
+
+    def wrapper(self: BaseEvent, message: Message, payload: payload_type, *args):
         play_session = PlayerService(payload.play_session_id)
         if not play_session.play_session:
             return
-        return f(*args)
+        return f(self, message, payload, *args)
 
     return wrapper
 
@@ -103,8 +103,14 @@ class PlayerConsumer(BaseConsumer):
             play_session=PlaySessionSerializer(play_session).data if play_session else None
         ).to_data())
 
-    def create_session(self, event):
-        def action_for_initiator(message: Message, payload: RequestPayload.CreateSession):
+    class CreateSession(BaseEvent):
+        """
+        Create session
+        """
+        request_payload_type = RequestPayload.CreateSession
+        target = TargetsEnum.only_for_initiator
+
+        def action_for_initiator(self, message: Message, payload: request_payload_type):
             play_session = PlaySession.objects.create(playlist_id=payload.playlist_id, author=message.initiator_user)
             if payload.shuffle:
                 play_session = PlayerService(play_session)
@@ -113,94 +119,81 @@ class PlayerConsumer(BaseConsumer):
             return Action(
                 event='session_created',
                 params=ResponsePayload.PlaySession(play_session=PlaySessionSerializer(play_session).data).to_data(),
-                system=event['system']
+                system=self.event['system']
             )
 
-        self.send_broadcast(
-            event,
-            action_for_initiator=action_for_initiator,
-            target=TargetsEnum.only_for_initiator,
-            payload_type=RequestPayload.CreateSession,
-        )
-
-    def session(self, event, before_send: Callable = None):
+    class Session(BaseEvent):
         request_payload_type = RequestPayload.ModifyTrack
-        action = Action(event='session_changed', system=event['system'])
+        target = CustomTargetEnum.for_accessed
 
         @check_play_session
-        def action_for_target(message: Message, payload: request_payload_type):
+        def action_for_target(self, message: Message, payload: request_payload_type):
+            action = Action(event='session_changed', system=self.event['system'])
             action.params = ResponsePayload.PlaySession(
                 play_session=PlaySessionSerializer(
                     PlayerService(payload.play_session_id).play_session).data).to_data(),
             return action
 
         @check_play_session
-        def action_for_initiator(message: Message, payload: request_payload_type):
+        def action_for_initiator(self, message: Message, payload: request_payload_type):
+            action = Action(event='session_changed', system=self.event['system'])
             action.params = ResponsePayload.PlaySession(
                 play_session=PlaySessionSerializer(
                     PlayerService(payload.play_session_id).play_session).data).to_data(),
             return action
 
-        self.send_broadcast(
-            event,
-            action_for_target=action_for_target,
-            action_for_initiator=action_for_initiator,
-            before_send=before_send,
-            target=CustomTargetEnum.for_accessed
-        )
+    class PlayTrack(Session, BaseEvent):
+        request_payload_type = RequestPayload.ModifyTrack
 
-    def play_track(self, event):
         @get_play_session
         @only_for_author
-        def before_send(message: Message, payload: RequestPayload.ModifyTrack, play_session: PlayerService):
-            play_session.play_track(payload.track_id)
+        def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
+            play_session.play_track(play_session.current_track)
 
-        self.session(event, before_send)
+    class PlayNextTrack(Session, BaseEvent):
+        request_payload_type = RequestPayload.ModifyTrack
 
-    def play_next_track(self, event):
         @get_play_session
         @only_for_author
-        def before_send(message: Message, payload: RequestPayload.ModifyTrack, play_session: PlayerService):
+        def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.play_next()
 
-        self.session(event, before_send)
+    class PlayPreviousTrack(Session, BaseEvent):
+        request_payload_type = RequestPayload.ModifyTrack
 
-    def play_previous_track(self, event):
         @get_play_session
         @only_for_author
-        def before_send(message: Message, payload: RequestPayload.ModifyTrack, play_session: PlayerService):
+        def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.play_previous()
 
-        self.session(event, before_send)
+    class Shuffle(Session, BaseEvent):
+        request_payload_type = RequestPayload.ModifyTrack
 
-    def shuffle(self, event):
         @get_play_session
         @only_for_author
-        def before_send(message: Message, payload: RequestPayload.ModifyTrack, play_session: PlayerService):
+        def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.shuffle()
 
-        self.session(event, before_send)
+    class PauseTrack(Session, BaseEvent):
+        request_payload_type = RequestPayload.ModifyTrack
 
-    def pause_track(self, event):
         @get_play_session
         @only_for_author
-        def before_send(message: Message, payload: RequestPayload.ModifyTrack, play_session: PlayerService):
+        def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.pause_track()
 
-        self.session(event, before_send)
+    class ResumeTrack(Session, BaseEvent):
+        request_payload_type = RequestPayload.ModifyTrack
 
-    def resume_track(self, event):
         @get_play_session
         @only_for_author
-        def before_send(message: Message, payload: RequestPayload.ModifyTrack, play_session: PlayerService):
+        def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.resume_track()
 
-        self.session(event, before_send)
+    class StopTrack(Session, BaseEvent):
+        request_payload_type = RequestPayload.ModifyTrack
 
-    def stop_track(self, event):
         @get_play_session
         @only_for_author
-        def before_send(message: Message, payload: RequestPayload.ModifyTrack, play_session: PlayerService):
+        def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.stop_track()
-
-        self.session(event, before_send)

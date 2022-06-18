@@ -1,12 +1,33 @@
+import functools
 from hashlib import md5
+from typing import Callable
 
 from channels.generic.websocket import JsonWebsocketConsumer
 import traceback
 import sys
 import re
 
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
 
-def safe(f):
+User = get_user_model()
+
+
+def camel_to_snake(name):
+    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+
+
+def user_cache_key(user: User):
+    return f'user-{user.id}'
+
+
+def get_system_cache(user: User):
+    return cache.get(user_cache_key(user), {})
+
+
+def safe(f: Callable) -> Callable:
+    @functools.wraps(f)
     def wrapper(self: JsonWebsocketConsumer, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
