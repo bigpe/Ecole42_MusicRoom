@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from bootstrap.utils import BootstrapMixin, BootstrapGeneric
 
 
-class User(AbstractUser):
+class User(AbstractUser, BootstrapMixin):
     ...
     # playlists: PlaylistChanged
 
@@ -27,6 +27,14 @@ class Track(models.Model, BootstrapMixin):
     name = models.CharField(max_length=150)  #: Track name
 
 
+class PlaylistTrack(models.Model, BootstrapMixin):
+    track: Track = models.ForeignKey(Track, models.CASCADE)  #: Track object
+    order: int = models.PositiveIntegerField(default=0)  #: Track order in playlist
+
+    class Meta:
+        ordering = ['order']
+
+
 class Playlist(models.Model, BootstrapMixin):
     class Types:
         public = 'public'  #: Everyone can access
@@ -42,18 +50,10 @@ class Playlist(models.Model, BootstrapMixin):
     #: PlaylistChanged type
     type: Types = models.CharField(max_length=50, choices=TypesChoice, default=Types.public)
     #: PlaylistChanged`s tracks
-    tracks: Union[List[Track], Manager] = models.ManyToManyField(Track)
+    tracks: Union[List[PlaylistTrack], Manager] = models.ManyToManyField(PlaylistTrack)
     #: PlaylistChanged`s author
     author: User = models.ForeignKey(User, models.CASCADE, related_name='playlists')
     # access_users: PlaylistAccess
-
-
-class PlaylistTrack(models.Model, BootstrapMixin):
-    track: Track = models.ForeignKey(Track, models.CASCADE)  #: Track object
-    order: int = models.PositiveIntegerField(default=0)  #: Track order in playlist
-
-    class Meta:
-        ordering = ['order']
 
 
 class PlaylistAccess(models.Model, BootstrapMixin):
@@ -95,7 +95,7 @@ class SessionTrack(models.Model):
         votes_count = 0
 
 
-class PlaySession(models.Model, BootstrapMixin):
+class PlayerSession(models.Model, BootstrapMixin):
     class Modes:
         repeat = 'repeat'  #: Repeat single track for loop
         normal = 'normal'  #: Normal mode, tracks play in usual order
@@ -109,9 +109,9 @@ class PlaySession(models.Model, BootstrapMixin):
     playlist: Union[Playlist, Manager] = models.ForeignKey(Playlist, models.CASCADE)
     #: Track queue
     track_queue: Union[List[SessionTrack], Manager] = models.ManyToManyField(SessionTrack)
-    #: Play session mode
+    #: Player Session mode
     mode: Modes = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)
-    #: Play session author
+    #: Player Session author
     author: User = models.ForeignKey(User, models.CASCADE)
 
     class Bootstrap(BootstrapGeneric):
@@ -122,12 +122,12 @@ class PlaySession(models.Model, BootstrapMixin):
                 track.save()
 
 
-@receiver(post_save, sender=PlaySession)
-def play_session_post_save(instance: PlaySession, created, **kwargs):
+@receiver(post_save, sender=PlayerSession)
+def player_session_post_save(instance: PlayerSession, created, **kwargs):
     if not created:
         return
 
-    PlaySession.objects.filter(author=instance.author).exclude(id=instance.id).delete()
+    PlayerSession.objects.filter(author=instance.author).exclude(id=instance.id).delete()
 
     tracks = instance.playlist.tracks.all()
     for i, track in enumerate(tracks):

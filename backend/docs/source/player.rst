@@ -143,10 +143,10 @@ Play Track
 .. autoclass:: ws.player.signatures.ResponsePayload.PlayTrack
    :inherited-members:
 
-Play Session
+Player Session
 """""""""""""""""""
 
-.. autoclass:: ws.player.signatures.ResponsePayload.PlaySession
+.. autoclass:: ws.player.signatures.ResponsePayload.PlayerSession
    :inherited-members:
 
 Examples

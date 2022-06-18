@@ -17,9 +17,9 @@ ____________________
    :members: state, States, track, votes, votes_count, order
    :undoc-members:
 
-Play Session
+Player Session
 ____________________
-.. autoclass:: music_room.models.PlaySession
+.. autoclass:: music_room.models.PlayerSession
    :members: playlist, track_queue, mode, Modes, author
    :undoc-members:
 

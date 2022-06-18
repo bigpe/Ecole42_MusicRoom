@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from music_room.models import PlaySession
+from music_room.models import PlayerSession
 from ws.base import BasePayload, TargetsEnum
 
 
 class RequestPayload:
     @dataclass
     class ModifyTrack(BasePayload):
-        play_session_id: int  #: Already started play session id
+        player_session_id: int  #: Already started player session id
         track_id: Optional[int] = None  #: Optional, track id for any actions with it
 
     @dataclass
@@ -18,7 +18,7 @@ class RequestPayload:
 
     @dataclass
     class RemoveSession(BasePayload):
-        play_session_id: int  #: Already started play session id
+        player_session_id: int  #: Already started player session id
 
 
 class ResponsePayload:
@@ -27,8 +27,8 @@ class ResponsePayload:
         track_id: int  #: Track id
 
     @dataclass
-    class PlaySession(BasePayload):
-        play_session: PlaySession  #: Play session object
+    class PlayerSession(BasePayload):
+        player_session: PlayerSession  #: player session object
 
 
 class CustomTargetEnum(TargetsEnum):

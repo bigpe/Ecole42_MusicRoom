@@ -117,7 +117,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-INSTALLED_APPS += ['music_room', 'rest_framework', 'bootstrap', 'channels']
+INSTALLED_APPS += ['music_room', 'rest_framework', 'bootstrap', 'channels', 'drf_yasg',]
 
 BOOTSTRAP_ENABLED = True
 BOOTSTRAP_PRUNE = True
@@ -135,3 +135,10 @@ AUTH_USER_MODEL = 'music_room.User'
 import django_heroku
 
 django_heroku.settings(locals())
+
+PROJECT_NAME = 'Music Room API'
+
+API_INFO = {
+    'title': PROJECT_NAME,
+    'description': 'API for Music Room project',
+}

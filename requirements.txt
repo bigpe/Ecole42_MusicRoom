@@ -6,6 +6,8 @@ daphne
 sphinx
 sphinx-rtd-theme
 sphinx-autodoc-typehints
-sphinx_exec_code
 django-heroku
+drf-yasg
+drf-yasg[validation]
+
 

@@ -4,7 +4,7 @@ from typing import Callable
 
 from django.contrib.auth import get_user_model
 
-from music_room.models import PlaySession, SessionTrack
+from music_room.models import PlayerSession, SessionTrack
 
 User = get_user_model()
 
@@ -12,14 +12,14 @@ User = get_user_model()
 class PlayerService:
     class Decorators:
         @staticmethod
-        def lookup_play_session(f: Callable):
-            def wrapper(self, play_session, *args):
-                if isinstance(play_session, int):
+        def lookup_player_session(f: Callable):
+            def wrapper(self, player_session, *args):
+                if isinstance(player_session, int):
                     try:
-                        play_session = PlaySession.objects.get(id=play_session)
-                    except PlaySession.DoesNotExist:
-                        play_session = None
-                return f(self, play_session, *args)
+                        player_session = PlayerSession.objects.get(id=player_session)
+                    except PlayerSession.DoesNotExist:
+                        player_session = None
+                return f(self, player_session, *args)
 
             return wrapper
 
@@ -33,9 +33,9 @@ class PlayerService:
 
             return wrapper
 
-    @Decorators.lookup_play_session
-    def __init__(self, play_session: [int, PlaySession]):
-        self.play_session: PlaySession = play_session
+    @Decorators.lookup_player_session
+    def __init__(self, player_session: [int, PlayerSession]):
+        self.player_session: PlayerSession = player_session
 
     @staticmethod
     def vote(track: SessionTrack, user: User):
@@ -44,12 +44,12 @@ class PlayerService:
         track.save()
 
     def play_next(self) -> SessionTrack:
-        if self.play_session.mode == self.play_session.Modes.repeat:
+        if self.player_session.mode == self.player_session.Modes.repeat:
             return self.play_track(self.current_track)
         return self.play_track(self.next_track)
 
     def play_previous(self) -> SessionTrack:
-        if self.play_session.mode == self.play_session.Modes.repeat:
+        if self.player_session.mode == self.player_session.Modes.repeat:
             return self.play_track(self.current_track)
         return self.play_track(self.previous_track)
 
@@ -85,11 +85,11 @@ class PlayerService:
         # next_track.save()
         # last_track.save()
         #
-        # for i, t in enumerate(self.play_session.track_queue.all()):
+        # for i, t in enumerate(self.player_session.track_queue.all()):
         #     t.order = i
         #     t.save()
         #
-        # current_track = self.play_session.track_queue.first()
+        # current_track = self.player_session.track_queue.first()
         # if current_track.votes.count():
         #     current_track.votes.clear()
         #     current_track.votes_count = current_track.votes.count()
@@ -98,31 +98,31 @@ class PlayerService:
         #     n.order, p.order = p.order, n.order
         #     n.save()
         #     p.save()
-        # print(self.play_session.track_queue.all())
+        # print(self.player_session.track_queue.all())
         return track
 
     @property
     def previous_track(self) -> SessionTrack:
-        return self.play_session.track_queue.last()
+        return self.player_session.track_queue.last()
 
     @property
     def current_track(self) -> SessionTrack:
-        return self.play_session.track_queue.order_by('order').first()
+        return self.player_session.track_queue.order_by('order').first()
 
     @property
     def next_track(self) -> SessionTrack:
-        if self.play_session.track_queue.all().count() >= 2:
-            return self.play_session.track_queue.all()[1]
+        if self.player_session.track_queue.all().count() >= 2:
+            return self.player_session.track_queue.all()[1]
         else:
             return self.current_track
 
     def shuffle(self):
-        tracks = list(self.play_session.playlist.tracks.all())
-        self.play_session.track_queue.all().delete()
+        tracks = list(self.player_session.playlist.tracks.all())
+        self.player_session.track_queue.all().delete()
         for i in range(len(tracks)):
             random_track = random.choice(tracks)
             session_track = SessionTrack.objects.create(track=tracks.pop(tracks.index(random_track)), order=i)
-            self.play_session.track_queue.add(session_track)
+            self.player_session.track_queue.add(session_track)
 
     def pause_track(self):
         track: SessionTrack = self.current_track
@@ -140,6 +140,6 @@ class PlayerService:
         track.save()
 
     def freeze_session(self):
-        track: SessionTrack = self.play_session.track_queue.filter(state=SessionTrack.States.playing).first()
+        track: SessionTrack = self.player_session.track_queue.filter(state=SessionTrack.States.playing).first()
         track.state = SessionTrack.States.paused
         track.save()

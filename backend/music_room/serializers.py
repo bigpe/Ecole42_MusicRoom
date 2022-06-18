@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Track, Playlist, PlaySession, SessionTrack
+from .models import Track, Playlist, PlayerSession, SessionTrack, PlaylistTrack, PlaylistAccess, User
 
 
 class TrackSerializer(serializers.ModelSerializer):
@@ -9,8 +9,14 @@ class TrackSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PlaylistTrackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlaylistTrack
+        fields = '__all__'
+
+
 class PlaylistSerializer(serializers.ModelSerializer):
-    tracks = TrackSerializer(many=True)
+    tracks = PlaylistTrackSerializer(many=True)
 
     class Meta:
         model = Playlist
@@ -23,9 +29,25 @@ class SessionTrackSerializer(serializers.ModelSerializer):
         fields = ['state', 'id']
 
 
-class PlaySessionSerializer(serializers.ModelSerializer):
+class PlayerSessionSerializer(serializers.ModelSerializer):
     track_queue = SessionTrackSerializer(many=True)
 
     class Meta:
-        model = PlaySession
+        model = PlayerSession
         fields = '__all__'
+
+
+class PlaylistAccessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlaylistAccess
+        fields = '__all__'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'password']
+        extra_kwargs = {
+            'username': {'write_only': True},
+            'password': {'write_only': True},
+        }
