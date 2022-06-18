@@ -144,7 +144,7 @@ def player_session_post_save(instance: PlayerSession, created, **kwargs):
 
     PlayerSession.objects.filter(author=instance.author).exclude(id=instance.id).delete()
 
-    tracks = instance.playlist.tracks.all()
-    for i, track in enumerate(tracks):
-        session_track = SessionTrack.objects.create(track=track, order=i)
+    playlist_tracks: List[PlaylistTrack] = instance.playlist.tracks.all()
+    for i, playlist_track in enumerate(playlist_tracks):
+        session_track = SessionTrack.objects.create(track=playlist_track.track, order=i)
         instance.track_queue.add(session_track)

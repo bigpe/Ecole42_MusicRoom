@@ -48,7 +48,8 @@ class PlayerConsumer(BaseConsumer):
                 player_session = player_session.player_session
             return Action(
                 event=str(EventsList.create_session),
-                payload=ResponsePayload.PlayerSession(player_session=PlayerSessionSerializer(player_session).data).to_data(),
+                payload=ResponsePayload.PlayerSession(
+                    player_session=PlayerSessionSerializer(player_session).data).to_data(),
                 system=self.event['system']
             )
 
