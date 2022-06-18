@@ -24,7 +24,22 @@ def user_post_save(instance: User, created, **kwargs):
 
 
 class Track(models.Model, BootstrapMixin):
-    name = models.CharField(max_length=150)  #: Track name
+    name = models.CharField(max_length=150, unique=True)  #: Track name
+
+    class Bootstrap(BootstrapGeneric):
+        bootstrap_count = 10
+        name = [
+            'Adele — Skyfall',
+            'Gorillaz — DARE',
+            'Gesaffelstein — Ignio',
+            'Curbi — Too Much',
+            'Faithless — Insomnia',
+            'Don Diablo — The Rhytm',
+            'Gaullin — Moonlight',
+            'Blasterjaxx — Echo',
+            'Dustycloud — Bold',
+            'The Weeknd — In The Night',
+        ]
 
 
 class PlaylistTrack(models.Model, BootstrapMixin):
