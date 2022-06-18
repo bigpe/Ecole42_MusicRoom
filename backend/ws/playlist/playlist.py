@@ -1,6 +1,6 @@
 from music_room.models import Playlist as PlaylistModel, Track, Playlist
 from music_room.serializers import PlaylistSerializer
-from ws.base import BaseConsumer, TargetsEnum, Action, Message, BaseEvent, ActionSystem
+from ws.base import BaseConsumer, TargetsEnum, Action, Message, BaseEvent, ActionSystem, auth
 from music_room.services import PlaylistService
 from .decorators import get_playlist
 from .signatures import RequestPayload, ResponsePayload
@@ -56,6 +56,7 @@ class PlaylistRetrieveConsumer(BaseConsumer):
 
     # TODO Add permission for connect (only for accessed users)
 
+    @auth
     @get_playlist
     def connect(self, playlist: PlaylistModel):
         self.broadcast_group = f'playlist-{playlist.id}'

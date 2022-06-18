@@ -3,7 +3,7 @@ from typing import Union
 from music_room.models import PlaySession, Playlist
 from music_room.serializers import PlaySessionSerializer
 from music_room.services.player import PlayerService
-from ws.base import BaseConsumer, TargetsEnum, Action, Message, BaseEvent, camel_to_dot, ActionSystem
+from ws.base import BaseConsumer, TargetsEnum, Action, Message, BaseEvent, camel_to_dot, ActionSystem, auth
 from .decorators import restore_play_session, check_play_session, only_for_author, get_play_session
 from .signatures import RequestPayload, ResponsePayload, CustomTargetEnum
 
@@ -22,6 +22,7 @@ class PlayerConsumer(BaseConsumer):
     authed = True
     custom_target_resolver = {CustomTargetEnum.for_accessed: for_accessed}
 
+    @auth
     @restore_play_session
     def connect(self, play_session: PlaySession):
         super(PlayerConsumer, self).connect()
