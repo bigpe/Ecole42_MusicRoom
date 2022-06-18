@@ -1,0 +1,17 @@
+#!/bin/bash
+
+./create_requirements
+
+source .env
+
+heroku buildpacks:clear --app $HEROKU_TEST_APP_NAME
+heroku buildpacks:add https://github.com/SectorLabs/heroku-buildpack-subdir.git --app $HEROKU_TEST_APP_NAME
+heroku config:set \
+        BOOTSTRAP_ENABLED=$DJANGO_BOOTSTRAP_ENABLED \
+        BOOTSTRAP_PRUNE=$DJANGO_BOOTSTRAP_PRUNE \
+        COLLECT_STATIC=$DJANGO_COLLECT_STATIC \
+        SECRET_KEY=$DJANGO_SECRET_KEY \
+        ALLOWED_HOSTS=$DJANGO_ALLOWED_HOSTS \
+        CREATE_SUPER_USER=$DJANGO_CREATE_SUPER_USER \
+      --app $HEROKU_TEST_APP_NAME
+heroku git:remote -a $HEROKU_TEST_APP_NAME --remote heroku_test

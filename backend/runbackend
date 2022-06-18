@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ -d "backend" ]; then
+    cd backend
+fi
+
+python3 manage.py makemigrations
+
+python3 manage.py migrate
+
+if [ "$CREATE_SUPER_USER" = "1" ]; then \
+    cat create_superuser.py | python3 manage.py shell
+fi
+
+if [[ -n "$COLLECT_STATIC" ]]; then \
+    if [ "$COLLECT_STATIC" = "1" ]; then \
+        python3 manage.py collectstatic --noinput
+    fi
+    else \
+      python3 manage.py collectstatic --noinput
+fi
+
+# Generate docs
+cd docs && make html && cd -
+
+if [ "$DEBUG" = "1" ]; then \
+    python3 manage.py runserver "0.0.0.0:${BACKEND_PORT:-8000}"
+else \
+  daphne -b 0.0.0.0 -p "${BACKEND_PORT:-8000}" django_app.asgi:application
+fi

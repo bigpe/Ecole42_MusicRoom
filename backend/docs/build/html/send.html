@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Whats send? &mdash; music-room  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> music-room
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="websocket.html">Websockets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">music-room</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Whats send?</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/send.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="toctree-wrapper compound">
+</div>
+<section id="whats-send">
+<h1>Whats send?<a class="headerlink" href="#whats-send" title="Permalink to this heading"></a></h1>
+<div class="line-block">
+<div class="line"><strong>Short events list</strong></div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="ws.playlist.EventsList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ws.playlist.</span></span><span class="sig-name descname"><span class="pre">EventsList</span></span><a class="headerlink" href="#ws.playlist.EventsList" title="Permalink to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.EventsList.add_playlist">
+<span class="sig-name descname"><span class="pre">add_playlist</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="playlist.html#ws.playlist.PlaylistsConsumer.AddPlaylist" title="ws.playlist.playlist.PlaylistsConsumer.AddPlaylist"><span class="pre">AddPlaylist</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'add.playlist'</span></em><a class="headerlink" href="#ws.playlist.EventsList.add_playlist" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.EventsList.add_track">
+<span class="sig-name descname"><span class="pre">add_track</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="playlist.html#ws.playlist.PlaylistRetrieveConsumer.AddTrack" title="ws.playlist.playlist.PlaylistRetrieveConsumer.AddTrack"><span class="pre">AddTrack</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'add.track'</span></em><a class="headerlink" href="#ws.playlist.EventsList.add_track" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.EventsList.remove_playlist">
+<span class="sig-name descname"><span class="pre">remove_playlist</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="playlist.html#ws.playlist.PlaylistsConsumer.RemovePlaylist" title="ws.playlist.playlist.PlaylistsConsumer.RemovePlaylist"><span class="pre">RemovePlaylist</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'remove.playlist'</span></em><a class="headerlink" href="#ws.playlist.EventsList.remove_playlist" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.EventsList.remove_track">
+<span class="sig-name descname"><span class="pre">remove_track</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="playlist.html#ws.playlist.PlaylistRetrieveConsumer.RemoveTrack" title="ws.playlist.playlist.PlaylistRetrieveConsumer.RemoveTrack"><span class="pre">RemoveTrack</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'remove.track'</span></em><a class="headerlink" href="#ws.playlist.EventsList.remove_track" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.EventsList.rename_playlist">
+<span class="sig-name descname"><span class="pre">rename_playlist</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="playlist.html#ws.playlist.PlaylistsConsumer.RenamePlaylist" title="ws.playlist.playlist.PlaylistsConsumer.RenamePlaylist"><span class="pre">RenamePlaylist</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'rename.playlist'</span></em><a class="headerlink" href="#ws.playlist.EventsList.rename_playlist" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ws.player.RequestPayload">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ws.player.</span></span><span class="sig-name descname"><span class="pre">RequestPayload</span></span><a class="headerlink" href="#ws.player.RequestPayload" title="Permalink to this definition"></a></dt>
+<dd><dl class="py class">
+<dt class="sig sig-object py" id="ws.player.RequestPayload.CreateSession">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CreateSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">playlist_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ws.player.RequestPayload.CreateSession" title="Permalink to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="ws.player.RequestPayload.CreateSession.playlist_id">
+<span class="sig-name descname"><span class="pre">playlist_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#ws.player.RequestPayload.CreateSession.playlist_id" title="Permalink to this definition"></a></dt>
+<dd><p>Already created playlist id</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.player.RequestPayload.CreateSession.shuffle">
+<span class="sig-name descname"><span class="pre">shuffle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#ws.player.RequestPayload.CreateSession.shuffle" title="Permalink to this definition"></a></dt>
+<dd><p>If you need create session with shuffle tracks in playlist</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ws.player.RequestPayload.ModifyTrack">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ModifyTrack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">play_session_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">track_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ws.player.RequestPayload.ModifyTrack" title="Permalink to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="ws.player.RequestPayload.ModifyTrack.play_session_id">
+<span class="sig-name descname"><span class="pre">play_session_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#ws.player.RequestPayload.ModifyTrack.play_session_id" title="Permalink to this definition"></a></dt>
+<dd><p>Already started play session id</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.player.RequestPayload.ModifyTrack.track_id">
+<span class="sig-name descname"><span class="pre">track_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ws.player.RequestPayload.ModifyTrack.track_id" title="Permalink to this definition"></a></dt>
+<dd><p>Optional, track id for any actions with it</p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ws.playlist.</span></span><span class="sig-name descname"><span class="pre">RequestPayload</span></span><a class="headerlink" href="#ws.playlist.RequestPayload" title="Permalink to this definition"></a></dt>
+<dd><dl class="py class">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload.ModifyPlaylist">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ModifyPlaylist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">playlist_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">playlist_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ws.playlist.RequestPayload.ModifyPlaylist" title="Permalink to this definition"></a></dt>
+<dd><p>Modify playlist</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload.ModifyPlaylist.playlist_id">
+<span class="sig-name descname"><span class="pre">playlist_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#ws.playlist.RequestPayload.ModifyPlaylist.playlist_id" title="Permalink to this definition"></a></dt>
+<dd><p>Already created playlist id</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload.ModifyPlaylist.playlist_name">
+<span class="sig-name descname"><span class="pre">playlist_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ws.playlist.RequestPayload.ModifyPlaylist.playlist_name" title="Permalink to this definition"></a></dt>
+<dd><p>Playlist name if you want to change old name</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload.ModifyPlaylistTracks">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ModifyPlaylistTracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ws.playlist.RequestPayload.ModifyPlaylistTracks" title="Permalink to this definition"></a></dt>
+<dd><p>Modify playlist tracks</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload.ModifyPlaylistTracks.track_id">
+<span class="sig-name descname"><span class="pre">track_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#ws.playlist.RequestPayload.ModifyPlaylistTracks.track_id" title="Permalink to this definition"></a></dt>
+<dd><p>Track if for any actions with it (eg. remove, add)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload.ModifyPlaylists">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ModifyPlaylists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">playlist_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'public'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ws.playlist.RequestPayload.ModifyPlaylists" title="Permalink to this definition"></a></dt>
+<dd><p>Modify playlists</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload.ModifyPlaylists.playlist_name">
+<span class="sig-name descname"><span class="pre">playlist_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ws.playlist.RequestPayload.ModifyPlaylists.playlist_name" title="Permalink to this definition"></a></dt>
+<dd><p>Playlist name for create new one</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ws.playlist.RequestPayload.ModifyPlaylists.type">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="models.html#music_room.models.Playlist.Types" title="music_room.models.Playlist.Types"><span class="pre">Types</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'public'</span></em><a class="headerlink" href="#ws.playlist.RequestPayload.ModifyPlaylists.type" title="Permalink to this definition"></a></dt>
+<dd><p>Playlist type</p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="how-send">
+<h1>How send?<a class="headerlink" href="#how-send" title="Permalink to this heading"></a></h1>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, lrorscha.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

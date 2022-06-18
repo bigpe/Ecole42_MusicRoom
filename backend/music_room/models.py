@@ -1,5 +1,8 @@
+from typing import List, Union
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.manager import Manager
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -8,7 +11,7 @@ from bootstrap.utils import BootstrapMixin, BootstrapGeneric
 
 class User(AbstractUser):
     ...
-    # playlists: Playlist
+    # playlists: PlaylistChanged
 
 
 @receiver(post_save, sender=User)
@@ -21,28 +24,36 @@ def user_post_save(instance: User, created, **kwargs):
 
 
 class Track(models.Model, BootstrapMixin):
-    name = models.CharField(max_length=150)
-    order = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        ordering = ['order']
+    name = models.CharField(max_length=150)  #: Track name
 
 
 class Playlist(models.Model, BootstrapMixin):
     class Types:
-        public = 'public'
-        private = 'private'
+        public = 'public'  #: Everyone can access
+        private = 'private'  #: Only invited users can access
 
     TypesChoice = (
         (Types.public, 'Public'),
         (Types.private, 'Private'),
     )
 
+    #: PlaylistChanged name
     name = models.CharField(max_length=150)
-    type = models.CharField(max_length=50, choices=TypesChoice, default=Types.public)
-    tracks = models.ManyToManyField(Track)
-    author = models.ForeignKey(User, models.CASCADE, related_name='playlists')
+    #: PlaylistChanged type
+    type: Types = models.CharField(max_length=50, choices=TypesChoice, default=Types.public)
+    #: PlaylistChanged`s tracks
+    tracks: Union[List[Track], Manager] = models.ManyToManyField(Track)
+    #: PlaylistChanged`s author
+    author: User = models.ForeignKey(User, models.CASCADE, related_name='playlists')
     # access_users: PlaylistAccess
+
+
+class PlaylistTrack(models.Model, BootstrapMixin):
+    track: Track = models.ForeignKey(Track, models.CASCADE)  #: Track object
+    order: int = models.PositiveIntegerField(default=0)  #: Track order in playlist
+
+    class Meta:
+        ordering = ['order']
 
 
 class PlaylistAccess(models.Model, BootstrapMixin):
@@ -62,11 +73,16 @@ class SessionTrack(models.Model):
         (States.paused, 'Paused'),
     )
 
-    state = models.CharField(max_length=50, choices=StatesChoice, default=States.stopped)
-    track = models.ForeignKey(Track, models.CASCADE)
-    votes = models.ManyToManyField(User)
-    votes_count = models.PositiveIntegerField(default=0)
-    order = models.PositiveIntegerField(default=0)
+    #: Session track state
+    state: States = models.CharField(max_length=50, choices=StatesChoice, default=States.stopped)
+    #: Track object
+    track: Track = models.ForeignKey(Track, models.CASCADE)
+    #: Votes user for next play
+    votes: List[User] = models.ManyToManyField(User)
+    #: Votes count for next play
+    votes_count: int = models.PositiveIntegerField(default=0)
+    #: Tracks order in queue
+    order: int = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['-votes_count', 'order']
@@ -81,18 +97,22 @@ class SessionTrack(models.Model):
 
 class PlaySession(models.Model, BootstrapMixin):
     class Modes:
-        repeat = 'repeat'
-        normal = 'normal'
+        repeat = 'repeat'  #: Repeat single track for loop
+        normal = 'normal'  #: Normal mode, tracks play in usual order
 
     ModeChoice = (
         (Modes.normal, 'Normal'),
         (Modes.repeat, 'Repeat one song'),
     )
 
-    playlist = models.ForeignKey(Playlist, models.CASCADE)
-    track_queue = models.ManyToManyField(SessionTrack)
-    mode = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)
-    author = models.ForeignKey(User, models.CASCADE)
+    #: PlaylistChanged object
+    playlist: Union[Playlist, Manager] = models.ForeignKey(Playlist, models.CASCADE)
+    #: Track queue
+    track_queue: Union[List[SessionTrack], Manager] = models.ManyToManyField(SessionTrack)
+    #: Play session mode
+    mode: Modes = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)
+    #: Play session author
+    author: User = models.ForeignKey(User, models.CASCADE)
 
     class Bootstrap(BootstrapGeneric):
         @staticmethod

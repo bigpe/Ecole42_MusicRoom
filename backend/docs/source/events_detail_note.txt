@@ -1,0 +1,4 @@
+Detail event signature, you can inspect what you want to send **request_payload_type**,
+what you receive by this action triggered **response_payload_type**
+and separated types **response_payload_type_initiator/response_payload_type_target**
+if payload type different in certain contexts

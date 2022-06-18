@@ -1,0 +1,7 @@
+location /media {
+    root /app;
+}
+
+location /static {
+    root /app;
+}

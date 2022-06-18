@@ -1,0 +1,9 @@
+#!/bin/bash
+
+source .env
+
+./create_requirements
+
+git push heroku_test `git rev-parse --abbrev-ref HEAD`:master
+
+heroku ps:restart --app $HEROKU_TEST_APP_NAME

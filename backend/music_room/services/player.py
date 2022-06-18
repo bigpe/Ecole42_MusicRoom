@@ -1,4 +1,5 @@
 import random
+from functools import wraps
 from typing import Callable
 
 from django.contrib.auth import get_user_model
@@ -24,6 +25,7 @@ class PlayerService:
 
         @staticmethod
         def lookup_track(f: Callable):
+            @wraps(f)
             def wrapper(self, track, *args):
                 if isinstance(track, int):
                     track = SessionTrack.objects.get(id=track)

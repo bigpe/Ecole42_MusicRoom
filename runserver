@@ -1,0 +1,9 @@
+#!/bin/bash
+
+./backend/runbackend &
+
+sleep 20
+
+# Heroku or run without docker
+echo "Server started"
+touch /tmp/app-initialized

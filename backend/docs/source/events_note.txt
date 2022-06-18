@@ -1,0 +1,1 @@
+All existed events for this WS consumer, event name and link to consumer behaviour

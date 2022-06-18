@@ -1,0 +1,19 @@
+upstream backend {
+    server backend:${BACKEND_PORT};
+}
+
+server {
+    listen 80 default_server;
+    server_name ${DOMAIN};
+
+    keepalive_timeout 60s;
+    sendfile on;
+    tcp_nopush on;
+    client_body_timeout 5;
+
+    uwsgi_read_timeout 36000;
+    client_max_body_size 50m;
+
+    include templates/base.locations;
+    include templates/static.locations;
+}
