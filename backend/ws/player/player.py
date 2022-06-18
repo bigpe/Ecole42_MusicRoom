@@ -3,7 +3,7 @@ from typing import Union
 from music_room.models import PlaySession, Playlist
 from music_room.serializers import PlaySessionSerializer
 from music_room.services.player import PlayerService
-from ws.base import BaseConsumer, TargetsEnum, Action, Message, BaseEvent, camel_to_dot, ActionSystem, auth
+from ws.base import BaseConsumer, TargetsEnum, Action, Message, BaseEvent, camel_to_dot, ActionSystem
 from .decorators import restore_play_session, check_play_session, only_for_author, get_play_session, get_playlist
 from .signatures import RequestPayload, ResponsePayload, CustomTargetEnum
 
@@ -59,13 +59,14 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type):
             PlaySession.objects.filter(id=payload.play_session_id).delete()
 
-    class Session(BaseEvent):
+    class SessionChanged(BaseEvent):
         request_payload_type = RequestPayload.ModifyTrack
         target = CustomTargetEnum.for_accessed
+        hidden = True
 
         @check_play_session
         def action_for_target(self, message: Message, payload: request_payload_type):
-            action = Action(event='session_changed', system=self.event['system'])
+            action = Action(event=str(EventsList.session_changed), system=self.event['system'])
             action.payload = ResponsePayload.PlaySession(
                 play_session=PlaySessionSerializer(
                     PlayerService(payload.play_session_id).play_session).data).to_data(),
@@ -73,13 +74,13 @@ class PlayerConsumer(BaseConsumer):
 
         @check_play_session
         def action_for_initiator(self, message: Message, payload: request_payload_type):
-            action = Action(event='session_changed', system=self.event['system'])
+            action = Action(event=str(EventsList.session_changed), system=self.event['system'])
             action.payload = ResponsePayload.PlaySession(
                 play_session=PlaySessionSerializer(
                     PlayerService(payload.play_session_id).play_session).data).to_data(),
             return action
 
-    class PlayTrack(Session, BaseEvent):
+    class PlayTrack(SessionChanged, BaseEvent):
         """Play track by id, or current track if id not provided"""
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlaySession
@@ -90,7 +91,7 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.play_track(payload.track_id if payload.track_id else play_session.current_track)
 
-    class PlayNextTrack(Session, BaseEvent):
+    class PlayNextTrack(SessionChanged, BaseEvent):
         """Play next track for current play session"""
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlaySession
@@ -101,7 +102,7 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.play_next()
 
-    class PlayPreviousTrack(Session, BaseEvent):
+    class PlayPreviousTrack(SessionChanged, BaseEvent):
         """Play previous track for current play session"""
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlaySession
@@ -112,7 +113,7 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.play_previous()
 
-    class Shuffle(Session, BaseEvent):
+    class Shuffle(SessionChanged, BaseEvent):
         """Shuffle tracks for current play session"""
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlaySession
@@ -123,7 +124,7 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.shuffle()
 
-    class PauseTrack(Session, BaseEvent):
+    class PauseTrack(SessionChanged, BaseEvent):
         """Pause current played track for current play session"""
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlaySession
@@ -134,7 +135,7 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.pause_track()
 
-    class ResumeTrack(Session, BaseEvent):
+    class ResumeTrack(SessionChanged, BaseEvent):
         """Pause current paused track for current play session"""
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlaySession
@@ -145,7 +146,7 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, play_session: PlayerService):
             play_session.resume_track()
 
-    class StopTrack(Session, BaseEvent):
+    class StopTrack(SessionChanged, BaseEvent):
         """Pause current track for current play session"""
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlaySession
@@ -158,7 +159,7 @@ class PlayerConsumer(BaseConsumer):
 
 
 class EventsList:
-    session_changed: PlayerConsumer.Session = 'session.changed'
+    session_changed: PlayerConsumer.SessionChanged = camel_to_dot(PlayerConsumer.SessionChanged.__name__)
     create_session: PlayerConsumer.CreateSession = camel_to_dot(PlayerConsumer.CreateSession.__name__)
     remove_session: PlayerConsumer.RemoveSession = camel_to_dot(PlayerConsumer.RemoveSession.__name__)
     play_track: PlayerConsumer.PlayTrack = camel_to_dot(PlayerConsumer.PlayTrack.__name__)

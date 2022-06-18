@@ -35,8 +35,13 @@ class BaseConsumer(JsonWebsocketConsumer):
         events = list(filter(lambda e: issubclass(getattr(self, e), BaseEvent), classes))
         for event in events:
             event_class = getattr(self, event)
+            hidden = False
+            if hasattr(event_class, 'hidden'):
+                if event_class.hidden:
+                    hidden = True
             event_class.consumer = self
-            setattr(self, camel_to_snake(event), event_class)
+            if not hidden:
+                setattr(self, camel_to_snake(event), event_class)
 
     @auth
     def connect(self):
@@ -200,6 +205,7 @@ class BaseEvent:
     response_payload_type_target = BasePayload
     target = TargetsEnum.for_all
     consumer: BaseConsumer = None
+    hidden = False
 
     def __init__(self, event):
         self.event = event
