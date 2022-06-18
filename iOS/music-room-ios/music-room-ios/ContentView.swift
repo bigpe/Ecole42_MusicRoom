@@ -6,14 +6,77 @@
 //
 
 import SwiftUI
+import MusicKit
 
 struct ContentView: View {
+    
+    @State
+    private var artworkURL: URL?
+    
+    /// Makes a new search request to MusicKit when the current search term changes.
+    private func requestUpdatedSearchResults(for searchTerm: String) {
+        Task {
+            if searchTerm.isEmpty {
+//                self.reset()
+            } else {
+                do {
+                    if MusicAuthorization.currentStatus == .notDetermined {
+                        _ = await MusicAuthorization.request()
+                    }
+                    
+                    // Issue a catalog search request for albums matching the search term.
+                    var searchRequest = MusicCatalogSearchRequest(term: searchTerm, types: [Song.self])
+                    searchRequest.limit = 5
+                    let searchResponse = try await searchRequest.response()
+                    
+                    guard
+                        let song = searchResponse.songs.first
+                    else {
+                        return
+                    }
+                    
+                    await apply(song)
+                } catch let error {
+                    print("Search request failed with error: \(error).")
+                    
+                    await reset()
+                }
+            }
+        }
+    }
+    
+    /// Apply Song Metadata
+    @MainActor
+    private func apply(_ song: Song) {
+        artworkURL = song.artwork?.url(width: 1000, height: 1000)
+    }
+    
+    @MainActor
+    private func reset() {
+        artworkURL = nil
+    }
+    
     var body: some View {
         LazyVStack(alignment: .center, spacing: 64) {
-            
             RoundedRectangle(cornerRadius: 8, style: .circular)
                 .aspectRatio(1, contentMode: .fit)
                 .foregroundColor(.gray)
+                .overlay {
+                    AsyncImage(url: artworkURL) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                        case .success(let image):
+                            image.resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .cornerRadius(8, antialiased: true)
+                        case .failure:
+                            EmptyView()
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                }
             
             LazyVStack(alignment: .leading, spacing: 48) {
                 Text("Not Playing")
@@ -46,7 +109,7 @@ struct ContentView: View {
                 }
                 
                 Button {
-                    print("Play")
+                    requestUpdatedSearchResults(for: "Skyfall")
                 } label: {
                     Image(systemName: "play.fill")
                         .font(.system(size: 48))
@@ -62,12 +125,12 @@ struct ContentView: View {
                 }
             }
             
-            LazyHStack(alignment: .center, spacing: 72) {
+            LazyHStack(alignment: .center, spacing: 76) {
                 Button {
                     print("Shuffle")
                 } label: {
                     Image(systemName: "shuffle")
-                        .font(.system(size: 24))
+                        .font(.system(size: 20))
                         .foregroundColor(.gray)
                 }
                 
@@ -80,10 +143,10 @@ struct ContentView: View {
                 }
                 
                 Button {
-                    print("Repeat")
+                    print("Playlist")
                 } label: {
-                    Image(systemName: "repeat")
-                        .font(.system(size: 24))
+                    Image(systemName: "list.bullet")
+                        .font(.system(size: 20, weight: .medium))
                         .foregroundColor(.gray)
                 }
             }
