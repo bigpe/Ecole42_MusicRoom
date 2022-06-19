@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from .models import Track, Playlist, PlayerSession, SessionTrack, PlaylistTrack, PlaylistAccess, User
@@ -44,10 +45,21 @@ class PlaylistAccessSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'password']
+        fields = ['id', 'username', 'password', 'password2']
         extra_kwargs = {
             'username': {'write_only': True},
             'password': {'write_only': True},
         }
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        validated_data.pop('password2')
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
