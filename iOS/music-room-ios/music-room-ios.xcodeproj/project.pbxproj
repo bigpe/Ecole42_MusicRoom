@@ -7,22 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C33B7C14285E8F08000399BA /* PlayerEventsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C13285E8F08000399BA /* PlayerEventsList.swift */; };
+		C33B7C17285E906B000399BA /* PlaylistEventsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C16285E906B000399BA /* PlaylistEventsList.swift */; };
+		C33B7C19285EB170000399BA /* PlayerMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C18285EB170000399BA /* PlayerMessage.swift */; };
 		C36ABA17285BBBFC008D4D03 /* music_room_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36ABA16285BBBFC008D4D03 /* music_room_iosApp.swift */; };
 		C36ABA19285BBBFC008D4D03 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36ABA18285BBBFC008D4D03 /* ContentView.swift */; };
 		C36ABA1B285BBBFD008D4D03 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */; };
 		C36ABA1E285BBBFD008D4D03 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1D285BBBFD008D4D03 /* Preview Assets.xcassets */; };
-		C3E715BE285E4DAD0038667B /* WebSocketPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E715BD285E4DAD0038667B /* WebSocketPlayer.swift */; };
-		C3E715C0285E50660038667B /* WebSocketPlaylist.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E715BF285E50660038667B /* WebSocketPlaylist.swift */; };
+		C3E715BE285E4DAD0038667B /* PlayerWebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E715BD285E4DAD0038667B /* PlayerWebSocket.swift */; };
+		C3E715C0285E50660038667B /* PlaylistWebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E715BF285E50660038667B /* PlaylistWebSocket.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C33B7C13285E8F08000399BA /* PlayerEventsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEventsList.swift; sourceTree = "<group>"; };
+		C33B7C16285E906B000399BA /* PlaylistEventsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistEventsList.swift; sourceTree = "<group>"; };
+		C33B7C18285EB170000399BA /* PlayerMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerMessage.swift; sourceTree = "<group>"; };
 		C36ABA13285BBBFC008D4D03 /* music-room-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "music-room-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C36ABA16285BBBFC008D4D03 /* music_room_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = music_room_iosApp.swift; sourceTree = "<group>"; };
 		C36ABA18285BBBFC008D4D03 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C36ABA1D285BBBFD008D4D03 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		C3E715BD285E4DAD0038667B /* WebSocketPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketPlayer.swift; sourceTree = "<group>"; };
-		C3E715BF285E50660038667B /* WebSocketPlaylist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketPlaylist.swift; sourceTree = "<group>"; };
+		C3E715BD285E4DAD0038667B /* PlayerWebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerWebSocket.swift; sourceTree = "<group>"; };
+		C3E715BF285E50660038667B /* PlaylistWebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistWebSocket.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +42,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C33B7C11285E8EDD000399BA /* WebSocket */ = {
+			isa = PBXGroup;
+			children = (
+				C3E715BD285E4DAD0038667B /* PlayerWebSocket.swift */,
+				C3E715BF285E50660038667B /* PlaylistWebSocket.swift */,
+			);
+			path = WebSocket;
+			sourceTree = "<group>";
+		};
+		C33B7C12285E8EED000399BA /* Entities */ = {
+			isa = PBXGroup;
+			children = (
+				C33B7C13285E8F08000399BA /* PlayerEventsList.swift */,
+				C33B7C16285E906B000399BA /* PlaylistEventsList.swift */,
+				C33B7C18285EB170000399BA /* PlayerMessage.swift */,
+			);
+			path = Entities;
+			sourceTree = "<group>";
+		};
+		C33B7C15285E9056000399BA /* View */ = {
+			isa = PBXGroup;
+			children = (
+				C36ABA18285BBBFC008D4D03 /* ContentView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		C36ABA0A285BBBFC008D4D03 = {
 			isa = PBXGroup;
 			children = (
@@ -56,9 +89,9 @@
 			isa = PBXGroup;
 			children = (
 				C36ABA16285BBBFC008D4D03 /* music_room_iosApp.swift */,
-				C36ABA18285BBBFC008D4D03 /* ContentView.swift */,
-				C3E715BD285E4DAD0038667B /* WebSocketPlayer.swift */,
-				C3E715BF285E50660038667B /* WebSocketPlaylist.swift */,
+				C33B7C15285E9056000399BA /* View */,
+				C33B7C11285E8EDD000399BA /* WebSocket */,
+				C33B7C12285E8EED000399BA /* Entities */,
 				C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */,
 				C36ABA1C285BBBFD008D4D03 /* Preview Content */,
 			);
@@ -144,9 +177,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				C36ABA19285BBBFC008D4D03 /* ContentView.swift in Sources */,
+				C33B7C14285E8F08000399BA /* PlayerEventsList.swift in Sources */,
+				C33B7C17285E906B000399BA /* PlaylistEventsList.swift in Sources */,
 				C36ABA17285BBBFC008D4D03 /* music_room_iosApp.swift in Sources */,
-				C3E715BE285E4DAD0038667B /* WebSocketPlayer.swift in Sources */,
-				C3E715C0285E50660038667B /* WebSocketPlaylist.swift in Sources */,
+				C3E715BE285E4DAD0038667B /* PlayerWebSocket.swift in Sources */,
+				C3E715C0285E50660038667B /* PlaylistWebSocket.swift in Sources */,
+				C33B7C19285EB170000399BA /* PlayerMessage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
