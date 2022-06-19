@@ -6,7 +6,6 @@ from drf_yasg.views import get_schema_view
 from rest_framework.authentication import BasicAuthentication
 
 from .views import TrackListView, PlaylistListView, PlayerSessionRetrieveView, SignUpCreateView
-from django.contrib.auth import views as auth_views
 
 
 class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
@@ -37,5 +36,4 @@ urlpatterns = [
     path('playlist/', PlaylistListView.as_view()),
     path('player/session/', PlayerSessionRetrieveView.as_view()),
     path('sign/up/', SignUpCreateView.as_view()),
-    path('accounts/login/', auth_views.LoginView.as_view()),
 ]

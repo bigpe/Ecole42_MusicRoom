@@ -144,3 +144,7 @@ API_INFO = {
 }
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+SWAGGER_SETTINGS = {
+   'USE_SESSION_AUTH': False
+}
