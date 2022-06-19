@@ -12,14 +12,14 @@ All playlists
 
 
 .. note::
-   **/ws/playlist/<str:token/user_id>/**
+   **/ws/playlist/<user_id>/**
 
 Current showed playlist
 """""""""""""""""""""""""
 :obj:`.add_track` :obj:`.remove_track`
 
 .. note::
-   **/ws/playlist/<int:playlist_id>/<str:token/user_id>/**
+   **/ws/playlist/<int:playlist_id>/<user_id>/**
 
 Events list
 ++++++++++++++++
