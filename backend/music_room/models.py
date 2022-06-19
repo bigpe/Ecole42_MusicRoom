@@ -37,8 +37,8 @@ def audio_file_validator(file: FieldFile):
 
 class Track(models.Model):
     name = models.CharField(max_length=150, unique=True)  #: Track name
-    track_file = models.FileField(upload_to='music', validators=[audio_file_validator])  #: Track file
-    track_duration = models.FloatField(blank=True, null=True)  #: Track duration in seconds
+    file = models.FileField(upload_to='music', validators=[audio_file_validator])  #: Track file
+    duration = models.FloatField(blank=True, null=True)  #: Track duration in seconds
 
     def __str__(self):
         return self.name
@@ -47,9 +47,9 @@ class Track(models.Model):
 @receiver(post_save, sender=Track)
 def track_post_save(instance: Track, created, *args, **kwargs):
     post_save.disconnect(track_post_save, sender=Track)
-    if instance.track_file:
-        track_file_meta = eyed3.load(instance.track_file.path)
-        instance.track_duration = track_file_meta.info.time_secs
+    if instance.file:
+        track_file_meta = eyed3.load(instance.file.path)
+        instance.duration = track_file_meta.info.time_secs
         instance.save()
     post_save.connect(track_post_save, sender=Track)
 

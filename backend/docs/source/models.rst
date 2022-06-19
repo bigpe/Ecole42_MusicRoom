@@ -3,28 +3,29 @@ Models
 
 Track
 ____________________
-.. autoclass:: music_room.models.Track
-   :members: name
+.. py:currentmodule:: music_room.models
+.. autoclass:: Track
+   :members: name, file, duration
 
 Playlist Track
 ____________________
-.. autoclass:: music_room.models.PlaylistTrack
+.. autoclass:: PlaylistTrack
    :members: track, order
 
 Session Track
 ____________________
-.. autoclass:: music_room.models.SessionTrack
+.. autoclass:: SessionTrack
    :members: state, States, track, votes, votes_count, order
    :undoc-members:
 
 Player Session
 ____________________
-.. autoclass:: music_room.models.PlayerSession
+.. autoclass:: PlayerSession
    :members: playlist, track_queue, mode, Modes, author
    :undoc-members:
 
 Playlist
 ____________________
-.. autoclass:: music_room.models.Playlist
+.. autoclass:: Playlist
    :members: name, type, Types, tracks, author
    :undoc-members:
