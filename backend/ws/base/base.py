@@ -120,14 +120,24 @@ class BaseConsumer(JsonWebsocketConsumer):
         try:
             data = f()
         except TypeError as e:
-            unexpected = str(e).split('argument')[1].strip().replace("'", '')
-            action = Action(
-                event=ActionsEnum.error,
-                payload=ResponsePayload.ActionSignatureWrong(unexpected=unexpected).to_data(),
-                system=self.get_systems()
-            )
-            self.send_json(content=action.to_data())
-            error = True
+            if ' missing ' in str(e):
+                required = str(e).split('argument: ')[1].strip().replace("'", '')
+                action = Action(
+                    event=ActionsEnum.error,
+                    payload=ResponsePayload.PayloadSignatureWrong(required=required).to_data(),
+                    system=self.get_systems()
+                )
+                self.send_json(content=action.to_data())
+                error = True
+            if ' unexpected ' in str(e):
+                unexpected = str(e).split('argument')[1].strip().replace("'", '')
+                action = Action(
+                    event=ActionsEnum.error,
+                    payload=ResponsePayload.ActionSignatureWrong(unexpected=unexpected).to_data(),
+                    system=self.get_systems()
+                )
+                self.send_json(content=action.to_data())
+                error = True
         return data, error
 
     def parse_payload(self, event, payload_type: BasePayload()):

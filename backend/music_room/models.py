@@ -1,9 +1,12 @@
 from typing import List, Union
 
+import eyed3 as eyed3
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.fields.files import FieldFile
 from django.db.models.manager import Manager
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from bootstrap.utils import BootstrapMixin, BootstrapGeneric
@@ -23,8 +26,19 @@ def user_post_save(instance: User, created, **kwargs):
     instance.playlists.add(favourites_playlist)
 
 
+def audio_file_validator(file: FieldFile):
+    file_extension = file.name.split('.')[-1]
+    if not file_extension == 'mp3':
+        raise ValidationError(
+            'Audio file wrong extension',
+            params={'value': file_extension},
+        )
+
+
 class Track(models.Model, BootstrapMixin):
     name = models.CharField(max_length=150, unique=True)  #: Track name
+    track_file = models.FileField(upload_to='music', validators=[audio_file_validator])  #: Track file
+    track_duration = models.FloatField(blank=True, null=True)  #: Track duration in seconds
 
     class Bootstrap(BootstrapGeneric):
         bootstrap_count = 10
@@ -40,6 +54,15 @@ class Track(models.Model, BootstrapMixin):
             'Dustycloud — Bold',
             'The Weeknd — In The Night',
         ]
+
+
+@receiver(post_save, sender=Track)
+def track_post_save(instance: Track, created, *args, **kwargs):
+    post_save.disconnect(track_post_save, sender=Track)
+    track_file_meta = eyed3.load(instance.track_file.path)
+    instance.track_time = track_file_meta.info.time_secs
+    instance.save()
+    post_save.connect(track_post_save, sender=Track)
 
 
 class PlaylistTrack(models.Model, BootstrapMixin):

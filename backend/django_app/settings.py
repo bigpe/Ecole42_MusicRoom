@@ -148,3 +148,5 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 SWAGGER_SETTINGS = {
    'USE_SESSION_AUTH': False
 }
+
+MEDIA_ROOT = BASE_DIR / 'media'

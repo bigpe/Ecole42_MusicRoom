@@ -1,9 +1,10 @@
 from django.contrib import admin
 
-from .models import SessionTrack, PlayerSession, Playlist, PlaylistAccess
+from .models import SessionTrack, PlayerSession, Playlist, PlaylistAccess, Track
 
 admin.site.register(SessionTrack)
 admin.site.register(PlayerSession)
+admin.site.register(Track)
 
 
 class PlaylistAccessInline(admin.StackedInline):

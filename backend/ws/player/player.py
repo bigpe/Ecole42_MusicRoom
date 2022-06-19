@@ -25,7 +25,6 @@ class PlayerConsumer(BaseConsumer):
 
     request_type_resolver = {
         'create_session': RequestPayloadWrap.CreateSession,
-        'remove_session': RequestPayloadWrap.RemoveSession,
         'play_track': RequestPayloadWrap.PlayTrack,
         'play_next_track': RequestPayloadWrap.PlayNextTrack,
         'play_previous_track': RequestPayloadWrap.PlayPreviousTrack,
@@ -68,10 +67,10 @@ class PlayerConsumer(BaseConsumer):
 
     class RemoveSession(BaseEvent):
         """Remove player session"""
-        request_payload_type = RequestPayload.RemoveSession
+        request_payload_type = None
 
         def before_send(self, message: Message, payload: request_payload_type):
-            PlayerSession.objects.filter(id=payload.player_session_id).delete()
+            PlayerSession.objects.filter(author=message.initiator_user).delete()
 
     class SessionChanged(BaseEvent):
         request_payload_type = RequestPayload.ModifyTrack
@@ -200,7 +199,7 @@ class Examples:
 
     remove_session_request = Action(
         event=str(EventsList.remove_session),
-        payload=RequestPayload.RemoveSession(player_session_id=1).to_data(),
+        payload=None,
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 

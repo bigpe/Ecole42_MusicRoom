@@ -16,19 +16,11 @@ class RequestPayload:
         playlist_id: int  #: Already created playlist id
         shuffle: bool = False  #: If you need create session with shuffle tracks in playlist
 
-    @dataclass
-    class RemoveSession(BasePayload):
-        player_session_id: int  #: Already started player session id
-
 
 class RequestPayloadWrap:
     @dataclass
     class CreateSession(BasePayload):
         create_session: Union[RequestPayload.CreateSession, dict]  #: Create session signature mock for swift
-
-    @dataclass
-    class RemoveSession(BasePayload):
-        remove_session: Union[RequestPayload.RemoveSession, dict]  #: Remove session signature mock for swift
 
     @dataclass
     class PlayTrack(BasePayload):

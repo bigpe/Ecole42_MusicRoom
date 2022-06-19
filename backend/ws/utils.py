@@ -4,6 +4,8 @@ from ws.base import Action, BaseConsumer, dot_to_camel, snake_to_camel, BasePayl
 
 
 def dict_key_reformat(data: dict, reformat_func: Callable):
+    if not data:
+        data = {}
     new_dict = {}
     for key, value in data.items():
         if isinstance(value, dict):
@@ -26,6 +28,9 @@ class BaseConsumerRef(BaseConsumer):
     request_type_resolver = {}
 
     def parse_payload(self, event, payload_type: BasePayload()):
+        def parse(f: Callable):
+            return self.check_signature(f)
+
         event['payload'] = dict_key_reformat(event['payload'], camel_to_snake)
         payload = BasePayload(**event['payload'])
         error = False
@@ -33,10 +38,11 @@ class BaseConsumerRef(BaseConsumer):
             event_name = dot_to_snake(event['type'])
             additional_payload_type = self.request_type_resolver.get(event_name)
             if additional_payload_type:
-                payload, error = self.check_signature(lambda: additional_payload_type(**payload.to_data()))
+                payload, error = parse(lambda: additional_payload_type(**payload.to_data()))
                 if error:
                     return payload, error
-            payload = payload_type(**getattr(payload, event_name))
+            if payload_type:
+                payload = payload_type(**getattr(payload, event_name))
         if payload_type:
-            payload, error = self.check_signature(lambda: payload_type(**payload.to_data()))
+            payload, error = parse(lambda: payload_type(**payload.to_data()))
         return payload, error
