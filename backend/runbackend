@@ -8,6 +8,13 @@ python3 manage.py makemigrations
 
 python3 manage.py migrate
 
+mkdir -p media
+cp -a music media
+
+if [ "$LOAD_DUMPS" = "1" ]; then \
+    ./load_dumps
+fi
+
 if [ "$BOOTSTRAP_ENABLED" = "1" ]; then \
     python3 manage.py bootstrap --all
 fi
@@ -22,13 +29,6 @@ if [[ -n "$COLLECT_STATIC" ]]; then \
     fi
     else \
       python3 manage.py collectstatic --noinput
-fi
-
-mkdir -p media
-cp -a music media
-
-if [ "$LOAD_DUMPS" = "1" ]; then \
-    ./load_dumps
 fi
 
 # Generate docs
