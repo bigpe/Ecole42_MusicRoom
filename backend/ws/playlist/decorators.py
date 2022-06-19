@@ -1,7 +1,8 @@
 from typing import Callable
 
 from music_room.models import Playlist
-from ws.base import Action, BaseEvent, Message
+from ws.base import BaseEvent, Message
+from ws.utils import ActionRef as Action
 
 
 def get_playlist_from_path(f: Callable):
@@ -17,7 +18,11 @@ def get_playlist_from_path(f: Callable):
 
 
 def get_playlist(f: Callable):
+    from .playlist import PlaylistRetrieveConsumer
+
     def wrapper(self: BaseEvent, message: Message, payload, *args):
+        self.consumer: PlaylistRetrieveConsumer
+
         try:
             playlist = Playlist.objects.get(id=self.consumer.playlist_id)
             return f(self, message, payload, playlist, *args)

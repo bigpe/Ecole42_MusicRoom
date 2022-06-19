@@ -4,7 +4,8 @@ from django.db.models import Q
 
 from music_room.models import PlayerSession, Playlist
 from music_room.services import PlayerService
-from ws.base import BaseEvent, Action, Message
+from ws.base import BaseEvent, Message
+from ws.utils import ActionRef as Action
 
 
 def get_player_session(f: Callable):
