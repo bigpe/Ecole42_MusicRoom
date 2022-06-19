@@ -4,8 +4,8 @@
     "pk": 15,
     "fields": {
       "name": "Adele — Skyfall",
-      "track_file": "music/Adel-Skyfall.mp3",
-      "track_duration": 286.2032
+      "file": "music/Adel-Skyfall.mp3",
+      "duration": 286.2032
     }
   },
   {
@@ -13,8 +13,8 @@
     "pk": 16,
     "fields": {
       "name": "Gorillaz — DARE",
-      "track_file": "music/Gorillaz-Dare.mp3",
-      "track_duration": 244.56387207756666
+      "file": "music/Gorillaz-Dare.mp3",
+      "duration": 244.56387207756666
     }
   },
   {
@@ -22,8 +22,8 @@
     "pk": 17,
     "fields": {
       "name": "Gesaffelstein — Ignio",
-      "track_file": "music/Gesaffelstein-Ignio.mp3",
-      "track_duration": 123.64248025647042
+      "file": "music/Gesaffelstein-Ignio.mp3",
+      "duration": 123.64248025647042
     }
   },
   {
@@ -31,8 +31,8 @@
     "pk": 18,
     "fields": {
       "name": "Curbi — Too Much",
-      "track_file": "music/Curbi-Too_Much.mp3",
-      "track_duration": 182.75295331925875
+      "file": "music/Curbi-Too_Much.mp3",
+      "duration": 182.75295331925875
     }
   },
   {
@@ -40,8 +40,8 @@
     "pk": 19,
     "fields": {
       "name": "Faithless — Insomnia",
-      "track_file": "music/Faithless-Insomnia.mp3",
-      "track_duration": 214.25757760575493
+      "file": "music/Faithless-Insomnia.mp3",
+      "duration": 214.25757760575493
     }
   },
   {
@@ -49,8 +49,8 @@
     "pk": 20,
     "fields": {
       "name": "Don Diablo — The Rhytm",
-      "track_file": "music/Don_Diablo-The_Rhythm.mp3",
-      "track_duration": 187.7236750332317
+      "file": "music/Don_Diablo-The_Rhythm.mp3",
+      "duration": 187.7236750332317
     }
   },
   {
@@ -58,8 +58,8 @@
     "pk": 21,
     "fields": {
       "name": "Gaullin — Moonlight",
-      "track_file": "music/Gaullin-Moonlight.mp3",
-      "track_duration": 173.49764954257566
+      "file": "music/Gaullin-Moonlight.mp3",
+      "duration": 173.49764954257566
     }
   },
   {
@@ -67,8 +67,8 @@
     "pk": 22,
     "fields": {
       "name": "Blasterjaxx — Echo",
-      "track_file": "music/Blasterjaxx-Echo.mp3",
-      "track_duration": 195.25021815622802
+      "file": "music/Blasterjaxx-Echo.mp3",
+      "duration": 195.25021815622802
     }
   },
   {
@@ -76,8 +76,8 @@
     "pk": 23,
     "fields": {
       "name": "Dustycloud — Bold",
-      "track_file": "music/Dustycloud-Bold.mp3",
-      "track_duration": 284.9795793259833
+      "file": "music/Dustycloud-Bold.mp3",
+      "duration": 284.9795793259833
     }
   },
   {
@@ -85,8 +85,8 @@
     "pk": 24,
     "fields": {
       "name": "The Weeknd — In The Night",
-      "track_file": "music/The_Weekend-In_The_Night.mp3",
-      "track_duration": 192.9494909688013
+      "file": "music/The_Weekend-In_The_Night.mp3",
+      "duration": 192.9494909688013
     }
   }
 ]
