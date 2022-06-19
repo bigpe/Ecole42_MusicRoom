@@ -119,6 +119,16 @@ Stop Track
 .. autoclass:: ws.player.PlayerConsumer.StopTrack
    :inherited-members:
 
+Sync Track
+"""""""""""""""""""
+.. autoattribute:: ws.player.EventsList.sync_track
+   :noindex:
+
+.. seealso::
+   :obj:`.Examples.sync_track_request`
+.. autoclass:: ws.player.PlayerConsumer.SyncTrack
+   :inherited-members:
+
 Whats data send to socket?
 ++++++++++++++++++++++++++++
 
