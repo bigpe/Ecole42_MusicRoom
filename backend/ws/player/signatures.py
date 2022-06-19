@@ -16,6 +16,10 @@ class RequestPayload:
         playlist_id: int  #: Already created playlist id
         shuffle: bool = False  #: If you need create session with shuffle tracks in playlist
 
+    @dataclass
+    class SyncTrack(BasePayload):
+        progress: float  #: Track time progress from duration
+
 
 class RequestPayloadWrap:
     @dataclass
@@ -49,6 +53,10 @@ class RequestPayloadWrap:
     @dataclass
     class StopTrack(BasePayload):
         stop_track: Union[RequestPayload.ModifyTrack, dict]  #: Stop track signature mock for swift
+
+    @dataclass
+    class SyncTrack(BasePayload):
+        sync_track: Union[RequestPayload.SyncTrack, dict]  #: Sync track signature mock for swift
 
 
 class ResponsePayload:

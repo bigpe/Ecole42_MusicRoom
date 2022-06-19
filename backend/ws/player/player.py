@@ -177,6 +177,15 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
             player_session.stop_track()
 
+    class SyncTrack(BaseEvent):
+        """Sync current track progress from duration for current player session"""
+        request_payload_type = RequestPayload.SyncTrack
+
+        @get_player_session
+        @only_for_author
+        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
+            player_session.sync_track(payload.progress)
+
 
 class EventsList:
     session_changed: PlayerConsumer.SessionChanged = camel_to_dot(PlayerConsumer.SessionChanged.__name__)
@@ -189,6 +198,7 @@ class EventsList:
     pause_track: PlayerConsumer.PauseTrack = camel_to_dot(PlayerConsumer.PauseTrack.__name__)
     resume_track: PlayerConsumer.ResumeTrack = camel_to_dot(PlayerConsumer.ResumeTrack.__name__)
     stop_track: PlayerConsumer.StopTrack = camel_to_dot(PlayerConsumer.StopTrack.__name__)
+    sync_track: PlayerConsumer.SyncTrack = camel_to_dot(PlayerConsumer.SyncTrack.__name__)
 
 
 class Examples:
@@ -249,5 +259,11 @@ class Examples:
     stop_track_request = Action(
         event=str(EventsList.stop_track),
         payload=RequestPayload.ModifyTrack(player_session_id=1).to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
+    sync_track_request = Action(
+        event=str(EventsList.sync_track),
+        payload=RequestPayload.SyncTrack(progress=10.5).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)

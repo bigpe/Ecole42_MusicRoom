@@ -143,3 +143,9 @@ class PlayerService:
         track: SessionTrack = self.player_session.track_queue.filter(state=SessionTrack.States.playing).first()
         track.state = SessionTrack.States.paused
         track.save()
+
+    def sync_track(self, progress: float):
+        track: SessionTrack = self.current_track
+        track.progress = progress
+        track.save()
+

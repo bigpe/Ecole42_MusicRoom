@@ -150,6 +150,14 @@ Create Session
 .. autoclass:: ws.player.signatures.RequestPayload.CreateSession
    :inherited-members:
 
+Sync Track
+"""""""""""""""""""
+
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.SyncTrack
+   :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayload.SyncTrack
+   :inherited-members:
+
 Whats data receive from socket?
 ++++++++++++++++++++++++++++++++
 
@@ -183,6 +191,7 @@ Requests
 .. autoattribute:: Examples.pause_track_request
 .. autoattribute:: Examples.resume_track_request
 .. autoattribute:: Examples.stop_track_request
+.. autoattribute:: Examples.sync_track_request
 
 Response
 """"""""""""""""""""

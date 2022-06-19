@@ -108,6 +108,8 @@ class SessionTrack(models.Model):
     votes: Union[List[User], Manager] = models.ManyToManyField(User)
     #: Votes count for next play
     votes_count: int = models.PositiveIntegerField(default=0)
+    #: Track time progress from duration
+    progress = models.FloatField(default=0)
     #: Tracks order in queue
     order: int = models.PositiveIntegerField(default=0)
 
