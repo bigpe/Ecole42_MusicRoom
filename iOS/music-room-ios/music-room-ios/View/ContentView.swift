@@ -9,7 +9,7 @@ import SwiftUI
 import MusicKit
 
 struct ContentView: View {
-    private static let testUserID = "49"
+    private static let testUserID = "8"
     
     private let playerWebSocket = try? PlayerWebSocket(userID: testUserID)
     
