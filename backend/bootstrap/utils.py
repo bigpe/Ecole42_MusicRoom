@@ -14,7 +14,7 @@ from pytz import timezone
 from pathlib import Path
 
 from django.core.files.base import ContentFile
-from django.db import models, IntegrityError
+from django.db import models
 
 from django.conf import settings
 
@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent
 IMAGE_PLACEHOLDER = ContentFile(open(BASE_DIR.joinpath('placeholder.png'), 'rb').read(), name='placeholder.png')
 FILE_PLACEHOLDER = ContentFile(open(BASE_DIR.joinpath('placeholder.pdf'), 'rb').read(), name='placeholder.pdf')
 VIDEO_PLACEHOLDER = ContentFile(open(BASE_DIR.joinpath('placeholder.mp4'), 'rb').read(), name='placeholder.mp4')
+AUDIO_PLACEHOLDER = ContentFile(open(BASE_DIR.joinpath('placeholder.mp3'), 'rb').read(), name='placeholder.mp3')
 DOCX_PLACEHOLDER = ContentFile(open(BASE_DIR.joinpath('placeholder.docx'), 'rb').read(), name='placeholder.docx')
 XLSX_PLACEHOLDER = ContentFile(open(BASE_DIR.joinpath('placeholder.xlsx'), 'rb').read(), name='placeholder.xlsx')
 

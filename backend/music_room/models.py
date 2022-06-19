@@ -9,7 +9,7 @@ from django.db.models.manager import Manager
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from bootstrap.utils import BootstrapMixin, BootstrapGeneric
+from bootstrap.utils import BootstrapMixin, BootstrapGeneric, AUDIO_PLACEHOLDER
 
 
 class User(AbstractUser):
@@ -54,14 +54,16 @@ class Track(models.Model, BootstrapMixin):
             'Dustycloud — Bold',
             'The Weeknd — In The Night',
         ]
+        track_file = AUDIO_PLACEHOLDER
 
 
 @receiver(post_save, sender=Track)
 def track_post_save(instance: Track, created, *args, **kwargs):
     post_save.disconnect(track_post_save, sender=Track)
-    track_file_meta = eyed3.load(instance.track_file.path)
-    instance.track_time = track_file_meta.info.time_secs
-    instance.save()
+    if instance.track_file:
+        track_file_meta = eyed3.load(instance.track_file.path)
+        instance.track_time = track_file_meta.info.time_secs
+        instance.save()
     post_save.connect(track_post_save, sender=Track)
 
 
