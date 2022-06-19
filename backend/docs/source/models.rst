@@ -27,5 +27,5 @@ ____________________
 Playlist
 ____________________
 .. autoclass:: Playlist
-   :members: name, type, Types, tracks, author
+   :members: name, type, Types, author
    :undoc-members:

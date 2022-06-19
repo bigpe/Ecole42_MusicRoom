@@ -3,7 +3,7 @@ from music_room.serializers import PlaylistSerializer
 from ws.base import TargetsEnum, Message, BaseEvent, ActionSystem
 from ws.utils import ActionRef as Action, BaseConsumerRef as BaseConsumer
 from music_room.services import PlaylistService
-from .decorators import get_playlist
+from .decorators import get_playlist_from_path, get_playlist
 from .signatures import RequestPayload, ResponsePayload, RequestPayloadWrap
 from ws.base.utils import camel_to_dot
 
@@ -36,6 +36,7 @@ class PlaylistsConsumer(BaseConsumer):
         """Rename already existed playlist"""
         request_payload_type = RequestPayload.ModifyPlaylist
         response_payload_type_initiator = ResponsePayload.PlaylistsChanged
+        hidden = False
 
         def before_send(self, message: Message, payload: request_payload_type):
             playlist = PlaylistService(payload.playlist_id)
@@ -45,6 +46,7 @@ class PlaylistsConsumer(BaseConsumer):
         """Add new playlist"""
         request_payload_type = RequestPayload.ModifyPlaylists
         response_payload_type_initiator = ResponsePayload.PlaylistsChanged
+        hidden = False
 
         def before_send(self, message: Message, payload: request_payload_type):
             PlaylistModel.objects.create(name=payload.playlist_name, type=payload.type, author=message.initiator_user)
@@ -53,6 +55,7 @@ class PlaylistsConsumer(BaseConsumer):
         """Remove already created playlist"""
         request_payload_type = RequestPayload.ModifyPlaylist
         response_payload_type_initiator = ResponsePayload.PlaylistsChanged
+        hidden = False
 
         def before_send(self, message: Message, payload: request_payload_type):
             PlaylistModel.objects.get(id=payload.playlist_id).delete()
@@ -60,6 +63,7 @@ class PlaylistsConsumer(BaseConsumer):
 
 class PlaylistRetrieveConsumer(BaseConsumer):
     authed = True
+    playlist_id = None
 
     request_type_resolver = {
         'add_track': RequestPayloadWrap.AddTrack,
@@ -68,8 +72,9 @@ class PlaylistRetrieveConsumer(BaseConsumer):
 
     # TODO Add permission for connect (only for accessed users)
 
-    @get_playlist
+    @get_playlist_from_path
     def after_connect(self, playlist: PlaylistModel):
+        self.playlist_id = playlist.id
         self.broadcast_group = f'playlist-{playlist.id}'
         self.join_group(self.broadcast_group)
 
@@ -104,6 +109,7 @@ class PlaylistRetrieveConsumer(BaseConsumer):
         change_message = '{} add track {} to playlist'
         response_payload_type_target = ResponsePayload.PlaylistChanged
         response_payload_type_initiator = ResponsePayload.PlaylistChanged
+        hidden = False
 
         @get_playlist
         def before_send(self, message: Message, payload: request_payload_type, playlist: PlaylistModel):
@@ -116,6 +122,7 @@ class PlaylistRetrieveConsumer(BaseConsumer):
         change_message = '{} remove track {} from playlist'
         response_payload_type_target = ResponsePayload.PlaylistChanged
         response_payload_type_initiator = ResponsePayload.PlaylistChanged
+        hidden = False
 
         @get_playlist
         def before_send(self, message: Message, payload: request_payload_type, playlist: PlaylistModel):

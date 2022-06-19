@@ -1,5 +1,7 @@
 from typing import Callable
 
+from django.db.models import Q
+
 from music_room.models import PlayerSession, Playlist
 from music_room.services import PlayerService
 from ws.base import BaseEvent, Action, Message
@@ -64,7 +66,13 @@ def get_playlist(f: Callable):
     payload_type = RequestPayload.CreateSession
 
     def wrapper(self: BaseEvent, message: Message, payload: payload_type, *args):
-        playlist = Playlist.objects.filter(id=payload.playlist_id, author=self.consumer.get_user()).first()
+        # Filter self own playlists or public playlists or if user in accessed for this playlist
+        playlist = Playlist.objects.filter(
+            Q(author=self.consumer.get_user()) |
+            Q(type=Playlist.Types.public) |
+            Q(access_users__user__in=[self.consumer.get_user()]),
+            id=payload.playlist_id
+        ).first()
         if not playlist:
             return Action(event='error', payload={'message': 'Playlist not found'}, system=message.system.to_data())
         return f(self, message, payload, playlist, *args)

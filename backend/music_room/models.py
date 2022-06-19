@@ -54,14 +54,6 @@ def track_post_save(instance: Track, created, *args, **kwargs):
     post_save.connect(track_post_save, sender=Track)
 
 
-class PlaylistTrack(models.Model, BootstrapMixin):
-    track: Track = models.ForeignKey(Track, models.CASCADE)  #: Track object
-    order: int = models.PositiveIntegerField(default=0)  #: Track order in playlist
-
-    class Meta:
-        ordering = ['order']
-
-
 class Playlist(models.Model, BootstrapMixin):
     class Types:
         public = 'public'  #: Everyone can access
@@ -76,11 +68,19 @@ class Playlist(models.Model, BootstrapMixin):
     name = models.CharField(max_length=150)
     #: PlaylistChanged type
     type: Types = models.CharField(max_length=50, choices=TypesChoice, default=Types.public)
-    #: PlaylistChanged`s tracks
-    tracks: Union[List[PlaylistTrack], Manager] = models.ManyToManyField(PlaylistTrack)
     #: PlaylistChanged`s author
     author: User = models.ForeignKey(User, models.CASCADE, related_name='playlists')
     # access_users: PlaylistAccess
+    # tracks: PlaylistTrack
+
+
+class PlaylistTrack(models.Model, BootstrapMixin):
+    track: Track = models.ForeignKey(Track, models.CASCADE)  #: Track object
+    order: int = models.PositiveIntegerField(default=0)  #: Track order in playlist
+    playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='tracks')
+
+    class Meta:
+        ordering = ['order']
 
 
 class PlaylistAccess(models.Model, BootstrapMixin):

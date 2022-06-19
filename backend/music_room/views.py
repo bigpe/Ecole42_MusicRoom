@@ -34,6 +34,21 @@ class PlaylistListView(ListAPIView):
         return Playlist.objects.filter(Q(type=Playlist.Types.public) | Q(access_users__user__in=[self.request.user]))
 
 
+class PlaylistOwnListView(ListAPIView):
+    """
+    Playlists own
+
+    Get current authed user own playlists
+    """
+    queryset = Playlist.objects.filter(type=Playlist.Types.public).all()
+    serializer_class = PlaylistSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return self.queryset.all()
+        return Playlist.objects.filter(author=self.request.user)
+
+
 class PlayerSessionRetrieveView(RetrieveAPIView):
     """
     Player Session
@@ -51,4 +66,3 @@ class PlayerSessionRetrieveView(RetrieveAPIView):
 class SignUpCreateView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-

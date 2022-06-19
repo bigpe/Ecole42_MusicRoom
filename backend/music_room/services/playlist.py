@@ -36,11 +36,11 @@ class PlaylistService:
 
     @Decorators.lookup_track
     def add_track(self, track: [int, Track]):
-        self.playlist.tracks.add(track)
+        self.playlist.tracks.create(track=track, order=0)
 
     @Decorators.lookup_track
     def remove_track(self, track: [int, Track]):
-        self.playlist.tracks.remove(track)
+        self.playlist.tracks.filter(track=track).delete()
 
     def rename(self, name: str):
         self.playlist.name = name

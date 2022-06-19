@@ -98,6 +98,7 @@ class PlayerConsumer(BaseConsumer):
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlayerSession
         response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
 
         @get_player_session
         @only_for_author
@@ -109,6 +110,7 @@ class PlayerConsumer(BaseConsumer):
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlayerSession
         response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
 
         @get_player_session
         @only_for_author
@@ -120,6 +122,7 @@ class PlayerConsumer(BaseConsumer):
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlayerSession
         response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
 
         @get_player_session
         @only_for_author
@@ -131,6 +134,7 @@ class PlayerConsumer(BaseConsumer):
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlayerSession
         response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
 
         @get_player_session
         @only_for_author
@@ -142,6 +146,7 @@ class PlayerConsumer(BaseConsumer):
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlayerSession
         response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
 
         @get_player_session
         @only_for_author
@@ -153,6 +158,7 @@ class PlayerConsumer(BaseConsumer):
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlayerSession
         response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
 
         @get_player_session
         @only_for_author
@@ -164,6 +170,7 @@ class PlayerConsumer(BaseConsumer):
         request_payload_type = RequestPayload.ModifyTrack
         response_payload_type_initiator = ResponsePayload.PlayerSession
         response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
 
         @get_player_session
         @only_for_author

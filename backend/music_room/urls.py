@@ -5,7 +5,7 @@ from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg.views import get_schema_view
 from rest_framework.authentication import BasicAuthentication
 
-from .views import TrackListView, PlaylistListView, PlayerSessionRetrieveView, SignUpCreateView
+from .views import TrackListView, PlaylistListView, PlaylistOwnListView, PlayerSessionRetrieveView, SignUpCreateView
 
 
 class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
@@ -34,6 +34,7 @@ urlpatterns = [
     re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('track/', TrackListView.as_view()),
     path('playlist/', PlaylistListView.as_view()),
+    path('playlist/own/', PlaylistOwnListView.as_view()),
     path('player/session/', PlayerSessionRetrieveView.as_view()),
     path('sign/up/', SignUpCreateView.as_view()),
 ]
