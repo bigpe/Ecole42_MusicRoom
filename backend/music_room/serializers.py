@@ -27,7 +27,7 @@ class PlaylistSerializer(serializers.ModelSerializer):
 class SessionTrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionTrack
-        fields = ['state', 'id']
+        fields = ['id', 'state', 'progress', 'track']
 
 
 class PlayerSessionSerializer(serializers.ModelSerializer):

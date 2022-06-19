@@ -53,21 +53,30 @@ class PlayerService:
             return self.play_track(self.current_track)
         return self.play_track(self.previous_track)
 
+    def reset_tracks_progress(self):
+        for track in self.player_session.track_queue.filter(progress__gt=0).all():
+            track: SessionTrack
+            track.progress = 0
+            track.save()
+
     @Decorators.lookup_track
     def play_track(self, track: [int, SessionTrack]) -> SessionTrack:
+        self.reset_tracks_progress()
         first_track = self.current_track
         next_track = self.next_track
         last_track = self.previous_track
 
         first_track.order, next_track.order = next_track.order, first_track.order
-        first_track.order, last_track.order = last_track.order, first_track.order
+        if first_track != next_track:
+            first_track.order, last_track.order = last_track.order, first_track.order
 
         first_track.state = SessionTrack.States.stopped
         next_track.state = SessionTrack.States.playing
 
         first_track.save()
         next_track.save()
-        last_track.save()
+        if next_track.id != last_track.id:
+            last_track.save()
 
         # first_track = self.current_track
         # next_track = self.next_track
@@ -85,9 +94,9 @@ class PlayerService:
         # next_track.save()
         # last_track.save()
         #
-        # for i, t in enumerate(self.player_session.track_queue.all()):
-        #     t.order = i
-        #     t.save()
+        for i, t in enumerate(self.player_session.track_queue.all()):
+            t.order = i
+            t.save()
         #
         # current_track = self.player_session.track_queue.first()
         # if current_track.votes.count():

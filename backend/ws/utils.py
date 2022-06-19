@@ -19,6 +19,8 @@ def dict_key_reformat(data: dict, reformat_func: Callable):
 
 class ActionRef(Action):
     def to_data(self, to_json=False, pop_system=False):
+        if isinstance(self.payload, tuple):
+            self.payload = self.payload[0]
         self.payload = dict_key_reformat(self.payload, snake_to_camel)
         self.payload = {dot_to_camel(self.event): self.payload}
         return super(ActionRef, self).to_data(to_json, pop_system)
@@ -34,15 +36,17 @@ class BaseConsumerRef(BaseConsumer):
         event['payload'] = dict_key_reformat(event['payload'], camel_to_snake)
         payload = BasePayload(**event['payload'])
         error = False
+        event_name = dot_to_snake(event['type'])
         if self.request_type_resolver:
-            event_name = dot_to_snake(event['type'])
             additional_payload_type = self.request_type_resolver.get(event_name)
             if additional_payload_type:
                 payload, error = parse(lambda: additional_payload_type(**payload.to_data()))
                 if error:
                     return payload, error
             if payload_type:
-                payload = payload_type(**getattr(payload, event_name))
+                payload, error = parse(lambda: payload_type(**getattr(payload, event_name)))
+                if error:
+                    return payload, error
         if payload_type:
             payload, error = parse(lambda: payload_type(**payload.to_data()))
         return payload, error

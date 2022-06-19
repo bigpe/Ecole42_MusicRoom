@@ -117,7 +117,7 @@ class SessionTrack(models.Model):
         ordering = ['-votes_count', 'order']
 
     def __str__(self):
-        return f'{self.track.id}-{self.state}-{self.order}'
+        return f'{self.track.name}-{self.state}-{self.order}'
 
     class Bootstrap(BootstrapGeneric):
         state = 'stopped'

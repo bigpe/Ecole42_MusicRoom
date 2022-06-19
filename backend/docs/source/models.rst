@@ -15,7 +15,7 @@ ____________________
 Session Track
 ____________________
 .. autoclass:: SessionTrack
-   :members: state, States, track, votes, votes_count, order
+   :members: state, States, track, votes, votes_count, progress, order
    :undoc-members:
 
 Player Session

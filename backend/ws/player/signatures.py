@@ -18,6 +18,7 @@ class RequestPayload:
 
     @dataclass
     class SyncTrack(BasePayload):
+        player_session_id: int  #: Already started player session id
         progress: float  #: Track time progress from duration
 
 

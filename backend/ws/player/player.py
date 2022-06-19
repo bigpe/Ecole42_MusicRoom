@@ -36,8 +36,12 @@ class PlayerConsumer(BaseConsumer):
 
     @restore_player_session
     def after_connect(self, player_session: PlayerSession):
-        self.send_json(ResponsePayload.PlayerSession(
-            player_session=PlayerSessionSerializer(player_session).data if player_session else None
+        self.send_json(Action(
+            event='session',
+            payload=ResponsePayload.PlayerSession(
+                player_session=PlayerSessionSerializer(player_session).data if player_session else None
+            ).to_data(),
+            system=self.get_systems()
         ).to_data())
 
     @restore_player_session
@@ -264,6 +268,6 @@ class Examples:
 
     sync_track_request = Action(
         event=str(EventsList.sync_track),
-        payload=RequestPayload.SyncTrack(progress=10.5).to_data(),
+        payload=RequestPayload.SyncTrack(progress=10.5, player_session_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
