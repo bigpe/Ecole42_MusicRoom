@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from bootstrap.utils import BootstrapMixin, BootstrapGeneric
 
 
-class User(AbstractUser, BootstrapMixin):
+class User(AbstractUser):
     ...
     # playlists: PlaylistChanged
 
