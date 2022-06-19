@@ -13,5 +13,6 @@ heroku config:set \
         SECRET_KEY=$DJANGO_SECRET_KEY \
         ALLOWED_HOSTS=$DJANGO_ALLOWED_HOSTS \
         CREATE_SUPER_USER=$DJANGO_CREATE_SUPER_USER \
+        LOAD_DUMPS=$DJANGO_LOAD_DUMPS \
       --app $HEROKU_TEST_APP_NAME
 heroku git:remote -a $HEROKU_TEST_APP_NAME --remote heroku_test

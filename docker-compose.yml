@@ -18,6 +18,7 @@ services:
       - ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
       - COLLECT_STATIC=${DJANGO_COLLECT_STATIC}
       - CREATE_SUPER_USER=${DJANGO_CREATE_SUPER_USER}
+      - LOAD_DUMPS=${DJANGO_LOAD_DUMPS}
     depends_on:
       - db
   db:

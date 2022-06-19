@@ -35,26 +35,13 @@ def audio_file_validator(file: FieldFile):
         )
 
 
-class Track(models.Model, BootstrapMixin):
+class Track(models.Model):
     name = models.CharField(max_length=150, unique=True)  #: Track name
     track_file = models.FileField(upload_to='music', validators=[audio_file_validator])  #: Track file
     track_duration = models.FloatField(blank=True, null=True)  #: Track duration in seconds
 
-    class Bootstrap(BootstrapGeneric):
-        bootstrap_count = 10
-        name = [
-            'Adele — Skyfall',
-            'Gorillaz — DARE',
-            'Gesaffelstein — Ignio',
-            'Curbi — Too Much',
-            'Faithless — Insomnia',
-            'Don Diablo — The Rhytm',
-            'Gaullin — Moonlight',
-            'Blasterjaxx — Echo',
-            'Dustycloud — Bold',
-            'The Weeknd — In The Night',
-        ]
-        track_file = AUDIO_PLACEHOLDER
+    def __str__(self):
+        return self.name
 
 
 @receiver(post_save, sender=Track)
@@ -62,7 +49,7 @@ def track_post_save(instance: Track, created, *args, **kwargs):
     post_save.disconnect(track_post_save, sender=Track)
     if instance.track_file:
         track_file_meta = eyed3.load(instance.track_file.path)
-        instance.track_time = track_file_meta.info.time_secs
+        instance.track_duration = track_file_meta.info.time_secs
         instance.save()
     post_save.connect(track_post_save, sender=Track)
 

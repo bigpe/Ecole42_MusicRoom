@@ -24,6 +24,13 @@ if [[ -n "$COLLECT_STATIC" ]]; then \
       python3 manage.py collectstatic --noinput
 fi
 
+mkdir -p media
+cp -a music media
+
+if [ "$LOAD_DUMPS" = "1" ]; then \
+    ./load_dumps
+fi
+
 # Generate docs
 cd docs && make html && cd -
 
