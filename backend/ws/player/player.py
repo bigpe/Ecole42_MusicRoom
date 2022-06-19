@@ -3,9 +3,10 @@ from typing import Union
 from music_room.models import PlayerSession, Playlist
 from music_room.serializers import PlayerSessionSerializer
 from music_room.services.player import PlayerService
-from ws.base import BaseConsumer, TargetsEnum, Action, Message, BaseEvent, camel_to_dot, ActionSystem
+from ws.base import TargetsEnum, Message, BaseEvent, camel_to_dot, ActionSystem
+from ws.utils import ActionRef as Action, BaseConsumerRef as BaseConsumer
 from .decorators import restore_player_session, check_player_session, only_for_author, get_player_session, get_playlist
-from .signatures import RequestPayload, ResponsePayload, CustomTargetEnum
+from .signatures import RequestPayload, ResponsePayload, CustomTargetEnum, RequestPayloadWrap
 
 
 def for_accessed(message: Union[Message, RequestPayload.ModifyTrack]):
@@ -21,6 +22,18 @@ class PlayerConsumer(BaseConsumer):
     broadcast_group = 'player'
     authed = True
     custom_target_resolver = {CustomTargetEnum.for_accessed: for_accessed}
+
+    request_type_resolver = {
+        'create_session': RequestPayloadWrap.CreateSession,
+        'remove_session': RequestPayloadWrap.RemoveSession,
+        'play_track': RequestPayloadWrap.PlayTrack,
+        'play_next_track': RequestPayloadWrap.PlayNextTrack,
+        'play_previous_track': RequestPayloadWrap.PlayPreviousTrack,
+        'shuffle': RequestPayloadWrap.Shuffle,
+        'pause_track': RequestPayloadWrap.PauseTrack,
+        'resume_track': RequestPayloadWrap.ResumeTrack,
+        'stop_track': RequestPayloadWrap.StopTrack,
+    }
 
     @restore_player_session
     def after_connect(self, player_session: PlayerSession):
@@ -47,7 +60,7 @@ class PlayerConsumer(BaseConsumer):
                 player_session.shuffle()
                 player_session = player_session.player_session
             return Action(
-                event=str(EventsList.create_session),
+                event=str(EventsList.session_changed),
                 payload=ResponsePayload.PlayerSession(
                     player_session=PlayerSessionSerializer(player_session).data).to_data(),
                 system=self.event['system']

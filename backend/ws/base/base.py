@@ -94,16 +94,8 @@ class BaseConsumer(JsonWebsocketConsumer):
 
     def receive_json(self, content, **kwargs):
         if self.broadcast_group:
-            try:
-                action = Action(**content, system=self.get_systems())
-            except TypeError as e:
-                unexpected = str(e).split('argument')[1].strip().replace("'", '')
-                action = Action(
-                    event=ActionsEnum.error,
-                    payload=ResponsePayload.ActionSignatureWrong(unexpected=unexpected).to_data(),
-                    system=self.get_systems()
-                )
-                self.send_json(content=action.to_data())
+            action, error = self.check_signature(lambda: Action(**content, system=self.get_systems()))
+            if error:
                 return
             if action:
                 action_handler = getattr(self, get_handler_name(action.to_system_data()), None)
@@ -122,13 +114,37 @@ class BaseConsumer(JsonWebsocketConsumer):
             self.channel_layer.group_send
         )(self.broadcast_group if not group_name else group_name, action.to_system_data())
 
+    def check_signature(self, f: Callable):
+        error = False
+        data = None
+        try:
+            data = f()
+        except TypeError as e:
+            unexpected = str(e).split('argument')[1].strip().replace("'", '')
+            action = Action(
+                event=ActionsEnum.error,
+                payload=ResponsePayload.ActionSignatureWrong(unexpected=unexpected).to_data(),
+                system=self.get_systems()
+            )
+            self.send_json(content=action.to_data())
+            error = True
+        return data, error
+
+    def parse_payload(self, event, payload_type: BasePayload()):
+        payload = BasePayload(**event['payload'])
+        error = False
+        if payload_type:
+            payload, error = self.check_signature(lambda: payload_type(**payload.to_data()))
+        return payload, error
+
     @safe
     def send_broadcast(self, event, action_for_target: Callable = None, action_for_initiator: Callable = None,
                        target=TargetsEnum.for_all, before_send: Callable = None,
                        system_before_send: Callable = None, payload_type: BasePayload() = None):
-        payload = BasePayload(**event['payload'])
-        if payload_type:
-            payload = payload_type(**payload.to_data())
+
+        payload, error = self.parse_payload(event, payload_type)
+        if error:
+            return
 
         message = Message(
             **payload.to_data(),

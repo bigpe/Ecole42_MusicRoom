@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
 from music_room.models import PlayerSession
 from ws.base import BasePayload, TargetsEnum
@@ -19,6 +19,44 @@ class RequestPayload:
     @dataclass
     class RemoveSession(BasePayload):
         player_session_id: int  #: Already started player session id
+
+
+class RequestPayloadWrap:
+    @dataclass
+    class CreateSession(BasePayload):
+        create_session: Union[RequestPayload.CreateSession, dict]  #: Create session signature mock for swift
+
+    @dataclass
+    class RemoveSession(BasePayload):
+        remove_session: Union[RequestPayload.RemoveSession, dict]  #: Remove session signature mock for swift
+
+    @dataclass
+    class PlayTrack(BasePayload):
+        play_track: Union[RequestPayload.ModifyTrack, dict]  #: Play track signature mock for swift
+
+    @dataclass
+    class PlayNextTrack(BasePayload):
+        play_next_track: Union[RequestPayload.ModifyTrack, dict]  #: Play next track signature mock for swift
+
+    @dataclass
+    class PlayPreviousTrack(BasePayload):
+        play_previous_track: Union[RequestPayload.ModifyTrack, dict]  #: Play previous track signature mock for swift
+
+    @dataclass
+    class Shuffle(BasePayload):
+        shuffle: Union[RequestPayload.ModifyTrack, dict]  #: Shuffle tracks signature mock for swift
+
+    @dataclass
+    class PauseTrack(BasePayload):
+        pause_track: Union[RequestPayload.ModifyTrack, dict]  #: Pause track signature mock for swift
+
+    @dataclass
+    class ResumeTrack(BasePayload):
+        resume_track: Union[RequestPayload.ModifyTrack, dict]  #: Resume track signature mock for swift
+
+    @dataclass
+    class StopTrack(BasePayload):
+        stop_track: Union[RequestPayload.ModifyTrack, dict]  #: Stop track signature mock for swift
 
 
 class ResponsePayload:

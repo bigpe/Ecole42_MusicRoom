@@ -97,18 +97,33 @@ Modify Playlist Tracks
 
 .. autoclass:: ws.playlist.signatures.RequestPayload.ModifyPlaylistTracks
    :inherited-members:
+.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.AddTrack
+   :inherited-members:
+   :noindex:
+.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.RemoveTrack
+   :inherited-members:
+   :noindex:
 
 Modify Playlist
 """"""""""""""""""""""""""
 
 .. autoclass:: ws.playlist.signatures.RequestPayload.ModifyPlaylist
    :inherited-members:
+.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.RenamePlaylist
+   :inherited-members:
+   :noindex:
+.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.RemovePlaylist
+   :inherited-members:
+   :noindex:
 
 Modify Playlists
 """"""""""""""""""""""""""
 
 .. autoclass:: ws.playlist.signatures.RequestPayload.ModifyPlaylists
    :inherited-members:
+.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.AddPlaylist
+   :inherited-members:
+   :noindex:
 
 Whats data receive from socket?
 +++++++++++++++++++++++++++++++++
@@ -116,13 +131,13 @@ Whats data receive from socket?
 Playlist
 """"""""""""""""""""
 
-.. autoclass:: ws.playlist.signatures.ResponsePayload.Playlist
+.. autoclass:: ws.playlist.signatures.ResponsePayload.PlaylistChanged
    :inherited-members:
 
 Playlists
 """"""""""""""""""""
 
-.. autoclass:: ws.playlist.signatures.ResponsePayload.Playlists
+.. autoclass:: ws.playlist.signatures.ResponsePayload.PlaylistsChanged
    :inherited-members:
 
 Examples

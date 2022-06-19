@@ -127,10 +127,26 @@ Modify Track
 
 .. autoclass:: ws.player.signatures.RequestPayload.ModifyTrack
    :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.PlayTrack
+   :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.PlayNextTrack
+   :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.PlayPreviousTrack
+   :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.Shuffle
+   :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.PauseTrack
+   :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.ResumeTrack
+   :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.StopTrack
+   :inherited-members:
 
 Create Session
 """""""""""""""""""
 
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.CreateSession
+   :inherited-members:
 .. autoclass:: ws.player.signatures.RequestPayload.CreateSession
    :inherited-members:
 

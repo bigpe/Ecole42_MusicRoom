@@ -19,6 +19,20 @@ def camel_to_dot(name):
     return snake_to_dot(camel_to_snake(name))
 
 
+def dot_to_camel(name):
+    components = name.split('.')
+    return components[0] + ''.join(x.title() for x in components[1:])
+
+
+def dot_to_snake(name):
+    return name.replace('.', '_')
+
+
+def snake_to_camel(name):
+    components = name.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
+
+
 def user_cache_key(user: User):
     return f'user-{user.id}'
 
