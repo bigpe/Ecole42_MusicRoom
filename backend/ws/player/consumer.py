@@ -36,7 +36,8 @@ class PlayerConsumer(BaseConsumer):
 
     @restore_player_session
     def after_connect(self, player_session: PlayerSession):
-        self.Session()
+        ...
+        # self.Session()
 
     @restore_player_session
     def before_disconnect(self, player_session: PlayerSession):
@@ -50,7 +51,7 @@ class PlayerConsumer(BaseConsumer):
         @restore_player_session
         def action_for_initiator(self, message: Message, payload: request_payload_type, player_session: PlayerSession):
             return Action(
-                event='session',
+                event=str(EventsList.session),
                 payload=ResponsePayload.PlayerSession(
                     player_session=PlayerSessionSerializer(player_session).data if player_session else None
                 ).to_data(),
@@ -83,12 +84,6 @@ class PlayerConsumer(BaseConsumer):
 
         def before_send(self, message: Message, payload: request_payload_type):
             PlayerSession.objects.filter(author=message.initiator_user).delete()
-
-        def action_for_initiator(self, message: Message, payload: request_payload_type):
-            return Action(event='test')
-
-        def action_for_target(self, message: Message, payload: request_payload_type):
-            return Action(event='test1')
 
     class SessionChanged(BaseEvent):
         request_payload_type = RequestPayload.ModifyTrack

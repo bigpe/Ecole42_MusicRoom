@@ -233,7 +233,8 @@ class BaseEvent:
     consumer: BaseConsumer = None
     hidden = False
 
-    def __init__(self, event=None, payload: BasePayload = BasePayload()):
+    def __init__(self, event=None, payload: BasePayload = None):
+        payload = payload if payload else BasePayload()
         event_name = camel_to_dot(self.__class__.__name__)
 
         if not event:
