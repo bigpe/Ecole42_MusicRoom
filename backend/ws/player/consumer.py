@@ -192,6 +192,7 @@ class PlayerConsumer(BaseConsumer):
 
 
 class EventsList:
+    session = 'session'
     session_changed: PlayerConsumer.SessionChanged = camel_to_dot(PlayerConsumer.SessionChanged.__name__)
     create_session: PlayerConsumer.CreateSession = camel_to_dot(PlayerConsumer.CreateSession.__name__)
     remove_session: PlayerConsumer.RemoveSession = camel_to_dot(PlayerConsumer.RemoveSession.__name__)
@@ -206,6 +207,12 @@ class EventsList:
 
 
 class Examples:
+    session_response = Action(
+        event=str(EventsList.session),
+        payload=ResponsePayload.PlayerSession(player_session=PlayerSessionSerializer(None).data).to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
     session_changed_response = Action(
         event=str(EventsList.session_changed),
         payload=ResponsePayload.PlayerSession(player_session=PlayerSessionSerializer(None).data).to_data(),

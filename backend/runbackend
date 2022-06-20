@@ -9,7 +9,7 @@ python3 manage.py makemigrations
 python3 manage.py migrate
 
 mkdir -p media
-cp -a music media
+cp -a music_room/music media
 
 if [ "$LOAD_DUMPS" = "1" ]; then \
     ./load_dumps

@@ -9,7 +9,7 @@ from ws.utils import ActionRef as Action
 
 
 def get_player_session(f: Callable):
-    from ws.player.player import RequestPayload
+    from ws.player.consumer import RequestPayload
 
     payload_type = RequestPayload.ModifyTrack
 
@@ -31,7 +31,7 @@ def restore_player_session(f: Callable):
 
 
 def only_for_author(f: Callable):
-    from ws.player.player import RequestPayload
+    from ws.player.consumer import RequestPayload
 
     payload_type = RequestPayload.ModifyTrack
 
@@ -48,7 +48,7 @@ def only_for_author(f: Callable):
 
 
 def check_player_session(f: Callable):
-    from ws.player.player import RequestPayload
+    from ws.player.consumer import RequestPayload
 
     payload_type = RequestPayload.ModifyTrack
 
@@ -62,7 +62,7 @@ def check_player_session(f: Callable):
 
 
 def get_playlist(f: Callable):
-    from ws.player.player import RequestPayload
+    from ws.player.consumer import RequestPayload
 
     payload_type = RequestPayload.CreateSession
 
