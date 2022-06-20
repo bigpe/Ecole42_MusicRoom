@@ -206,6 +206,7 @@ Requests
 Response
 """"""""""""""""""""
 
+.. autoattribute:: Examples.session_response
 .. autoattribute:: Examples.session_changed_response
 
 
