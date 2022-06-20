@@ -4,7 +4,7 @@ from django.db.models import Q
 
 from music_room.models import PlayerSession, Playlist
 from music_room.services import PlayerService
-from ws.base import BaseEvent, Message
+from ws.base import BaseEvent, BaseConsumer, Message
 from ws.utils import ActionRef as Action
 
 
@@ -23,8 +23,12 @@ def get_player_session(f: Callable):
 
 
 def restore_player_session(f: Callable):
-    def wrapper(self):
-        player_session = PlayerSession.objects.filter(author=self.get_user()).first()
+    def wrapper(self: [BaseConsumer, BaseEvent], *args):
+        consumer: BaseConsumer = self if isinstance(self, BaseConsumer) else self.consumer
+
+        player_session = PlayerSession.objects.filter(author=consumer.get_user()).first()
+        if isinstance(self, BaseEvent):
+            return f(self, *args, player_session)
         return f(self, player_session)
 
     return wrapper

@@ -1,7 +1,7 @@
 import dataclasses
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
@@ -77,7 +77,7 @@ class ActionSystem:
 class Action:
     """Action signature for request and response"""
     event: str  #: Action's name
-    system: ActionSystem  #: System event information
+    system: Optional[ActionSystem] = None  #: System event information
     payload: Any = dataclasses.field(default_factory=dict)  #: Action's payload
 
     def __str__(self, to_json=True):

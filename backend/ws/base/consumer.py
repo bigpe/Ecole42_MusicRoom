@@ -16,7 +16,7 @@ from django.core.cache import cache
 from .decoratos import auth, safe
 from .signatures import ResponsePayload, BasePayload, ActionsEnum, Action, TargetsEnum, Message, ActionSystem, \
     MessageSystem
-from .utils import camel_to_snake, user_cache_key
+from .utils import camel_to_snake, user_cache_key, camel_to_dot
 
 from django.contrib.auth import get_user_model
 
@@ -233,8 +233,19 @@ class BaseEvent:
     consumer: BaseConsumer = None
     hidden = False
 
-    def __init__(self, event):
+    def __init__(self, event=None, payload: BasePayload = BasePayload()):
+        event_name = camel_to_dot(self.__class__.__name__)
+
+        if not event:
+            self.hidden = False
+            event = {
+                'type': event_name,
+                'payload': payload.to_data(),
+                'system': self.consumer.get_systems().to_data()
+            }
+
         self.event = event
+
         if self.hidden:
             action = Action(
                 event=ActionsEnum.error,

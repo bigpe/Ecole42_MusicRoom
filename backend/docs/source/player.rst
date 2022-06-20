@@ -21,6 +21,24 @@ Events list
 .. note::
     .. include:: events_detail_note.txt
 
+Session
+"""""""""""""""""""
+.. autoattribute:: ws.player.EventsList.create_session
+   :noindex:
+
+.. seealso::
+   :obj:`.Examples.session_response`
+.. autoclass:: ws.player.PlayerConsumer.Session
+
+Session Changed
+"""""""""""""""""""
+.. autoattribute:: ws.player.EventsList.session_changed
+   :noindex:
+
+.. seealso::
+   :obj:`.Examples.session_changed_response`
+.. autoclass:: ws.player.PlayerConsumer.SessionChanged
+
 Create Session
 """""""""""""""""""
 .. autoattribute:: ws.player.EventsList.create_session

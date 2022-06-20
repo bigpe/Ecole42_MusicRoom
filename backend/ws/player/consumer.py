@@ -36,18 +36,26 @@ class PlayerConsumer(BaseConsumer):
 
     @restore_player_session
     def after_connect(self, player_session: PlayerSession):
-        self.send_json(Action(
-            event='session',
-            payload=ResponsePayload.PlayerSession(
-                player_session=PlayerSessionSerializer(player_session).data if player_session else None
-            ).to_data(),
-            system=self.get_systems()
-        ).to_data())
+        self.Session()
 
     @restore_player_session
     def before_disconnect(self, player_session: PlayerSession):
         if player_session:
             PlayerService(player_session).freeze_session()
+
+    class Session(BaseEvent):
+        request_payload_type = None
+        hidden = True
+
+        @restore_player_session
+        def action_for_initiator(self, message: Message, payload: request_payload_type, player_session: PlayerSession):
+            return Action(
+                event='session',
+                payload=ResponsePayload.PlayerSession(
+                    player_session=PlayerSessionSerializer(player_session).data if player_session else None
+                ).to_data(),
+                system=self.event['system']
+            )
 
     class CreateSession(BaseEvent):
         """Create player session"""
@@ -76,6 +84,12 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type):
             PlayerSession.objects.filter(author=message.initiator_user).delete()
 
+        def action_for_initiator(self, message: Message, payload: request_payload_type):
+            return Action(event='test')
+
+        def action_for_target(self, message: Message, payload: request_payload_type):
+            return Action(event='test1')
+
     class SessionChanged(BaseEvent):
         request_payload_type = RequestPayload.ModifyTrack
         target = CustomTargetEnum.for_accessed
@@ -83,18 +97,24 @@ class PlayerConsumer(BaseConsumer):
 
         @check_player_session
         def action_for_target(self, message: Message, payload: request_payload_type):
-            action = Action(event=str(EventsList.session_changed), system=self.event['system'])
-            action.payload = ResponsePayload.PlayerSession(
-                player_session=PlayerSessionSerializer(
-                    PlayerService(payload.player_session_id).player_session).data).to_data(),
+            action = Action(
+                event=str(EventsList.session_changed),
+                payload=ResponsePayload.PlayerSession(
+                    player_session=PlayerSessionSerializer(
+                        PlayerService(payload.player_session_id).player_session).data).to_data(),
+                system=self.event['system']
+            )
             return action
 
         @check_player_session
         def action_for_initiator(self, message: Message, payload: request_payload_type):
-            action = Action(event=str(EventsList.session_changed), system=self.event['system'])
-            action.payload = ResponsePayload.PlayerSession(
-                player_session=PlayerSessionSerializer(
-                    PlayerService(payload.player_session_id).player_session).data).to_data(),
+            action = Action(
+                event=str(EventsList.session_changed),
+                payload=ResponsePayload.PlayerSession(
+                    player_session=PlayerSessionSerializer(
+                        PlayerService(payload.player_session_id).player_session).data).to_data(),
+                system=self.event['system']
+            )
             return action
 
     class PlayTrack(SessionChanged, BaseEvent):
@@ -192,7 +212,7 @@ class PlayerConsumer(BaseConsumer):
 
 
 class EventsList:
-    session = 'session'
+    session: PlayerConsumer.Session = camel_to_dot(PlayerConsumer.Session.__name__)
     session_changed: PlayerConsumer.SessionChanged = camel_to_dot(PlayerConsumer.SessionChanged.__name__)
     create_session: PlayerConsumer.CreateSession = camel_to_dot(PlayerConsumer.CreateSession.__name__)
     remove_session: PlayerConsumer.RemoveSession = camel_to_dot(PlayerConsumer.RemoveSession.__name__)
