@@ -36,8 +36,7 @@ class PlayerConsumer(BaseConsumer):
 
     @restore_player_session
     def after_connect(self, player_session: PlayerSession):
-        ...
-        # self.Session()
+        self.Session(consumer=self)
 
     @restore_player_session
     def before_disconnect(self, player_session: PlayerSession):

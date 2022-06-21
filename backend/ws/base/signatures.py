@@ -13,7 +13,7 @@ class BasePayload:
         self.__dict__.update(kwargs)
 
     def __str__(self):
-        return json.dumps(self.to_data())
+        return f'Payload Object: {json.dumps(self.to_data())}'
 
     def to_data(self, *args):
         if args:

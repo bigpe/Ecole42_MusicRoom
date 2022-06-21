@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Union
 
 from music_room.models import PlayerSession
-from ws.base import BasePayload, TargetsEnum
+from ws.base import BasePayload, TargetsEnum, ResponsePayload as BaseResponsePayload
 
 
 class RequestPayload:
@@ -58,6 +58,10 @@ class RequestPayloadWrap:
     @dataclass
     class SyncTrack(BasePayload):
         sync_track: Union[RequestPayload.SyncTrack, dict]  #: Sync track signature mock for swift
+
+    @dataclass
+    class Error(BasePayload):
+        error: Union[BaseResponsePayload.Error, dict]  #: Error signature mock for swift
 
 
 class ResponsePayload:
