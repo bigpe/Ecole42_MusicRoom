@@ -130,7 +130,7 @@ extension MainViewController {
 	
 	func viewUpdate() {
 		if isBroadcasting {
-			statusImage.tintColor = UIColor.getCeladonBlue()
+			statusImage.tintColor = UIColor.getImperialRed()
 			switchButton.configuration = .getStopConf()
 			switchButton.setTitle("Stop", for: .normal)
 			majorTF.isEnabled = false

@@ -34,7 +34,7 @@
                                 </subviews>
                             </stackView>
                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillProportionally" alignment="center" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="k3f-cU-9Bk">
-                                <rect key="frame" x="70.5" y="460" width="179.5" height="17"/>
+                                <rect key="frame" x="70.5" y="470" width="179.5" height="17"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bluetooth status: " textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Y3H-mC-LUY">
                                         <rect key="frame" x="0.0" y="0.0" width="114" height="17"/>
@@ -114,7 +114,7 @@
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="9d6-gS-sn6" secondAttribute="trailing" constant="30" id="RB2-OJ-znq"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="aUa-CG-h9O" secondAttribute="trailing" constant="30" id="Vri-7D-xjo"/>
                             <constraint firstItem="bx1-eA-dBZ" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="30" id="Wnu-a1-d1B"/>
-                            <constraint firstItem="aUa-CG-h9O" firstAttribute="top" secondItem="k3f-cU-9Bk" secondAttribute="bottom" constant="30" id="Z07-Lz-spI"/>
+                            <constraint firstItem="aUa-CG-h9O" firstAttribute="top" secondItem="k3f-cU-9Bk" secondAttribute="bottom" constant="20" id="Z07-Lz-spI"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="hxf-a5-Y0p" secondAttribute="trailing" constant="30" id="bIC-HX-G43"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="aUa-CG-h9O" secondAttribute="bottom" constant="30" id="eCV-RI-dwG"/>
                             <constraint firstItem="9d6-gS-sn6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" multiplier="1.05" id="eNI-GE-Npb"/>
