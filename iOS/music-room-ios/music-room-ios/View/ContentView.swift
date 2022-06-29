@@ -24,6 +24,7 @@ struct ContentView: View {
     private let api = API()
     
     var body: some View {
+        
         let artworkView = AsyncImage(
             url: musicKit.artworkURL
         ) { phase in
@@ -170,22 +171,22 @@ struct ContentView: View {
                     
                     LazyVStack(alignment: .leading, spacing: 48) {
                         Text(viewModel.track?.name ?? "Not Playing")
-                            .foregroundColor(.white)
+                            .foregroundColor(viewModel.primaryControlsColor)
                             .font(.headline)
                             .dynamicTypeSize(.xLarge)
                         
                         LazyVStack(spacing: 8) {
                             ProgressView(value: 0.5, total: 1)
-                                .tint(.white)
+                                .tint(viewModel.secondaryControlsColor)
                             
                             HStack {
                                 Text("--:--")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(viewModel.secondaryControlsColor)
                                 
                                 Spacer()
                                 
                                 Text("--:--")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(viewModel.secondaryControlsColor)
                             }
                         }
                     }
@@ -203,7 +204,7 @@ struct ContentView: View {
                             ForEach(viewModel.playlistTracks) { track in
                                 HStack {
                                     Text(track.name)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(viewModel.primaryControlsColor)
                                         .padding(.vertical, 12)
                                     
                                     Spacer()
@@ -212,7 +213,7 @@ struct ContentView: View {
                                         
                                     } label: {
                                         Image(systemName: "text.insert")
-                                            .foregroundColor(.white)
+                                            .foregroundColor(viewModel.primaryControlsColor)
                                     }
                                 }
                             }
@@ -238,7 +239,7 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "backward.fill")
                             .font(.system(size: 32))
-                            .foregroundColor(.white)
+                            .foregroundColor(viewModel.primaryControlsColor)
                     }
                     
                     Button {
@@ -268,7 +269,7 @@ struct ContentView: View {
                             }
                         }())
                         .font(.system(size: 48))
-                        .foregroundColor(.white)
+                        .foregroundColor(viewModel.primaryControlsColor)
                     }
                     
                     Button {
@@ -286,7 +287,7 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "forward.fill")
                             .font(.system(size: 32))
-                            .foregroundColor(.white)
+                            .foregroundColor(viewModel.primaryControlsColor)
                     }
                 }
                 
@@ -302,7 +303,7 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "shuffle")
                             .font(.system(size: 20))
-                            .foregroundColor(.white)
+                            .foregroundColor(viewModel.secondaryControlsColor)
                     }
                     
                     Button {
@@ -310,7 +311,7 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "gearshape.fill")
                             .font(.system(size: 24))
-                            .foregroundColor(.white)
+                            .foregroundColor(viewModel.secondaryControlsColor)
                     }
                     
                     Button {
@@ -330,12 +331,12 @@ struct ContentView: View {
                         case .player:
                             Image(systemName: "list.bullet")
                                 .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(.white)
+                                .foregroundColor(viewModel.secondaryControlsColor)
                             
                         case .playlist:
                             Image(systemName: "list.bullet")
                                 .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(.white)
+                                .foregroundColor(viewModel.secondaryControlsColor)
                                 .background(.gray, in: RoundedRectangle(cornerRadius: 2).inset(by: -4))
                             
                         }
@@ -391,12 +392,12 @@ struct ContentView: View {
                         if !authSheet.isLoading {
                             Text("Continue")
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                .foregroundColor(viewModel.primaryControlsColor)
                                 .frame(maxWidth: .infinity, maxHeight: 24)
                         } else {
                             ProgressView()
                                 .progressViewStyle(.circular)
-                                .tint(.white)
+                                .tint(viewModel.primaryControlsColor)
                                 .frame(maxWidth: .infinity, maxHeight: 24)
                         }
                         

@@ -49,6 +49,10 @@ extension ContentView {
             }
         }
         
+        let primaryControlsColor = Color.primary
+        
+        let secondaryControlsColor = Color.primary.opacity(0.55)
+        
         @Published
         var interfaceState = InterfaceState.player
         
