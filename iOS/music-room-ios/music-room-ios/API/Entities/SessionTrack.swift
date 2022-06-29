@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct SessionTrack: Codable {
+public struct SessionTrack: Codable, Identifiable {
     public let id: Int?
     
     public enum State: String, Codable {

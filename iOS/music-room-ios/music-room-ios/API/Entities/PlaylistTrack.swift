@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PlaylistTrack: Codable {
+public struct PlaylistTrack: Codable, Identifiable {
     public let id: Int?
     
     public let order: Int?

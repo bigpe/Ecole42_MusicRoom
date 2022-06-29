@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PlayerSession: Codable {
+public struct PlayerSession: Codable, Identifiable {
     public let id: Int?
     
     public let trackQueue: [SessionTrack]

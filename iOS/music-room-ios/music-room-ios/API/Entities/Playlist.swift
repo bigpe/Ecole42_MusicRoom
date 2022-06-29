@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Playlist: Codable {
+public struct Playlist: Codable, Identifiable {
     public let id: Int?
     
     public let tracks: [PlaylistTrack]
