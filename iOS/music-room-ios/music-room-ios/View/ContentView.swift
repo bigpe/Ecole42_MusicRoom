@@ -121,7 +121,6 @@ struct ContentView: View {
                         .shadow(color: Color(white: 0, opacity: 0.3), radius: 4, x: 0, y: 4)
                     }
                         .padding(viewModel.playerArtworkPadding)
-                        .padding(.top, 24)
                         .transition(
                             .scale(
                                 scale: viewModel.artworkScale,
@@ -129,9 +128,35 @@ struct ContentView: View {
                             )
                             .combined(with: .opacity)
                             .combined(with: .offset(
-                                x: -viewModel.playlistArtworkWidth / 4,
-                                y: -viewModel.playlistArtworkWidth / 4
+                                x: {
+                                    switch viewModel.playerState {
+                                    case .paused:
+                                        return -viewModel.playlistArtworkWidth / 4
+                                        
+                                    case .playing:
+                                        return 0
+                                    }
+                                }(),
+                                y: {
+                                    switch viewModel.playerState {
+                                    case .paused:
+                                        return -viewModel.playlistArtworkWidth / 4
+                                        
+                                    case .playing:
+                                        return 0
+                                    }
+                                }()
                             ))
+                        )
+                        .animation(
+                            .interpolatingSpring(
+                                mass: 1.0,
+                                stiffness: 1,
+                                damping: 1,
+                                initialVelocity: 0.0
+                            )
+                            .speed(12),
+                            value: viewModel.animatingPlayerState
                         )
                     
                     VStack(alignment: .leading, spacing: 48) {
@@ -269,23 +294,15 @@ struct ContentView: View {
 //                                switch viewModel.playerState {
 //                                case .playing:
 //                                    try await api.playerWebSocket?.pauseTrack()
-//                                    
+//
 //                                case .paused:
 //                                    try await api.playerWebSocket?.playTrack()
 //                                }
                                 
                                 await MainActor.run {
-                                    withAnimation(
-                                        .interpolatingSpring(
-                                            mass: 1.0,
-                                            stiffness: 1,
-                                            damping: 1,
-                                            initialVelocity: 0.0
-                                        )
-                                        .speed(10)
-                                    ) {
-                                        viewModel.playerState.toggle()
-                                    }
+                                    viewModel.animatingPlayerState.toggle()
+                                    
+                                    viewModel.playerState.toggle()
                                 }
                             } catch {
                                 print(error)
@@ -304,12 +321,17 @@ struct ContentView: View {
                     }
                     .frame(width: 80, height: 80)
                     .buttonStyle(ControlButtonStyle())
+                    .transition(.opacity)
+                    .animation(
+                        .linear(duration: 0.34),
+                        value: viewModel.animatingPlayerState
+                    )
                     
                     Button {
                         Task {
                             let track = Track(name: "Adele — Skyfall")
                             
-                            musicKit.artworkURLs[track.name] = URL(string: "https://is4-ssl.mzstatic.com/image/thumb/Music125/v4/b3/fe/cf/b3fecf76-0359-8e14-0651-4b101fc68a3f/886443673632.jpg/1000x1000bb.jpg")
+                            musicKit.artworkURLs[track.name] = URL(string: "https://is4ssl.mzstatic.com/image/thumb/Music125/v4/b3/fe/cf/b3fecf76-0359-8e14-0651-4b101fc68a3f/886443673632.jpg/1000x1000bb.jpg")
                             
                             viewModel.track = track
                             

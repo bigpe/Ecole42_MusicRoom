@@ -139,6 +139,9 @@ extension ContentView {
         
         var playerArtworkWidth: CGFloat?
         
+        @Published
+        var animatingPlayerState = false
+        
         func updatePlayerArtworkWidth(_ geometry: GeometryProxy) {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
