@@ -25,13 +25,18 @@ struct ContentView: View {
     
     // MARK: - Cached Artwork Image
     
-    private func cachedArtworkImage(
+    func cachedArtworkImage(
         _ trackName: String?,
+        geometry: GeometryProxy? = nil,
         isMainArtwork: Bool = false
     ) -> Image {
         
+        if let geometry = geometry {
+            viewModel.updatePlayerArtworkWidth(geometry)
+        }
+        
         guard let trackName = trackName else {
-            return Image(uiImage: UIImage())
+            return Image(uiImage: viewModel.placeholderArtworkImage)
                 .resizable()
         }
         
@@ -50,7 +55,7 @@ struct ContentView: View {
                 shouldChangeColor: isMainArtwork
             )
             
-            return Image(uiImage: viewModel.downloadedArtworks[trackName] ?? UIImage())
+            return Image(uiImage: viewModel.downloadedArtworks[trackName] ?? viewModel.placeholderArtworkImage)
                 .resizable()
         }
         
@@ -59,10 +64,6 @@ struct ContentView: View {
     }
     
     var body: some View {
-        
-        // MARK: - Artwork
-        
-        let artworkView = cachedArtworkImage(viewModel.track?.name, isMainArtwork: true)
         
         // MARK: - Main Layout
         
@@ -109,30 +110,29 @@ struct ContentView: View {
                 // MARK: - Player Layout
                     
                 case .player:
-                    
-                    ZStack(alignment: .topLeading) {
-                        GeometryReader { geometry in
-                            viewModel.playerArtworkPlaceholder(geometry)
-                                .aspectRatio(1, contentMode: .fit)
-                        }
-                        
-                        artworkView
-                            .aspectRatio(1, contentMode: .fit)
-                            .cornerRadius(8)
-                            .shadow(color: Color(white: 0, opacity: 0.3), radius: 4, x: 0, y: 4)
-                    }
-                    .padding(viewModel.playerArtworkPadding)
-                    .transition(
-                        .scale(
-                            scale: viewModel.artworkScale,
-                            anchor: .topLeading
+                    GeometryReader { geometry in
+                        cachedArtworkImage(
+                            viewModel.track?.name,
+                            geometry: geometry,
+                            isMainArtwork: true
                         )
-                        .combined(with: .opacity)
-                        .combined(with: .offset(
-                            x: -viewModel.playlistArtworkWidth / 4,
-                            y: -viewModel.playlistArtworkWidth / 4
-                        ))
-                    )
+                        .aspectRatio(1, contentMode: .fit)
+                        .cornerRadius(8)
+                        .shadow(color: Color(white: 0, opacity: 0.3), radius: 4, x: 0, y: 4)
+                    }
+                        .padding(viewModel.playerArtworkPadding)
+                        .padding(.top, 24)
+                        .transition(
+                            .scale(
+                                scale: viewModel.artworkScale,
+                                anchor: .topLeading
+                            )
+                            .combined(with: .opacity)
+                            .combined(with: .offset(
+                                x: -viewModel.playlistArtworkWidth / 4,
+                                y: -viewModel.playlistArtworkWidth / 4
+                            ))
+                        )
                     
                     VStack(alignment: .leading, spacing: 48) {
                         Text(viewModel.track?.name ?? viewModel.placeholderTitle)
@@ -165,29 +165,12 @@ struct ContentView: View {
                 case .playlist:
                     
                     HStack(alignment: .center, spacing: 16) {
-                        ZStack(alignment: .topLeading) {
-                            if musicKit.artworkURLs[viewModel.track?.name ?? ""] == nil {
-                                ZStack(alignment: .center) {
-                                    RoundedRectangle(cornerRadius: 4, style: .circular)
-                                        .stroke(Color(red: 0.443, green: 0.439, blue: 0.447), lineWidth: 0.3)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 4, style: .circular)
-                                                .fill(viewModel.artworkPlaceholder.backgroundColor)
-                                        )
-                                    
-                                    Image(systemName: "music.note")
-                                        .font(.system(size: 24, weight: .medium))
-                                        .foregroundColor(viewModel.artworkPlaceholder.foregroundColor)
-                                }
-                            }
-                            
-                            artworkView
-                                .cornerRadius(4)
-                        }
-                        .frame(
-                            width: viewModel.playlistArtworkWidth,
-                            height: viewModel.playlistArtworkWidth
-                        )
+                        cachedArtworkImage(viewModel.track?.name, isMainArtwork: true)
+                            .cornerRadius(4)
+                            .frame(
+                                width: viewModel.playlistArtworkWidth,
+                                height: viewModel.playlistArtworkWidth
+                            )
                         
                         Text(viewModel.track?.name ?? viewModel.placeholderTitle)
                             .font(.system(size: 18, weight: .semibold))
@@ -196,10 +179,6 @@ struct ContentView: View {
                         Spacer()
                     }
                     .padding(.bottom, -32)
-//                    .transition(
-//                        .move(edge: .bottom)
-//                        .combined(with: .opacity)
-//                    )
                     .transition(
                         .scale(
                             scale: viewModel.artworkScale,
@@ -226,28 +205,12 @@ struct ContentView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 ForEach(viewModel.playlistTracks) { track in
                                     HStack(alignment: .center, spacing: 14) {
-                                        ZStack(alignment: .topLeading) {
-                                            if musicKit.artworkURLs[track.name] == nil {
-                                                ZStack(alignment: .center) {
-                                                    RoundedRectangle(cornerRadius: 4, style: .circular)
-                                                        .stroke(Color(red: 0.443, green: 0.439, blue: 0.447), lineWidth: 0.3)
-                                                        .background(
-                                                            RoundedRectangle(cornerRadius: 4, style: .circular)
-                                                                .fill(viewModel.artworkPlaceholder.backgroundColor)
-                                                        )
-                                                    
-                                                    Image(systemName: "music.note")
-                                                        .font(.system(size: 18, weight: .medium, design: .default))
-                                                        .foregroundColor(viewModel.artworkPlaceholder.foregroundColor)
-                                                }
-                                            }
-                                            
-                                            cachedArtworkImage(track.name)
-                                        }
-                                        .frame(
-                                            width: viewModel.playlistQueueArtworkWidth,
-                                            height: viewModel.playlistQueueArtworkWidth
-                                        )
+                                        cachedArtworkImage(track.name)
+                                            .cornerRadius(4)
+                                            .frame(
+                                                width: viewModel.playlistQueueArtworkWidth,
+                                                height: viewModel.playlistQueueArtworkWidth
+                                            )
                                         
                                         Text(track.name)
                                             .font(.system(size: 16, weight: .medium))
@@ -303,30 +266,41 @@ struct ContentView: View {
                     Button {
                         Task {
                             do {
-                                switch viewModel.playerState {
-                                case .playing:
-                                    try await api.playerWebSocket?.pauseTrack()
-                                    
-                                case .paused:
-                                    try await api.playerWebSocket?.playTrack()
-                                }
+//                                switch viewModel.playerState {
+//                                case .playing:
+//                                    try await api.playerWebSocket?.pauseTrack()
+//                                    
+//                                case .paused:
+//                                    try await api.playerWebSocket?.playTrack()
+//                                }
                                 
-                                viewModel.playerState.toggle()
+                                await MainActor.run {
+                                    withAnimation(
+                                        .interpolatingSpring(
+                                            mass: 1.0,
+                                            stiffness: 1,
+                                            damping: 1,
+                                            initialVelocity: 0.0
+                                        )
+                                        .speed(10)
+                                    ) {
+                                        viewModel.playerState.toggle()
+                                    }
+                                }
                             } catch {
                                 print(error)
                             }
                         }
                     } label: {
-                        Image(systemName: {
-                            switch viewModel.playerState {
-                            case .playing:
-                                return "pause.fill"
-                                
-                            case .paused:
-                                return "play.fill"
-                            }
-                        }())
-                        .font(.system(size: 48))
+                        switch viewModel.playerState {
+                        case .playing:
+                            Image(systemName: "pause.fill")
+                                .font(.system(size: 48))
+
+                        case .paused:
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 48))
+                        }
                     }
                     .frame(width: 80, height: 80)
                     .buttonStyle(ControlButtonStyle())

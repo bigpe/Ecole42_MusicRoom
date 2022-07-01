@@ -127,32 +127,34 @@ extension ContentView {
             
         )
         
-        let playerArtworkPadding = CGFloat(34)
-        
-        var playerArtworkWidth: CGFloat?
-        
-        func playerArtworkPlaceholder(_ geometry: GeometryProxy) -> some View {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
+        var playerArtworkPadding: CGFloat {
+            switch playerState {
+            case .playing:
+                return .zero
                 
-                self.playerArtworkWidth = geometry.size.width
-            }
-            
-            return ZStack(alignment: .center) {
-                RoundedRectangle(cornerRadius: 8, style: .circular)
-                    .fill(artworkPlaceholder.backgroundColor)
-                
-                Image(systemName: "music.note")
-                    .font(.system(size: geometry.size.width * 0.375, weight: .medium, design: .default))
-                    .foregroundColor(artworkPlaceholder.foregroundColor)
+            case .paused:
+                return 34
             }
         }
         
-        let playlistArtworkWidth = CGFloat(64)
+        var playerArtworkWidth: CGFloat?
         
-        let playlistQueueArtworkWidth = CGFloat(48)
-        
-        var artworkProxyPrimaryColor: Color?
+        func updatePlayerArtworkWidth(_ geometry: GeometryProxy) {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+
+                self.playerArtworkWidth = geometry.size.width
+            }
+
+//            return ZStack(alignment: .center) {
+//                RoundedRectangle(cornerRadius: 8, style: .circular)
+//                    .fill(artworkPlaceholder.backgroundColor)
+//
+//                Image(systemName: "music.note")
+//                    .font(.system(size: geometry.size.width * 0.375, weight: .medium, design: .default))
+//                    .foregroundColor(artworkPlaceholder.foregroundColor)
+//            }
+        }
         
         var artworkPlaceholder = (
             backgroundColor: Color(red: 0.33, green: 0.325, blue: 0.349),
@@ -161,6 +163,12 @@ extension ContentView {
         
         @Published
         var artworkPrimaryColor = Color(red: 0.33, green: 0.325, blue: 0.349)
+        
+        let playlistArtworkWidth = CGFloat(64)
+        
+        let playlistQueueArtworkWidth = CGFloat(48)
+        
+        var artworkProxyPrimaryColor: Color?
         
         func cachedArtworkImage(_ trackName: String, shouldPickColor: Bool = false) -> UIImage? {
             guard
@@ -286,11 +294,39 @@ extension ContentView {
             switch interfaceState {
             case .player:
                 return playlistArtworkWidth / playerArtworkWidth
-                
+
             case .playlist:
                 return playerArtworkWidth / playlistArtworkWidth
             }
         }
+        
+        let placeholderArtworkImage = generateImage(
+            CGSize(width: 1000, height: 1000),
+            rotatedContext: { size, context in
+                
+                context.clear(CGRect(origin: CGPoint(), size: size))
+                
+                let musicNoteIcon = UIImage(systemName: "music.note")?
+                    .withConfiguration(UIImage.SymbolConfiguration(
+                        pointSize: 1000 * 0.375,
+                        weight: .medium
+                    ))
+                ?? UIImage()
+                
+                drawIcon(
+                    context: context,
+                    size: size,
+                    icon: musicNoteIcon,
+                    iconSize: musicNoteIcon.size,
+                    iconColor: UIColor(displayP3Red: 0.462, green: 0.458, blue: 0.474, alpha: 1),
+                    colors: [
+                        UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
+                        UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
+                    ]
+                )
+            }
+        )?
+            .withRenderingMode(.alwaysOriginal) ?? UIImage()
         
         @Published
         var showingSignOutConfirmation = false

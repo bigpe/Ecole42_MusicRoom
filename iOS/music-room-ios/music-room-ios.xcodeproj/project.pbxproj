@@ -21,6 +21,8 @@
 		C3434ADC286F481000D07785 /* PINRemoteImage in Frameworks */ = {isa = PBXBuildFile; productRef = C3434ADB286F481000D07785 /* PINRemoteImage */; };
 		C3434ADE286F6C4D00D07785 /* SubControlButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */; };
 		C3434AE0286F6E7900D07785 /* ControlButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3434ADF286F6E7900D07785 /* ControlButtonStyle.swift */; };
+		C3434AE2286F752000D07785 /* GenerateImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3434AE1286F752000D07785 /* GenerateImage.swift */; };
+		C3434AE4286F756900D07785 /* ASCGImageBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3434AE3286F756900D07785 /* ASCGImageBuffer.swift */; };
 		C3535C3D286A2321007EA197 /* ContentView+ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C3C286A2321007EA197 /* ContentView+ViewModel.swift */; };
 		C3535C3F286A3025007EA197 /* ContentView+MusicKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C3E286A3025007EA197 /* ContentView+MusicKit.swift */; };
 		C3535C47286A386F007EA197 /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C46286A386F007EA197 /* API.swift */; };
@@ -54,6 +56,8 @@
 		C33B7C28285F88E4000399BA /* PlaylistType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistType.swift; sourceTree = "<group>"; };
 		C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubControlButtonStyle.swift; sourceTree = "<group>"; };
 		C3434ADF286F6E7900D07785 /* ControlButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlButtonStyle.swift; sourceTree = "<group>"; };
+		C3434AE1286F752000D07785 /* GenerateImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateImage.swift; sourceTree = "<group>"; };
+		C3434AE3286F756900D07785 /* ASCGImageBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASCGImageBuffer.swift; sourceTree = "<group>"; };
 		C3535C3C286A2321007EA197 /* ContentView+ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ViewModel.swift"; sourceTree = "<group>"; };
 		C3535C3E286A3025007EA197 /* ContentView+MusicKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+MusicKit.swift"; sourceTree = "<group>"; };
 		C3535C46286A386F007EA197 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
@@ -123,6 +127,8 @@
 				C3535C3E286A3025007EA197 /* ContentView+MusicKit.swift */,
 				C3434ADF286F6E7900D07785 /* ControlButtonStyle.swift */,
 				C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */,
+				C3434AE1286F752000D07785 /* GenerateImage.swift */,
+				C3434AE3286F756900D07785 /* ASCGImageBuffer.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -292,8 +298,10 @@
 				C33B7C21285F844C000399BA /* Playlist.swift in Sources */,
 				C3535C49286A38CE007EA197 /* API+Error.swift in Sources */,
 				C3535C47286A386F007EA197 /* API.swift in Sources */,
+				C3434AE4286F756900D07785 /* ASCGImageBuffer.swift in Sources */,
 				C33B7C25285F85E6000399BA /* Track.swift in Sources */,
 				C3535C5A286B616D007EA197 /* ContentView+AuthSheet.swift in Sources */,
+				C3434AE2286F752000D07785 /* GenerateImage.swift in Sources */,
 				C33B7C19285EB170000399BA /* PlayerMessage.swift in Sources */,
 				C33B7C1F285F8349000399BA /* PlaylistTrack.swift in Sources */,
 				C33B7C27285F87D6000399BA /* PlaylistMessage.swift in Sources */,
@@ -338,6 +346,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -399,6 +408,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
