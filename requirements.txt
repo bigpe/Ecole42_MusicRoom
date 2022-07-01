@@ -10,3 +10,5 @@ django-heroku
 drf-yasg
 drf-yasg[validation]
 eyeD3
+djangorestframework-simplejwt
+
