@@ -101,10 +101,9 @@ extension ContentView {
         @Published
         var artworkPrimaryColor = Color(red: 0.33, green: 0.325, blue: 0.349)
         
-        func cachedArtworkImage(_ artworkURL: URL?, shouldPickColor: Bool = false) -> UIImage? {
+        func cachedArtworkImage(_ trackName: String, shouldPickColor: Bool = false) -> UIImage? {
             guard
-                let artworkKey = artworkURL?.absoluteString,
-                let cachedImage = PINCache.shared.object(forKey: artworkKey) as? UIImage
+                let cachedImage = PINCache.shared.object(forKey: trackName) as? UIImage
             else {
                 return nil
             }
@@ -179,7 +178,7 @@ extension ContentView {
             }
         }
         
-        func processArtwork(_ image: Image, _ artworkURL: URL?) {
+        func processArtwork(_ image: Image, _ trackName: String) {
             let primaryImageColor: Color = {
                 let controller = UIHostingController(rootView: image)
                 
@@ -212,9 +211,7 @@ extension ContentView {
                     controller.view.layer.render(in: rendererContext.cgContext)
                 }
                 
-                if let artworkKey = artworkURL?.absoluteString {
-                    PINCache.shared.setObjectAsync(uiImage, forKey: artworkKey)
-                }
+                PINCache.shared.setObjectAsync(uiImage, forKey: trackName)
                 
                 return artworkColor(uiImage)
             }()

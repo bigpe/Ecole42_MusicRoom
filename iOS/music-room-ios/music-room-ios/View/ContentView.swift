@@ -29,27 +29,31 @@ struct ContentView: View {
         _ trackName: String?,
         isMainArtwork: Bool = false
     ) -> AsyncImage<_ConditionalContent<Image, Image>> {
-        let url: URL? = {
-            guard
-                let trackName = trackName
-            else {
-                return nil
+        
+        guard let trackName = trackName else {
+            return AsyncImage(url: nil) { image in
+                { () -> Image in
+                    image
+                        .resizable()
+                }()
+            } placeholder: {
+                Image(uiImage: UIImage())
+                    .resizable()
             }
-            
-            return musicKit.artworkURLs[trackName]
-
-        }()
+        }
+        
+        let url = musicKit.artworkURLs[trackName]
         
         guard
-            let cachedImage = viewModel.cachedArtworkImage(url, shouldPickColor: isMainArtwork)
+            let cachedImage = viewModel.cachedArtworkImage(trackName, shouldPickColor: isMainArtwork)
         else {
-            if let trackName = trackName, url == nil {
+            if url == nil {
                 musicKit.requestUpdatedSearchResults(for: trackName)
             }
             
             return AsyncImage(url: url) { image in
                 { () -> Image in
-                    viewModel.processArtwork(image, url)
+                    viewModel.processArtwork(image, trackName)
                     
                     return image
                         .resizable()
@@ -139,6 +143,10 @@ struct ContentView: View {
                             anchor: .topLeading
                         )
                         .combined(with: .opacity)
+                        .combined(with: .offset(
+                            x: -viewModel.playlistArtworkWidth / 4,
+                            y: -viewModel.playlistArtworkWidth / 4
+                        ))
                     )
                     
                     VStack(alignment: .leading, spacing: 48) {
@@ -203,9 +211,20 @@ struct ContentView: View {
                         Spacer()
                     }
                     .padding(.bottom, -32)
+//                    .transition(
+//                        .move(edge: .bottom)
+//                        .combined(with: .opacity)
+//                    )
                     .transition(
-                        .move(edge: .bottom)
+                        .scale(
+                            scale: viewModel.artworkScale,
+                            anchor: .topLeading
+                        )
                         .combined(with: .opacity)
+                        .combined(with: .offset(
+                            x: viewModel.playerArtworkPadding / 2 + viewModel.playlistArtworkWidth / 4,
+                            y: viewModel.playerArtworkPadding / 2 + viewModel.playlistArtworkWidth / 4
+                        ))
                     )
                     
                     VStack(spacing: 20) {
@@ -518,7 +537,7 @@ struct ContentView: View {
             .interactiveDismissDisabled()
         })
         .onAppear {
-//            authSheet.isShowing = !api.isAuthorized
+            authSheet.isShowing = !api.isAuthorized
             
             // MARK: - On Appear
             
