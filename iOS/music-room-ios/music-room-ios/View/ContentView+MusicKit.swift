@@ -44,9 +44,7 @@ extension ContentView {
                         }
                         
                         add(song, searchTerm: searchTerm)
-                    } catch let error {
-                        print("Search request failed with error: \(error).")
-                        
+                    } catch {
                         reset(searchTerm: searchTerm)
                     }
                 }

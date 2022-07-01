@@ -125,7 +125,6 @@ struct ContentView: View {
                         GeometryReader { geometry in
                             viewModel.playerArtworkPlaceholder(geometry)
                                 .aspectRatio(1, contentMode: .fit)
-                                .foregroundColor(musicKit.artworkURLs[viewModel.track?.name ?? ""] == nil ? .gray : .clear)
                         }
                         
                         artworkView
@@ -143,7 +142,7 @@ struct ContentView: View {
                     )
                     
                     VStack(alignment: .leading, spacing: 48) {
-                        Text(viewModel.track?.name ?? "Not Playing")
+                        Text(viewModel.track?.name ?? viewModel.placeholderTitle)
                             .foregroundColor(viewModel.primaryControlsColor)
                             .font(.headline)
                             .dynamicTypeSize(.xLarge)
@@ -172,10 +171,22 @@ struct ContentView: View {
                     
                 case .playlist:
                     
-                    HStack(alignment: .center, spacing: 12) {
+                    HStack(alignment: .center, spacing: 16) {
                         ZStack(alignment: .topLeading) {
-                            RoundedRectangle(cornerRadius: 4, style: .circular)
-                                .foregroundColor(musicKit.artworkURLs[viewModel.track?.name ?? ""] == nil ? .gray : .clear)
+                            if musicKit.artworkURLs[viewModel.track?.name ?? ""] == nil {
+                                ZStack(alignment: .center) {
+                                    RoundedRectangle(cornerRadius: 4, style: .circular)
+                                        .stroke(Color(red: 0.443, green: 0.439, blue: 0.447), lineWidth: 0.3)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 4, style: .circular)
+                                                .fill(viewModel.artworkPlaceholder.backgroundColor)
+                                        )
+                                    
+                                    Image(systemName: "music.note")
+                                        .font(.system(size: 24, weight: .medium))
+                                        .foregroundColor(viewModel.artworkPlaceholder.foregroundColor)
+                                }
+                            }
                             
                             artworkView
                                 .cornerRadius(4)
@@ -185,40 +196,69 @@ struct ContentView: View {
                             height: viewModel.playlistArtworkWidth
                         )
                         
+                        Text(viewModel.track?.name ?? viewModel.placeholderTitle)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(viewModel.primaryControlsColor)
+                        
                         Spacer()
                     }
-                    .padding(.bottom, -48)
+                    .padding(.bottom, -32)
                     .transition(
                         .move(edge: .bottom)
                         .combined(with: .opacity)
                     )
                     
-                    VStack(alignment: .leading, spacing: 12) {
-                        ForEach(viewModel.playlistTracks) { track in
-                            HStack {
-                                ZStack(alignment: .topLeading) {
-                                    RoundedRectangle(cornerRadius: 4, style: .circular)
-                                        .foregroundColor(musicKit.artworkURLs[track.name] == nil ? .gray : .clear)
-                                    
-                                    cachedArtworkAsyncImage(track.name)
-                                        .cornerRadius(4)
-                                }
-                                .frame(
-                                    width: viewModel.playlistQueueArtworkWidth,
-                                    height: viewModel.playlistQueueArtworkWidth
-                                )
-                                
-                                Text(track.name)
-                                    .foregroundColor(viewModel.primaryControlsColor)
-                                    .padding(.vertical, 12)
-                                
-                                Spacer()
-                                
-                                Button {
-                                    
-                                } label: {
-                                    Image(systemName: "text.insert")
-                                        .foregroundColor(viewModel.primaryControlsColor)
+                    VStack(spacing: 20) {
+                        HStack(alignment: .center, spacing: 24) {
+                            Text("Playing Next")
+                                .font(.system(size: 20, weight: .semibold, design: .default))
+                                .foregroundColor(viewModel.primaryControlsColor)
+                            
+                            Spacer()
+                        }
+                        
+                        ScrollView(showsIndicators: false) {
+                            
+                            VStack(alignment: .leading, spacing: 12) {
+                                ForEach(viewModel.playlistTracks) { track in
+                                    HStack(alignment: .center, spacing: 14) {
+                                        ZStack(alignment: .topLeading) {
+                                            if musicKit.artworkURLs[track.name] == nil {
+                                                ZStack(alignment: .center) {
+                                                    RoundedRectangle(cornerRadius: 4, style: .circular)
+                                                        .stroke(Color(red: 0.443, green: 0.439, blue: 0.447), lineWidth: 0.3)
+                                                        .background(
+                                                            RoundedRectangle(cornerRadius: 4, style: .circular)
+                                                                .fill(viewModel.artworkPlaceholder.backgroundColor)
+                                                        )
+                                                    
+                                                    Image(systemName: "music.note")
+                                                        .font(.system(size: 18, weight: .medium, design: .default))
+                                                        .foregroundColor(viewModel.artworkPlaceholder.foregroundColor)
+                                                }
+                                            }
+                                            
+                                            cachedArtworkAsyncImage(track.name)
+                                        }
+                                        .frame(
+                                            width: viewModel.playlistQueueArtworkWidth,
+                                            height: viewModel.playlistQueueArtworkWidth
+                                        )
+                                        
+                                        Text(track.name)
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(viewModel.primaryControlsColor)
+                                            .padding(.vertical, 12)
+                                        
+                                        Spacer()
+                                        
+                                        Button {
+                                            
+                                        } label: {
+                                            Image(systemName: "text.insert")
+                                                .foregroundColor(viewModel.primaryControlsColor)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -309,23 +349,40 @@ struct ContentView: View {
                 
                 HStack(alignment: .center, spacing: 76) {
                     Button {
-                        Task {
-                            do {
-                                try await api.playerWebSocket?.shuffle()
-                            } catch {
-                                debugPrint(error)
-                            }
-                        }
+                        viewModel.shuffleState.toggle()
                     } label: {
-                        Image(systemName: "shuffle")
-                            .font(.system(size: 20))
-                            .foregroundColor(viewModel.secondaryControlsColor)
+                        switch viewModel.shuffleState {
+                        case .off:
+                            Image(systemName: "shuffle")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(viewModel.secondaryControlsColor)
+                            
+                        case .on:
+                            Image(systemName: "shuffle")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(viewModel.secondaryControlsColor)
+                                .background(
+                                    viewModel.secondaryControlsColor,
+                                    in: RoundedRectangle(cornerRadius: 2)
+                                        .inset(by: -5)
+                                )
+                                .mask(alignment: .center) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .inset(by: -5)
+                                        .overlay(alignment: .center) {
+                                            Image(systemName: "shuffle")
+                                                .font(.system(size: 24, weight: .medium))
+                                                .blendMode(.destinationOut)
+                                        }
+                                }
+                            
+                        }
                     }
                     
                     Button {
-                        print("Settings")
+                        viewModel.showingSignOutConfirmation = true
                     } label: {
-                        Image(systemName: "gearshape.fill")
+                        Image(systemName: "person.crop.circle.badge.xmark")
                             .font(.system(size: 24))
                             .foregroundColor(viewModel.secondaryControlsColor)
                     }
@@ -346,14 +403,27 @@ struct ContentView: View {
                         switch viewModel.interfaceState {
                         case .player:
                             Image(systemName: "list.bullet")
-                                .font(.system(size: 20, weight: .medium))
+                                .font(.system(size: 24, weight: .medium))
                                 .foregroundColor(viewModel.secondaryControlsColor)
                             
                         case .playlist:
                             Image(systemName: "list.bullet")
-                                .font(.system(size: 20, weight: .medium))
+                                .font(.system(size: 24, weight: .medium))
                                 .foregroundColor(viewModel.secondaryControlsColor)
-                                .background(.gray, in: RoundedRectangle(cornerRadius: 2).inset(by: -4))
+                                .background(
+                                    viewModel.secondaryControlsColor,
+                                    in: RoundedRectangle(cornerRadius: 2)
+                                        .inset(by: -5)
+                                )
+                                .mask(alignment: .center) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .inset(by: -5)
+                                        .overlay(alignment: .center) {
+                                            Image(systemName: "list.bullet")
+                                                .font(.system(size: 24, weight: .medium))
+                                                .blendMode(.destinationOut)
+                                        }
+                                }
                             
                         }
                     }
@@ -363,6 +433,23 @@ struct ContentView: View {
             .padding(.horizontal, 32)
         }
         .preferredColorScheme(.dark)
+        .confirmationDialog(
+            "Sign Out?",
+            isPresented: $viewModel.showingSignOutConfirmation,
+            titleVisibility: .visible
+        ) {
+            
+            // MARK: - Sign Out Confirmation Dialog
+            
+            Button(role: .destructive) {
+                viewModel.showingSignOutConfirmation = false
+                
+                authSheet.isShowing = true
+            } label: {
+                Text("Yes")
+            }
+
+        }
         .sheet(isPresented: $authSheet.isShowing, content: {
             
             // MARK: - Sign In Sheet

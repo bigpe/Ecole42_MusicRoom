@@ -55,7 +55,7 @@ extension ContentView {
         let secondaryControlsColor = Color.primary.opacity(0.55)
         
         let gradient = (
-            backgroundColor: Color.black,
+            backgroundColor: Color(red: 0.2, green: 0.2, blue: 0.2),
             center: UnitPoint.center,
             startRadius: CGFloat(50),
             endRadius: CGFloat(600),
@@ -77,17 +77,29 @@ extension ContentView {
                 self.playerArtworkWidth = geometry.size.width
             }
             
-            return RoundedRectangle(cornerRadius: 8, style: .circular)
+            return ZStack(alignment: .center) {
+                RoundedRectangle(cornerRadius: 8, style: .circular)
+                    .fill(artworkPlaceholder.backgroundColor)
+                
+                Image(systemName: "music.note")
+                    .font(.system(size: geometry.size.width * 0.375, weight: .medium, design: .default))
+                    .foregroundColor(artworkPlaceholder.foregroundColor)
+            }
         }
         
         let playlistArtworkWidth = CGFloat(64)
         
-        let playlistQueueArtworkWidth = CGFloat(40)
+        let playlistQueueArtworkWidth = CGFloat(48)
         
         var artworkProxyPrimaryColor: Color?
         
+        var artworkPlaceholder = (
+            backgroundColor: Color(red: 0.33, green: 0.325, blue: 0.349),
+            foregroundColor: Color(red: 0.462, green: 0.458, blue: 0.474)
+        )
+        
         @Published
-        var artworkPrimaryColor = Color.gray
+        var artworkPrimaryColor = Color(red: 0.33, green: 0.325, blue: 0.349)
         
         func cachedArtworkImage(_ artworkURL: URL?, shouldPickColor: Bool = false) -> UIImage? {
             guard
@@ -108,7 +120,7 @@ extension ContentView {
             guard
                 let inputImage = CIImage(image: uiImage)
             else {
-                return .gray
+                return artworkPlaceholder.backgroundColor
             }
             
             let extentVector = CIVector(
@@ -128,7 +140,7 @@ extension ContentView {
                 ),
                 let outputImage = filter.outputImage
             else {
-                return .gray
+                return artworkPlaceholder.backgroundColor
             }
             
             var bitmap = [UInt8](repeating: 0, count: 4)
@@ -184,7 +196,7 @@ extension ContentView {
                     }) as? UIWindowScene,
                     let rootViewController = windowScene.keyWindow?.rootViewController
                 else {
-                    return .gray
+                    return artworkPlaceholder.backgroundColor
                 }
                 
                 rootViewController.view.addSubview(controller.view)
@@ -227,6 +239,9 @@ extension ContentView {
         }
         
         @Published
+        var showingSignOutConfirmation = false
+        
+        @Published
         var interfaceState = InterfaceState.player
         
         @Published
@@ -237,6 +252,8 @@ extension ContentView {
         
         @Published
         var track: Track?
+        
+        var placeholderTitle = "Not Playing"
         
         @Published
         var playlist: Playlist?
