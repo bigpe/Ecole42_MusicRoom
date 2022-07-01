@@ -5,7 +5,7 @@ from music_room.serializers import PlayerSessionSerializer
 from music_room.services.player import PlayerService
 from ws.base import TargetsEnum, Message, BaseEvent, camel_to_dot, ActionSystem
 from ws.utils import ActionRef as Action, BaseConsumerRef as BaseConsumer
-from .decorators import restore_player_session, check_player_session, only_for_author, get_player_session, get_playlist
+from .decorators import restore_player_session, check_player_session, only_for_author, get_player_service, get_playlist
 from .signatures import RequestPayload, ResponsePayload, CustomTargetEnum, RequestPayloadWrap
 
 
@@ -118,10 +118,10 @@ class PlayerConsumer(BaseConsumer):
         response_payload_type_target = ResponsePayload.PlayerSession
         hidden = False
 
-        @get_player_session
+        @get_player_service
         @only_for_author
-        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
-            player_session.play_track(payload.track_id if payload.track_id else player_session.current_track)
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.play_track(payload.track_id if payload.track_id else player_service.current_track)
 
     class PlayNextTrack(SessionChanged, BaseEvent):
         """Play next track for current player session"""
@@ -130,10 +130,10 @@ class PlayerConsumer(BaseConsumer):
         response_payload_type_target = ResponsePayload.PlayerSession
         hidden = False
 
-        @get_player_session
+        @get_player_service
         @only_for_author
-        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
-            player_session.play_next()
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.play_next()
 
     class PlayPreviousTrack(SessionChanged, BaseEvent):
         """Play previous track for current player session"""
@@ -142,10 +142,10 @@ class PlayerConsumer(BaseConsumer):
         response_payload_type_target = ResponsePayload.PlayerSession
         hidden = False
 
-        @get_player_session
+        @get_player_service
         @only_for_author
-        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
-            player_session.play_previous()
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.play_previous()
 
     class Shuffle(SessionChanged, BaseEvent):
         """Shuffle tracks for current player session"""
@@ -154,10 +154,10 @@ class PlayerConsumer(BaseConsumer):
         response_payload_type_target = ResponsePayload.PlayerSession
         hidden = False
 
-        @get_player_session
+        @get_player_service
         @only_for_author
-        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
-            player_session.shuffle()
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.shuffle()
 
     class PauseTrack(SessionChanged, BaseEvent):
         """Pause current played track for current player session"""
@@ -166,10 +166,10 @@ class PlayerConsumer(BaseConsumer):
         response_payload_type_target = ResponsePayload.PlayerSession
         hidden = False
 
-        @get_player_session
+        @get_player_service
         @only_for_author
-        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
-            player_session.pause_track()
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.pause_track()
 
     class ResumeTrack(SessionChanged, BaseEvent):
         """Pause current paused track for current player session"""
@@ -178,10 +178,10 @@ class PlayerConsumer(BaseConsumer):
         response_payload_type_target = ResponsePayload.PlayerSession
         hidden = False
 
-        @get_player_session
+        @get_player_service
         @only_for_author
-        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
-            player_session.resume_track()
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.resume_track()
 
     class StopTrack(SessionChanged, BaseEvent):
         """Pause current track for current player session"""
@@ -190,19 +190,19 @@ class PlayerConsumer(BaseConsumer):
         response_payload_type_target = ResponsePayload.PlayerSession
         hidden = False
 
-        @get_player_session
+        @get_player_service
         @only_for_author
-        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
-            player_session.stop_track()
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.stop_track()
 
     class SyncTrack(BaseEvent):
         """Sync current track progress from duration for current player session"""
         request_payload_type = RequestPayload.SyncTrack
 
-        @get_player_session
+        @get_player_service
         @only_for_author
-        def before_send(self, message: Message, payload: request_payload_type, player_session: PlayerService):
-            player_session.sync_track(payload.progress)
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.sync_track(payload.progress)
 
 
 class EventsList:

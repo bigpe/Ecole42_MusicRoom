@@ -8,8 +8,8 @@ from ws.base import BaseEvent, BaseConsumer, Message
 from ws.utils import ActionRef as Action
 
 
-def get_player_session(f: Callable):
-    from ws.player.consumer import RequestPayload
+def get_player_service(f: Callable):
+    from ws.player.consumers import RequestPayload
 
     payload_type = RequestPayload.ModifyTrack
 
@@ -26,6 +26,9 @@ def restore_player_session(f: Callable):
     def wrapper(self: [BaseConsumer, BaseEvent], *args):
         consumer: BaseConsumer = self if isinstance(self, BaseConsumer) else self.consumer
 
+        if consumer.get_user().is_anonymous:
+            return None
+
         player_session = PlayerSession.objects.filter(author=consumer.get_user()).first()
         if isinstance(self, BaseEvent):
             return f(self, *args, player_session)
@@ -35,7 +38,7 @@ def restore_player_session(f: Callable):
 
 
 def only_for_author(f: Callable):
-    from ws.player.consumer import RequestPayload
+    from ws.player.consumers import RequestPayload
 
     payload_type = RequestPayload.ModifyTrack
 
@@ -52,7 +55,7 @@ def only_for_author(f: Callable):
 
 
 def check_player_session(f: Callable):
-    from ws.player.consumer import RequestPayload
+    from ws.player.consumers import RequestPayload
 
     payload_type = RequestPayload.ModifyTrack
 
@@ -66,7 +69,7 @@ def check_player_session(f: Callable):
 
 
 def get_playlist(f: Callable):
-    from ws.player.consumer import RequestPayload
+    from ws.player.consumers import RequestPayload
 
     payload_type = RequestPayload.CreateSession
 

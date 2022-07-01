@@ -117,7 +117,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-INSTALLED_APPS += ['music_room', 'rest_framework', 'bootstrap', 'channels', 'drf_yasg', ]
+INSTALLED_APPS += ['music_room', 'rest_framework', 'bootstrap', 'channels', 'drf_yasg', 'rest_framework_simplejwt']
 
 BOOTSTRAP_ENABLED = True
 BOOTSTRAP_PRUNE = True
@@ -146,8 +146,26 @@ API_INFO = {
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 SWAGGER_SETTINGS = {
-   'USE_SESSION_AUTH': False
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'JWT Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
 }
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = 'media/'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+}

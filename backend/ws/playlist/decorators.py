@@ -19,7 +19,7 @@ def get_playlist_from_path(f: Callable):
 
 def get_playlist(f: Callable):
     def wrapper(self: BaseEvent, message: Message, payload, *args):
-        from .consumer import PlaylistRetrieveConsumer
+        from .consumers import PlaylistRetrieveConsumer
         self.consumer: PlaylistRetrieveConsumer
 
         try:

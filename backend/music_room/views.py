@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import Track, Playlist, PlayerSession
 from .serializers import TrackSerializer, PlaylistSerializer, PlayerSessionSerializer, UserSerializer
@@ -66,3 +69,14 @@ class PlayerSessionRetrieveView(RetrieveAPIView):
 class SignUpCreateView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    @swagger_auto_schema(responses={200: TokenRefreshSerializer()})
+    def post(self, request, *args, **kwargs):
+        return super(SignUpCreateView, self).post(request, *args, **kwargs)
+
+
+class SignInView(TokenObtainPairView):
+
+    @swagger_auto_schema(responses={200: TokenRefreshSerializer()})
+    def post(self, request, *args, **kwargs):
+        return super(SignInView, self).post(request, *args, **kwargs)

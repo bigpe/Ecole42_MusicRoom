@@ -4,6 +4,7 @@ Websocket: Base
 Base websocket consumer
 """
 
+from __future__ import annotations
 import uuid
 from typing import Callable
 
@@ -15,7 +16,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 
 from .decoratos import auth, safe
-from .signatures import ResponsePayload, BasePayload, ActionsEnum, Action, TargetsEnum, Message, ActionSystem, \
+from .signatures import ResponsePayload, BasePayload, Action, TargetsEnum, Message, ActionSystem, \
     MessageSystem
 from .utils import camel_to_snake, user_cache_key, camel_to_dot, dot_to_camel
 
@@ -34,7 +35,7 @@ class BaseEvent:
     event_name = None
     consumer = None
 
-    def __init__(self, event=None, payload: BasePayload = None, consumer=None, trigger=True):
+    def __init__(self, consumer: BaseConsumer, event=None, payload: BasePayload = None, trigger=True):
         payload = payload if payload else BasePayload()
         self.event_name = camel_to_dot(self.__class__.__name__)
         self.consumer = consumer if consumer else self.consumer
@@ -54,7 +55,7 @@ class BaseEvent:
 
         if trigger:
             if self.hidden:
-                self.consumer.Error(payload=ResponsePayload.ActionNotExist())
+                self.consumer.Error(consumer=self.consumer, payload=ResponsePayload.ActionNotExist())
                 return
             self.consumer.send_broadcast(
                 event,
@@ -105,10 +106,11 @@ class BaseConsumer(JsonWebsocketConsumer):
 
     @database_sync_to_async
     def dispatch(self, message):
-        handler = getattr(self, get_handler_name(message), None)
-        try:
-            handler(message, consumer=self)
-        except TypeError:
+        handler: Callable = getattr(self, get_handler_name(message), None)
+        if isinstance(handler, BaseEvent):
+            handler: BaseEvent.__class__
+            handler(consumer=self, event=message)
+        else:
             handler(message)
 
     def after_connect(self):
@@ -126,7 +128,8 @@ class BaseConsumer(JsonWebsocketConsumer):
         super(BaseConsumer, self).send_json(content, close)
 
     def cache_system(self):
-        cache.set(user_cache_key(self.get_user()), self.get_systems().to_data(), 40 * 60)
+        if not self.get_user().is_anonymous:
+            cache.set(user_cache_key(self.get_user()), self.get_systems().to_data(), 40 * 60)
 
     def get_user(self, user_id: int = None) -> User:
         return User.objects.get(id=user_id) if user_id else self.scope.get('user', AnonymousUser())
