@@ -23,159 +23,132 @@ struct ContentView: View {
     
     private let api = API()
     
-    var body: some View {
+    // MARK: - Cached Artwork Async Image
+    
+    private func cachedArtworkAsyncImage(
+        _ trackName: String?,
+        isMainArtwork: Bool = false
+    ) -> AsyncImage<_ConditionalContent<Image, Image>> {
+        let url: URL? = {
+            guard
+                let trackName = trackName
+            else {
+                return nil
+            }
+            
+            return musicKit.artworkURLs[trackName]
+
+        }()
         
-        let artworkView = AsyncImage(
-            url: musicKit.artworkURL
-        ) { phase in
-            switch phase {
-            case .empty:
-                EmptyView()
-                
-            case .success(let image):
+        guard
+            let cachedImage = viewModel.cachedArtworkImage(url, shouldPickColor: isMainArtwork)
+        else {
+            if let trackName = trackName, url == nil {
+                musicKit.requestUpdatedSearchResults(for: trackName)
+            }
+            
+            return AsyncImage(url: url) { image in
                 { () -> Image in
-                    let primaryImageColor: Color = {
-                        let controller = UIHostingController(rootView: image)
-                        
-                        controller.view.frame = CGRect(
-                            x: 0,
-                            y: .max,
-                            width: 1,
-                            height: 1
-                        )
-                        
-                        UIApplication.shared.windows.first?.rootViewController?.view.addSubview(
-                            controller.view
-                        )
-                        
-                        let size = controller.sizeThatFits(in: UIScreen.main.bounds.size)
-                        
-                        controller.view.bounds = CGRect(origin: .zero, size: size)
-                        controller.view.sizeToFit()
-                        
-                        let renderer = UIGraphicsImageRenderer(bounds: controller.view.bounds)
-                        
-                        let renderedImage = renderer.image { rendererContext in
-                            controller.view.layer.render(in: rendererContext.cgContext)
-                        }
-                        
-                        guard
-                            let inputImage = CIImage(image: renderedImage)
-                        else {
-                            return .gray
-                        }
-                        
-                        let extentVector = CIVector(
-                            x: inputImage.extent.origin.x,
-                            y: inputImage.extent.origin.y,
-                            z: inputImage.extent.size.width,
-                            w: inputImage.extent.size.height
-                        )
-                        
-                        guard
-                            let filter = CIFilter(
-                                name: "CIAreaAverage",
-                                parameters: [
-                                    kCIInputImageKey: inputImage,
-                                    kCIInputExtentKey: extentVector,
-                                ]
-                            ),
-                            let outputImage = filter.outputImage
-                        else {
-                            return .gray
-                        }
-                        
-                        var bitmap = [UInt8](repeating: 0, count: 4)
-                        
-                        let context = CIContext(options: [.workingColorSpace: kCFNull])
-                        
-                        context.render(
-                            outputImage,
-                            toBitmap: &bitmap,
-                            rowBytes: 4,
-                            bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
-                            format: .RGBA8,
-                            colorSpace: nil
-                        )
-                        
-                        let uiColor = UIColor(
-                            red: CGFloat(bitmap[0]) / 255,
-                            green: CGFloat(bitmap[1]) / 255,
-                            blue: CGFloat(bitmap[2]) / 255,
-                            alpha: CGFloat(bitmap[3]) / 255
-                        )
-                        
-                        return Color(uiColor: uiColor)
-                    }()
-                    
-                    guard primaryImageColor != musicKit.artworkPrimaryColor else {
-                        return image
-                    }
-                    
-                    DispatchQueue.main.async {
-                        musicKit.artworkPrimaryColor = primaryImageColor
-                    }
+                    viewModel.processArtwork(image, url)
                     
                     return image
+                        .resizable()
                 }()
+            } placeholder: {
+                Image(uiImage: UIImage())
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .cornerRadius({
-                        switch viewModel.interfaceState {
-                        case .player:
-                            return 8
-                            
-                        case .playlist:
-                            return 4
-                        }
-                    }(), antialiased: true)
-                
-            case .failure:
-                EmptyView()
-                
-            @unknown default:
-                EmptyView()
             }
         }
         
+        return AsyncImage(url: nil) { _ in
+            Image(uiImage: cachedImage)
+                .resizable()
+        } placeholder: {
+            Image(uiImage: cachedImage)
+                .resizable()
+        }
+    }
+    
+    var body: some View {
+        
+        // MARK: - Artwork
+        
+        let artworkView = cachedArtworkAsyncImage(viewModel.track?.name, isMainArtwork: true)
+        
+        // MARK: - Main Layout
+        
         ZStack {
-            Rectangle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            musicKit.artworkPrimaryColor,
-                            .black,
-                        ],
-                        center: .center,
-                        startRadius: 50,
-                        endRadius: 600
+            if let proxyColor = viewModel.artworkProxyPrimaryColor {
+                Rectangle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                proxyColor,
+                                viewModel.gradient.backgroundColor,
+                            ],
+                            center: viewModel.gradient.center,
+                            startRadius: viewModel.gradient.startRadius,
+                            endRadius: viewModel.gradient.endRadius
+                        )
                     )
-                )
-                .blur(radius: 150)
-                .overlay(.ultraThinMaterial)
-                .edgesIgnoringSafeArea(.all)
+                    .blur(radius: viewModel.gradient.blurRadius)
+                    .overlay(viewModel.gradient.material)
+                    .edgesIgnoringSafeArea(viewModel.gradient.ignoresSafeAreaEdges)
+                    .transition(viewModel.gradient.transition)
+            } else {
+                Rectangle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                viewModel.artworkPrimaryColor,
+                                viewModel.gradient.backgroundColor,
+                            ],
+                            center: viewModel.gradient.center,
+                            startRadius: viewModel.gradient.startRadius,
+                            endRadius: viewModel.gradient.endRadius
+                        )
+                    )
+                    .blur(radius: viewModel.gradient.blurRadius)
+                    .overlay(viewModel.gradient.material)
+                    .edgesIgnoringSafeArea(viewModel.gradient.ignoresSafeAreaEdges)
+                    .transition(viewModel.gradient.transition)
+            }
             
-            LazyVStack(alignment: .center, spacing: 64) {
-                
+            VStack(alignment: .center, spacing: 64) {
                 switch viewModel.interfaceState {
                     
-                case .player:
-                    RoundedRectangle(cornerRadius: 8, style: .circular)
-                        .aspectRatio(1, contentMode: .fit)
-                        .foregroundColor(.gray)
-                        .overlay {
-                            artworkView
-                        }
-                        .shadow(color: Color(white: 0, opacity: 0.3), radius: 4, x: 0, y: 4)
-                        .padding(32)
+                // MARK: - Player Layout
                     
-                    LazyVStack(alignment: .leading, spacing: 48) {
+                case .player:
+                    
+                    ZStack(alignment: .topLeading) {
+                        GeometryReader { geometry in
+                            viewModel.playerArtworkPlaceholder(geometry)
+                                .aspectRatio(1, contentMode: .fit)
+                                .foregroundColor(musicKit.artworkURLs[viewModel.track?.name ?? ""] == nil ? .gray : .clear)
+                        }
+                        
+                        artworkView
+                            .aspectRatio(1, contentMode: .fit)
+                            .cornerRadius(8)
+                            .shadow(color: Color(white: 0, opacity: 0.3), radius: 4, x: 0, y: 4)
+                    }
+                    .padding(viewModel.playerArtworkPadding)
+                    .transition(
+                        .scale(
+                            scale: viewModel.artworkScale,
+                            anchor: .topLeading
+                        )
+                        .combined(with: .opacity)
+                    )
+                    
+                    VStack(alignment: .leading, spacing: 48) {
                         Text(viewModel.track?.name ?? "Not Playing")
                             .foregroundColor(viewModel.primaryControlsColor)
                             .font(.headline)
                             .dynamicTypeSize(.xLarge)
                         
-                        LazyVStack(spacing: 8) {
+                        VStack(spacing: 8) {
                             ProgressView(value: 0.5, total: 1)
                                 .tint(viewModel.secondaryControlsColor)
                             
@@ -190,45 +163,84 @@ struct ContentView: View {
                             }
                         }
                     }
+                    .transition(
+                        .move(edge: .top)
+                        .combined(with: .opacity)
+                    )
+                    
+                // MARK: - Playlist Layout
                     
                 case .playlist:
-                    RoundedRectangle(cornerRadius: 4, style: .circular)
-                        .size(width: 64, height: 64)
-                        .foregroundColor(.gray)
-                        .overlay {
-                            artworkView
-                        }
                     
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            ForEach(viewModel.playlistTracks) { track in
-                                HStack {
-                                    Text(track.name)
+                    HStack(alignment: .center, spacing: 12) {
+                        ZStack(alignment: .topLeading) {
+                            RoundedRectangle(cornerRadius: 4, style: .circular)
+                                .foregroundColor(musicKit.artworkURLs[viewModel.track?.name ?? ""] == nil ? .gray : .clear)
+                            
+                            artworkView
+                                .cornerRadius(4)
+                        }
+                        .frame(
+                            width: viewModel.playlistArtworkWidth,
+                            height: viewModel.playlistArtworkWidth
+                        )
+                        
+                        Spacer()
+                    }
+                    .padding(.bottom, -48)
+                    .transition(
+                        .move(edge: .bottom)
+                        .combined(with: .opacity)
+                    )
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(viewModel.playlistTracks) { track in
+                            HStack {
+                                ZStack(alignment: .topLeading) {
+                                    RoundedRectangle(cornerRadius: 4, style: .circular)
+                                        .foregroundColor(musicKit.artworkURLs[track.name] == nil ? .gray : .clear)
+                                    
+                                    cachedArtworkAsyncImage(track.name)
+                                        .cornerRadius(4)
+                                }
+                                .frame(
+                                    width: viewModel.playlistQueueArtworkWidth,
+                                    height: viewModel.playlistQueueArtworkWidth
+                                )
+                                
+                                Text(track.name)
+                                    .foregroundColor(viewModel.primaryControlsColor)
+                                    .padding(.vertical, 12)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    
+                                } label: {
+                                    Image(systemName: "text.insert")
                                         .foregroundColor(viewModel.primaryControlsColor)
-                                        .padding(.vertical, 12)
-                                    
-                                    Spacer()
-                                    
-                                    Button {
-                                        
-                                    } label: {
-                                        Image(systemName: "text.insert")
-                                            .foregroundColor(viewModel.primaryControlsColor)
-                                    }
                                 }
                             }
                         }
                     }
+                    .transition(
+                        .move(edge: .bottom)
+                        .combined(with: .opacity)
+                    )
                     
                     Spacer()
                 }
                 
-                LazyHStack(alignment: .center, spacing: 64) {
+                // MARK: - Control Bar
+                
+                HStack(alignment: .center, spacing: 64) {
                     Button {
                         Task {
-                            musicKit.artworkURL = URL(string: "https://is4-ssl.mzstatic.com/image/thumb/Music125/v4/00/26/2c/00262ccd-0ac1-6f1b-8dda-fe96959fc334/21UMGIM70368.rgb.jpg/1000x1000bb.jpg")
+                            let track = Track(name: "One Republic — Let's Hurt Tonight")
                             
-                            viewModel.track = Track(name: "One Republic — Let's Hurt Tonight")
+                            musicKit.artworkURLs[track.name] = URL(string: "https://is4-ssl.mzstatic.com/image/thumb/Music125/v4/00/26/2c/00262ccd-0ac1-6f1b-8dda-fe96959fc334/21UMGIM70368.rgb.jpg/1000x1000bb.jpg")
+                            
+                            viewModel.track = track
                             
                             do {
                                 try await api.playerWebSocket?.playPreviousTrack()
@@ -274,9 +286,11 @@ struct ContentView: View {
                     
                     Button {
                         Task {
-                            musicKit.artworkURL = URL(string: "https://is4-ssl.mzstatic.com/image/thumb/Music125/v4/b3/fe/cf/b3fecf76-0359-8e14-0651-4b101fc68a3f/886443673632.jpg/1000x1000bb.jpg")
+                            let track = Track(name: "Adele — Skyfall")
                             
-                            viewModel.track = Track(name: "Adele — Skyfall")
+                            musicKit.artworkURLs[track.name] = URL(string: "https://is4-ssl.mzstatic.com/image/thumb/Music125/v4/b3/fe/cf/b3fecf76-0359-8e14-0651-4b101fc68a3f/886443673632.jpg/1000x1000bb.jpg")
+                            
+                            viewModel.track = track
                             
                             do {
                                 try await api.playerWebSocket?.playNextTrack()
@@ -291,7 +305,9 @@ struct ContentView: View {
                     }
                 }
                 
-                LazyHStack(alignment: .center, spacing: 76) {
+                // MARK: - Bottom Bar
+                
+                HStack(alignment: .center, spacing: 76) {
                     Button {
                         Task {
                             do {
@@ -315,7 +331,7 @@ struct ContentView: View {
                     }
                     
                     Button {
-                        withAnimation(.spring()) {
+                        withAnimation {
                             viewModel.interfaceState = {
                                 switch viewModel.interfaceState {
                                 case .player:
@@ -343,10 +359,14 @@ struct ContentView: View {
                     }
                 }
             }
+            .padding(.vertical, 16)
             .padding(.horizontal, 32)
         }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $authSheet.isShowing, content: {
+            
+            // MARK: - Sign In Sheet
+            
             VStack(alignment: .leading, spacing: 24) {
                 Text("Sign In")
                     .font(.largeTitle)
@@ -412,6 +432,8 @@ struct ContentView: View {
         })
         .onAppear {
 //            authSheet.isShowing = !api.isAuthorized
+            
+            // MARK: - On Appear
             
             if let playerWebSocket = api.playerWebSocket, !playerWebSocket.isSubscribed {
                 playerWebSocket

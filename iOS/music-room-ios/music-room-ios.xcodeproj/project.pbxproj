@@ -28,6 +28,7 @@
 		C3535C53286A3A28007EA197 /* APICredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C52286A3A28007EA197 /* APICredential.swift */; };
 		C3535C56286A3B6C007EA197 /* Alamofire+APIDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C55286A3B6C007EA197 /* Alamofire+APIDecoder.swift */; };
 		C3535C5A286B616D007EA197 /* ContentView+AuthSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C59286B616D007EA197 /* ContentView+AuthSheet.swift */; };
+		C3535C65286EA430007EA197 /* PINCache in Frameworks */ = {isa = PBXBuildFile; productRef = C3535C64286EA430007EA197 /* PINCache */; };
 		C36ABA17285BBBFC008D4D03 /* music_room_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36ABA16285BBBFC008D4D03 /* music_room_iosApp.swift */; };
 		C36ABA19285BBBFC008D4D03 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36ABA18285BBBFC008D4D03 /* ContentView.swift */; };
 		C36ABA1B285BBBFD008D4D03 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */; };
@@ -72,6 +73,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C3535C4C286A3925007EA197 /* Alamofire in Frameworks */,
+				C3535C65286EA430007EA197 /* PINCache in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -201,6 +203,7 @@
 			name = "music-room-ios";
 			packageProductDependencies = (
 				C3535C4B286A3925007EA197 /* Alamofire */,
+				C3535C64286EA430007EA197 /* PINCache */,
 			);
 			productName = "music-room-ios";
 			productReference = C36ABA13285BBBFC008D4D03 /* music-room-ios.app */;
@@ -232,6 +235,7 @@
 			mainGroup = C36ABA0A285BBBFC008D4D03;
 			packageReferences = (
 				C3535C4A286A3925007EA197 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				C3535C63286EA430007EA197 /* XCRemoteSwiftPackageReference "PINCache" */,
 			);
 			productRefGroup = C36ABA14285BBBFC008D4D03 /* Products */;
 			projectDirPath = "";
@@ -495,6 +499,14 @@
 				minimumVersion = 5.0.0;
 			};
 		};
+		C3535C63286EA430007EA197 /* XCRemoteSwiftPackageReference "PINCache" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pinterest/PINCache.git";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -502,6 +514,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C3535C4A286A3925007EA197 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		C3535C64286EA430007EA197 /* PINCache */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C3535C63286EA430007EA197 /* XCRemoteSwiftPackageReference "PINCache" */;
+			productName = PINCache;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -13,17 +13,14 @@ extension ContentView {
     @MainActor
     class MusicKit: ObservableObject {
         
-        @Published
-        var artworkURL: URL?
+        private var inProgressSearchTerms = [String]()
         
         @Published
-        var artworkPrimaryColor = Color.gray
+        var artworkURLs = [String: URL]()
         
         func requestUpdatedSearchResults(for searchTerm: String) {
             Task {
-                if searchTerm.isEmpty {
-                    reset()
-                } else {
+                if !searchTerm.isEmpty, !inProgressSearchTerms.contains(searchTerm) {
                     do {
                         if MusicAuthorization.currentStatus == .notDetermined {
                             _ = await MusicAuthorization.request()
@@ -34,7 +31,9 @@ extension ContentView {
                             types: [Song.self]
                         )
                         
-                        searchRequest.limit = 5
+                        searchRequest.limit = 1
+                        
+                        inProgressSearchTerms.append(searchTerm)
                         
                         let searchResponse = try await searchRequest.response()
                         
@@ -44,22 +43,30 @@ extension ContentView {
                             return
                         }
                         
-                        apply(song)
+                        add(song, searchTerm: searchTerm)
                     } catch let error {
                         print("Search request failed with error: \(error).")
                         
-                        reset()
+                        reset(searchTerm: searchTerm)
                     }
                 }
             }
         }
         
-        private func apply(_ song: Song) {
-            artworkURL = song.artwork?.url(width: 1000, height: 1000)
+        private func add(_ song: Song, searchTerm: String) {
+            artworkURLs[searchTerm] = song.artwork?.url(width: 1000, height: 1000)
+            
+            searchTermDidLoaded(searchTerm)
         }
         
-        private func reset() {
-            artworkURL = nil
+        private func reset(searchTerm: String) {
+            artworkURLs[searchTerm] = nil
+            
+            searchTermDidLoaded(searchTerm)
+        }
+        
+        private func searchTermDidLoaded(_ searchTerm: String) {
+            inProgressSearchTerms.removeAll(where: { $0 == searchTerm })
         }
     }
 }
