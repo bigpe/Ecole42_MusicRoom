@@ -23,23 +23,16 @@ struct ContentView: View {
     
     private let api = API()
     
-    // MARK: - Cached Artwork Async Image
+    // MARK: - Cached Artwork Image
     
-    private func cachedArtworkAsyncImage(
+    private func cachedArtworkImage(
         _ trackName: String?,
         isMainArtwork: Bool = false
-    ) -> AsyncImage<_ConditionalContent<Image, Image>> {
+    ) -> Image {
         
         guard let trackName = trackName else {
-            return AsyncImage(url: nil) { image in
-                { () -> Image in
-                    image
-                        .resizable()
-                }()
-            } placeholder: {
-                Image(uiImage: UIImage())
-                    .resizable()
-            }
+            return Image(uiImage: UIImage())
+                .resizable()
         }
         
         let url = musicKit.artworkURLs[trackName]
@@ -51,33 +44,25 @@ struct ContentView: View {
                 musicKit.requestUpdatedSearchResults(for: trackName)
             }
             
-            return AsyncImage(url: url) { image in
-                { () -> Image in
-                    viewModel.processArtwork(image, trackName)
-                    
-                    return image
-                        .resizable()
-                }()
-            } placeholder: {
-                Image(uiImage: UIImage())
-                    .resizable()
-            }
+            viewModel.processArtwork(
+                trackName: trackName,
+                url: url,
+                shouldChangeColor: isMainArtwork
+            )
+            
+            return Image(uiImage: viewModel.downloadedArtworks[trackName] ?? UIImage())
+                .resizable()
         }
         
-        return AsyncImage(url: nil) { _ in
-            Image(uiImage: cachedImage)
-                .resizable()
-        } placeholder: {
-            Image(uiImage: cachedImage)
-                .resizable()
-        }
+        return Image(uiImage: cachedImage)
+            .resizable()
     }
     
     var body: some View {
         
         // MARK: - Artwork
         
-        let artworkView = cachedArtworkAsyncImage(viewModel.track?.name, isMainArtwork: true)
+        let artworkView = cachedArtworkImage(viewModel.track?.name, isMainArtwork: true)
         
         // MARK: - Main Layout
         
@@ -257,7 +242,7 @@ struct ContentView: View {
                                                 }
                                             }
                                             
-                                            cachedArtworkAsyncImage(track.name)
+                                            cachedArtworkImage(track.name)
                                         }
                                         .frame(
                                             width: viewModel.playlistQueueArtworkWidth,
@@ -292,7 +277,8 @@ struct ContentView: View {
                 
                 // MARK: - Control Bar
                 
-                HStack(alignment: .center, spacing: 64) {
+                HStack(alignment: .center, spacing: 16) {
+                    
                     Button {
                         Task {
                             let track = Track(name: "One Republic — Let's Hurt Tonight")
@@ -309,9 +295,10 @@ struct ContentView: View {
                         }
                     } label: {
                         Image(systemName: "backward.fill")
-                            .font(.system(size: 32))
+                            .font(.system(size: 28))
                             .foregroundColor(viewModel.primaryControlsColor)
                     }
+                    .buttonStyle(SubControlButtonStyle())
                     
                     Button {
                         Task {
@@ -340,8 +327,9 @@ struct ContentView: View {
                             }
                         }())
                         .font(.system(size: 48))
-                        .foregroundColor(viewModel.primaryControlsColor)
                     }
+                    .frame(width: 80, height: 80)
+                    .buttonStyle(ControlButtonStyle())
                     
                     Button {
                         Task {
@@ -359,9 +347,11 @@ struct ContentView: View {
                         }
                     } label: {
                         Image(systemName: "forward.fill")
-                            .font(.system(size: 32))
+                            .font(.system(size: 28))
                             .foregroundColor(viewModel.primaryControlsColor)
                     }
+                    .frame(width: 80, height: 80)
+                    .buttonStyle(SubControlButtonStyle())
                 }
                 
                 // MARK: - Bottom Bar
