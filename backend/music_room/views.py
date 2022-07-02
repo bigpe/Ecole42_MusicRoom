@@ -3,8 +3,8 @@ from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer, TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenViewBase
 
 from .models import Track, Playlist, PlayerSession
 from .serializers import TrackSerializer, PlaylistSerializer, PlayerSessionSerializer, UserSerializer
@@ -67,15 +67,28 @@ class PlayerSessionRetrieveView(RetrieveAPIView):
 
 
 class SignUpCreateView(CreateAPIView):
+    """
+    Sign up
+
+    Create new account and get access and refresh token for auth
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     @swagger_auto_schema(responses={200: TokenRefreshSerializer()})
     def post(self, request, *args, **kwargs):
-        return super(SignUpCreateView, self).post(request, *args, **kwargs)
+        super(SignUpCreateView, self).post(request, *args, **kwargs)
+        self.serializer_class = TokenObtainPairSerializer
+        self: TokenViewBase
+        return TokenObtainPairView.post(self, request, *args, **kwargs)
 
 
 class SignInView(TokenObtainPairView):
+    """
+    Sign in
+
+    Login in already existed profile and get access and refresh token for auth
+    """
 
     @swagger_auto_schema(responses={200: TokenRefreshSerializer()})
     def post(self, request, *args, **kwargs):
