@@ -52,8 +52,7 @@ ROOT_URLCONF = 'django_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'docs'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -170,3 +169,5 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60 * 24),
 }
+
+DOCS_ROOT = BASE_DIR / 'docs' / 'build' / 'html'
