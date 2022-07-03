@@ -38,5 +38,5 @@ urlpatterns = [
     path('playlist/own/', PlaylistOwnListView.as_view()),
     path('player/session/', PlayerSessionRetrieveView.as_view()),
     path('auth/', AuthView.as_view()),
-    path('token/refresh/', TokenRefreshView.as_view()),
+    path('auth/token/refresh/', TokenRefreshView.as_view()),
 ]

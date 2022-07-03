@@ -71,7 +71,7 @@ class AuthView(TokenObtainPairView):
     """
     Auth
 
-    Login or Register new profile (if not exist) and get access and refresh token for auth
+    Login or Register new profile (if not exist) and get access and refresh token
     """
 
     @swagger_auto_schema(responses={200: TokenRefreshSerializer()})
