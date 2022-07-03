@@ -1,8 +1,9 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer, TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenViewBase
 
@@ -66,30 +67,19 @@ class PlayerSessionRetrieveView(RetrieveAPIView):
         return PlayerSession.objects.filter(author=self.request.user).first()
 
 
-class SignUpCreateView(CreateAPIView):
+class AuthView(TokenObtainPairView):
     """
-    Sign up
+    Auth
 
-    Create new account and get access and refresh token for auth
-    """
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-    @swagger_auto_schema(responses={200: TokenRefreshSerializer()})
-    def post(self, request, *args, **kwargs):
-        super(SignUpCreateView, self).post(request, *args, **kwargs)
-        self.serializer_class = TokenObtainPairSerializer
-        self: TokenViewBase
-        return TokenObtainPairView.post(self, request, *args, **kwargs)
-
-
-class SignInView(TokenObtainPairView):
-    """
-    Sign in
-
-    Login in already existed profile and get access and refresh token for auth
+    Login or Register new profile (if not exist) and get access and refresh token for auth
     """
 
     @swagger_auto_schema(responses={200: TokenRefreshSerializer()})
     def post(self, request, *args, **kwargs):
-        return super(SignInView, self).post(request, *args, **kwargs)
+        user = authenticate(**request.data)
+        if not user:
+            user_serializer = UserSerializer(data=request.data)
+            if not user_serializer.is_valid():
+                return Response(user_serializer.errors)
+            user_serializer.create(request.data)
+        return super(AuthView, self).post(request, *args, **kwargs)

@@ -6,8 +6,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework.authentication import BasicAuthentication
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import TrackListView, PlaylistListView, PlaylistOwnListView, PlayerSessionRetrieveView, SignUpCreateView, \
-    SignInView
+from .views import TrackListView, PlaylistListView, PlaylistOwnListView, PlayerSessionRetrieveView, AuthView
 
 
 class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
@@ -38,7 +37,6 @@ urlpatterns = [
     path('playlist/', PlaylistListView.as_view()),
     path('playlist/own/', PlaylistOwnListView.as_view()),
     path('player/session/', PlayerSessionRetrieveView.as_view()),
-    path('sign/up/', SignUpCreateView.as_view()),
-    path('sign/in/', SignInView.as_view()),
+    path('auth/', AuthView.as_view()),
     path('token/refresh/', TokenRefreshView.as_view()),
 ]
