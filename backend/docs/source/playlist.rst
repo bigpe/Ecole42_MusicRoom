@@ -16,7 +16,7 @@ All playlists
 
 Current showed playlist
 """""""""""""""""""""""""
-:obj:`.add_track` :obj:`.remove_track`
+:obj:`.add_track` :obj:`.remove_track` :obj:`.invite_to_playlist` :obj:`.revoke_from_playlist`
 
 .. note::
    **/ws/playlist/<int:playlist_id>/<user_id>/**
@@ -100,7 +100,7 @@ Invite to Playlist
    :inherited-members:
 
 Revoke from Playlist
-"""""""""""""""""""
+"""""""""""""""""""""""""
 .. autoattribute:: ws.playlist.EventsList.revoke_from_playlist
    :noindex:
 
