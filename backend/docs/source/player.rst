@@ -6,7 +6,7 @@ Player
 Where send data?
 ++++++++++++++++
 .. note::
-   **/ws/player/<user_id>/**
+   **/ws/player/**
 
 Events list
 ++++++++++++++++
