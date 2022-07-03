@@ -49,7 +49,11 @@ class PlaylistsConsumer(BaseConsumer):
         hidden = False
 
         def before_send(self, message: Message, payload: request_payload_type):
-            PlaylistModel.objects.create(name=payload.playlist_name, type=payload.type, author=message.initiator_user)
+            PlaylistModel.objects.create(
+                name=payload.playlist_name,
+                access_type=payload.access_type,
+                author=message.initiator_user
+            )
 
     class RemovePlaylist(PlaylistsChanged, BaseEvent):
         """Remove already created playlist"""
@@ -165,7 +169,10 @@ class Examples:
 
     add_playlist_request = Action(
         event=str(EventsList.add_playlist),
-        payload=RequestPayload.ModifyPlaylists(playlist_name='New one name', type=Playlist.AccessTypes.public).to_data(),
+        payload=RequestPayload.ModifyPlaylists(
+            playlist_name='New one name',
+            access_type=Playlist.AccessTypes.public
+        ).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 
