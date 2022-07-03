@@ -13,7 +13,7 @@ class PlaylistsConsumer(BaseConsumer):
     authed = True
 
     request_type_resolver = {
-        'rename_playlist': RequestPayloadWrap.RenamePlaylist,
+        'change_playlist': RequestPayloadWrap.ChangePlaylist,
         'add_playlist': RequestPayloadWrap.AddPlaylist,
         'remove_playlist': RequestPayloadWrap.RemovePlaylist,
     }
@@ -32,15 +32,18 @@ class PlaylistsConsumer(BaseConsumer):
             )
             return action
 
-    class RenamePlaylist(PlaylistsChanged, BaseEvent):
-        """Rename already existed playlist"""
+    class ChangePlaylist(PlaylistsChanged, BaseEvent):
+        """Change already existed playlist"""
         request_payload_type = RequestPayload.ModifyPlaylist
         response_payload_type_initiator = ResponsePayload.PlaylistsChanged
         hidden = False
 
         def before_send(self, message: Message, payload: request_payload_type):
             playlist = PlaylistService(payload.playlist_id)
-            playlist.rename(payload.playlist_name)
+            playlist.change(
+                name=payload.playlist_name,
+                access_type=payload.playlist_access_type
+            )
 
     class AddPlaylist(PlaylistsChanged, BaseEvent):
         """Add new playlist"""
@@ -160,7 +163,7 @@ class EventsList:
     playlist_changed: PlaylistRetrieveConsumer.PlaylistChanged = camel_to_dot(
         PlaylistRetrieveConsumer.PlaylistChanged.__name__)
     playlists_changed: PlaylistsConsumer.PlaylistsChanged = camel_to_dot(PlaylistsConsumer.PlaylistsChanged.__name__)
-    rename_playlist: PlaylistsConsumer.RenamePlaylist = camel_to_dot(PlaylistsConsumer.RenamePlaylist.__name__)
+    change_playlist: PlaylistsConsumer.ChangePlaylist = camel_to_dot(PlaylistsConsumer.ChangePlaylist.__name__)
     add_playlist: PlaylistsConsumer.AddPlaylist = camel_to_dot(PlaylistsConsumer.AddPlaylist.__name__)
     remove_playlist: PlaylistsConsumer.RemovePlaylist = camel_to_dot(PlaylistsConsumer.RemovePlaylist.__name__)
     add_track: PlaylistRetrieveConsumer.AddTrack = camel_to_dot(PlaylistRetrieveConsumer.AddTrack.__name__)
@@ -187,9 +190,13 @@ class Examples:
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 
-    rename_playlist_request = Action(
-        event=str(EventsList.rename_playlist),
-        payload=RequestPayload.ModifyPlaylist(playlist_id=1, playlist_name='New name').to_data(),
+    change_playlist_request = Action(
+        event=str(EventsList.change_playlist),
+        payload=RequestPayload.ModifyPlaylist(
+            playlist_id=1,
+            playlist_name='New name',
+            playlist_access_type=Playlist.AccessTypes.private,
+        ).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 

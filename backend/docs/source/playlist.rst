@@ -8,7 +8,7 @@ Where send data?
 
 All playlists
 """""""""""""""""""""
-:obj:`.rename_playlist` :obj:`.add_playlist` :obj:`.remove_playlist`
+:obj:`.change_playlist` :obj:`.add_playlist` :obj:`.remove_playlist`
 
 
 .. note::
@@ -34,15 +34,15 @@ Events list
 .. note::
     .. include:: events_detail_note.txt
 
-Rename Playlist
+Change Playlist
 """""""""""""""""""
-.. autoattribute:: ws.playlist.EventsList.rename_playlist
+.. autoattribute:: ws.playlist.EventsList.change_playlist
    :noindex:
 
 .. seealso::
-   :obj:`.Examples.rename_playlist_request`
+   :obj:`.Examples.change_playlist_request`
    :obj:`.Examples.playlists_changed_response`
-.. autoclass:: ws.playlist.PlaylistsConsumer.RenamePlaylist
+.. autoclass:: ws.playlist.PlaylistsConsumer.ChangePlaylist
    :inherited-members:
 
 Add Playlist
@@ -129,7 +129,7 @@ Modify Playlist
 
 .. autoclass:: ws.playlist.signatures.RequestPayload.ModifyPlaylist
    :inherited-members:
-.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.RenamePlaylist
+.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.ChangePlaylist
    :inherited-members:
    :noindex:
 .. autoclass:: ws.playlist.signatures.RequestPayloadWrap.RemovePlaylist
@@ -181,7 +181,7 @@ Examples
 Requests
 """"""""""""""""""""
 
-.. autoattribute:: Examples.rename_playlist_request
+.. autoattribute:: Examples.change_playlist_request
 .. autoattribute:: Examples.add_playlist_request
 .. autoattribute:: Examples.remove_playlist_request
 .. autoattribute:: Examples.add_track_request

@@ -15,7 +15,8 @@ class RequestPayload:
     class ModifyPlaylist(BasePayload):
         """Modify playlist"""
         playlist_id: int  #: Already created playlist id
-        playlist_name: str = None  #: PlaylistChanged name if you want to change old name
+        playlist_name: str = None  #: Playlist name if you want to change old name
+        playlist_access_type: Playlist.AccessTypes = None  #: Playlist access type
 
     @dataclass
     class ModifyPlaylists(BasePayload):
@@ -31,20 +32,24 @@ class RequestPayload:
 
 class RequestPayloadWrap:
     @dataclass
-    class RenamePlaylist(BasePayload):
-        rename_playlist: Union[RequestPayload.ModifyPlaylist, dict]  #: Rename playlist signature mock for swift
+    class ChangePlaylist(BasePayload):
+        #: Change playlist signature mock for swift
+        change_playlist: Union[RequestPayload.ModifyPlaylist, dict]
 
     @dataclass
     class RemovePlaylist(BasePayload):
-        remove_playlist: Union[RequestPayload.ModifyPlaylist, dict]  #: Remove playlist signature mock for swift
+        #: Remove playlist signature mock for swift
+        remove_playlist: Union[RequestPayload.ModifyPlaylist, dict]
 
     @dataclass
     class AddPlaylist(BasePayload):
-        add_playlist: Union[RequestPayload.ModifyPlaylists, dict]  #: Add playlist signature mock for swift
+        #: Add playlist signature mock for swift
+        add_playlist: Union[RequestPayload.ModifyPlaylists, dict]
 
     @dataclass
     class AddTrack(BasePayload):
-        add_track: Union[RequestPayload.ModifyPlaylistTracks, dict]  #: Add track to playlist signature mock for swift
+        #: Add track to playlist signature mock for swift
+        add_track: Union[RequestPayload.ModifyPlaylistTracks, dict]
 
     @dataclass
     class RemoveTrack(BasePayload):
@@ -53,12 +58,12 @@ class RequestPayloadWrap:
 
     @dataclass
     class InviteToPlaylist(BasePayload):
-        #: Invite someone to access this playlist
+        #: Invite someone to access this playlist mock for swift
         invite_to_playlist: Union[RequestPayload.ModifyPlaylistAccess, dict]
 
     @dataclass
     class RevokeFromPlaylist(BasePayload):
-        #: Revoke user's access from this playlist
+        #: Revoke user's access from this playlist mock for swift
         revoke_from_playlist: Union[RequestPayload.ModifyPlaylistAccess, dict]
 
 

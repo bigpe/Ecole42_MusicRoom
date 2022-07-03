@@ -54,8 +54,13 @@ class PlaylistService:
     def remove_track(self, track: [int, Track]):
         self.playlist.tracks.filter(track=track).delete()
 
-    def rename(self, name: str):
+    def change(self, name: str = None, access_type: [str, Playlist.AccessTypes] = None):
+        if not name:
+            name = self.playlist.name
+        if not access_type:
+            access_type = self.playlist.access_type
         self.playlist.name = name
+        self.playlist.access_type = access_type
         self.playlist.save()
 
     @Decorators.lookup_user
@@ -65,3 +70,7 @@ class PlaylistService:
     @Decorators.lookup_user
     def revoke_user(self, user: User):
         self.playlist.access_users.filter(user=user).delete()
+
+    def change_access_type(self, access_type: Playlist.AccessTypes):
+        self.playlist.access_type = access_type
+        self.playlist.save()

@@ -29,5 +29,6 @@ urlpatterns = [
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static('docs/', document_root=settings.DOCS_ROOT)
+urlpatterns += static(r'docs/(?P<path>.*)$', document_root=settings.DOCS_ROOT)
+urlpatterns += static('docs/', document_root=settings.DOCS_ROOT, path='index.html')
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
