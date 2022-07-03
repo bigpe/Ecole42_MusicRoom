@@ -1,11 +1,11 @@
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model, authenticate, login
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer, TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenViewBase
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import Track, Playlist, PlayerSession
 from .serializers import TrackSerializer, PlaylistSerializer, PlayerSessionSerializer, UserSerializer
@@ -29,13 +29,15 @@ class PlaylistListView(ListAPIView):
 
     Get accessed playlists
     """
-    queryset = Playlist.objects.filter(type=Playlist.Types.public).all()
+    queryset = Playlist.objects.filter(access_type=Playlist.AccessTypes.public).all()
     serializer_class = PlaylistSerializer
 
     def get_queryset(self):
         if not self.request.user.is_authenticated:
             return self.queryset.all()
-        return Playlist.objects.filter(Q(type=Playlist.Types.public) | Q(access_users__user__in=[self.request.user]))
+        return Playlist.objects.filter(
+            Q(access_type=Playlist.AccessTypes.public) | Q(access_users__user__in=[self.request.user])
+        )
 
 
 class PlaylistOwnListView(ListAPIView):
@@ -44,7 +46,7 @@ class PlaylistOwnListView(ListAPIView):
 
     Get current authed user own playlists
     """
-    queryset = Playlist.objects.filter(type=Playlist.Types.public).all()
+    queryset = Playlist.objects.filter(access_type=Playlist.AccessTypes.public).all()
     serializer_class = PlaylistSerializer
 
     def get_queryset(self):
@@ -81,5 +83,6 @@ class AuthView(TokenObtainPairView):
             user_serializer = UserSerializer(data=request.data)
             if not user_serializer.is_valid():
                 return Response(user_serializer.errors)
-            user_serializer.create(request.data)
+            user = user_serializer.create(request.data)
+        login(request, user)
         return super(AuthView, self).post(request, *args, **kwargs)

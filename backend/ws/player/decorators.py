@@ -77,7 +77,7 @@ def get_playlist(f: Callable):
         # Filter self own playlists or public playlists or if user in accessed for this playlist
         playlist = Playlist.objects.filter(
             Q(author=self.consumer.get_user()) |
-            Q(type=Playlist.Types.public) |
+            Q(type=Playlist.AccessTypes.public) |
             Q(access_users__user__in=[self.consumer.get_user()]),
             id=payload.playlist_id
         ).first()

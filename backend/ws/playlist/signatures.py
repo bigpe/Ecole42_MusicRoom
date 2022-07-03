@@ -21,7 +21,7 @@ class RequestPayload:
     class ModifyPlaylists(BasePayload):
         """Modify playlists"""
         playlist_name: str  #: Playlist name for create new one
-        type: Union[str, Playlist.Types] = Playlist.Types.public  #: Playlist type
+        type: Union[str, Playlist.AccessTypes] = Playlist.AccessTypes.public  #: Playlist type
 
 
 class RequestPayloadWrap:

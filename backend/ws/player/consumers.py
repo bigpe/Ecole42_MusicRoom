@@ -11,7 +11,7 @@ from .signatures import RequestPayload, ResponsePayload, CustomTargetEnum, Reque
 
 def for_accessed(message: Union[Message, RequestPayload.ModifyTrack]):
     player_session = PlayerSession.objects.get(id=message.player_session_id)
-    if player_session.playlist.type == Playlist.Types.public:
+    if player_session.playlist.access_type == Playlist.AccessTypes.public:
         return True
     if message.user in player_session.playlist.access_users.values_list('id', flat=True):
         return True

@@ -165,7 +165,7 @@ class Examples:
 
     add_playlist_request = Action(
         event=str(EventsList.add_playlist),
-        payload=RequestPayload.ModifyPlaylists(playlist_name='New one name', type=Playlist.Types.public).to_data(),
+        payload=RequestPayload.ModifyPlaylists(playlist_name='New one name', type=Playlist.AccessTypes.public).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 

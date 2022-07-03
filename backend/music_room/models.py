@@ -6,10 +6,10 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.fields.files import FieldFile
 from django.db.models.manager import Manager
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from bootstrap.utils import BootstrapMixin, BootstrapGeneric, AUDIO_PLACEHOLDER
+from bootstrap.utils import BootstrapMixin, BootstrapGeneric
 
 
 class User(AbstractUser):
@@ -22,7 +22,12 @@ def user_post_save(instance: User, created, **kwargs):
     if not created:
         return
 
-    favourites_playlist = Playlist.objects.create(name='Favourites', type=Playlist.Types.private, author=instance)
+    favourites_playlist = Playlist.objects.create(
+        name='Favourites',
+        type=Playlist.Types.default,
+        access_type=Playlist.AccessTypes.private,
+        author=instance
+    )
     instance.playlists.add(favourites_playlist)
 
 
@@ -56,19 +61,30 @@ def track_post_save(instance: Track, created, *args, **kwargs):
 
 class Playlist(models.Model, BootstrapMixin):
     class Types:
+        default = 'default'  #: Default playlist e.g. favourites
+        custom = 'custom'  #: Custom playlist, created by user
+
+    TypesChoice = (
+        (Types.default, 'Default'),
+        (Types.custom, 'Custom'),
+    )
+
+    class AccessTypes:
         public = 'public'  #: Everyone can access
         private = 'private'  #: Only invited users can access
 
-    TypesChoice = (
-        (Types.public, 'Public'),
-        (Types.private, 'Private'),
+    AccessTypesChoice = (
+        (AccessTypes.public, 'Public'),
+        (AccessTypes.private, 'Private'),
     )
 
-    #: PlaylistChanged name
+    #: Playlist name
     name = models.CharField(max_length=150)
-    #: PlaylistChanged type
-    type: Types = models.CharField(max_length=50, choices=TypesChoice, default=Types.public)
-    #: PlaylistChanged`s author
+    #: Playlist type
+    type: Types = models.CharField(max_length=50, choices=TypesChoice, default=Types.custom)
+    #: Playlist access type
+    access_type: AccessTypes = models.CharField(max_length=50, choices=AccessTypesChoice, default=AccessTypes.public)
+    #: Playlist`s author
     author: User = models.ForeignKey(User, models.CASCADE, related_name='playlists')
     # access_users: PlaylistAccess
     # tracks: PlaylistTrack
