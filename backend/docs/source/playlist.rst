@@ -89,6 +89,26 @@ Remove Track
 .. autoclass:: ws.playlist.PlaylistRetrieveConsumer.RemoveTrack
    :inherited-members:
 
+Invite to Playlist
+"""""""""""""""""""
+.. autoattribute:: ws.playlist.EventsList.invite_to_playlist
+   :noindex:
+
+.. seealso::
+   :obj:`.Examples.invite_to_playlist_request`
+.. autoclass:: ws.playlist.PlaylistRetrieveConsumer.InviteToPlaylist
+   :inherited-members:
+
+Revoke from Playlist
+"""""""""""""""""""
+.. autoattribute:: ws.playlist.EventsList.revoke_from_playlist
+   :noindex:
+
+.. seealso::
+   :obj:`.Examples.revoke_from_playlist_request`
+.. autoclass:: ws.playlist.PlaylistRetrieveConsumer.RevokeFromPlaylist
+   :inherited-members:
+
 Whats data send to socket?
 ++++++++++++++++++++++++++++
 
@@ -125,6 +145,18 @@ Modify Playlists
    :inherited-members:
    :noindex:
 
+Modify Playlist Access
+""""""""""""""""""""""""""
+
+.. autoclass:: ws.playlist.signatures.RequestPayload.ModifyPlaylistAccess
+   :inherited-members:
+.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.InviteToPlaylist
+   :inherited-members:
+   :noindex:
+.. autoclass:: ws.playlist.signatures.RequestPayloadWrap.RevokeFromPlaylist
+   :inherited-members:
+   :noindex:
+
 Whats data receive from socket?
 +++++++++++++++++++++++++++++++++
 
@@ -154,6 +186,8 @@ Requests
 .. autoattribute:: Examples.remove_playlist_request
 .. autoattribute:: Examples.add_track_request
 .. autoattribute:: Examples.remove_track_request
+.. autoattribute:: Examples.invite_to_playlist_request
+.. autoattribute:: Examples.revoke_from_playlist_request
 
 Response
 """"""""""""""""""""

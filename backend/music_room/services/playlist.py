@@ -30,6 +30,18 @@ class PlaylistService:
 
             return wrapper
 
+        @staticmethod
+        def lookup_user(f: Callable):
+            def wrapper(self, user, *args):
+                if isinstance(user, int):
+                    try:
+                        user = User.objects.get(id=user)
+                    except Playlist.DoesNotExist:
+                        user = None
+                return f(self, user, *args)
+
+            return wrapper
+
     @Decorators.lookup_playlist
     def __init__(self, playlist: [int, Playlist]):
         self.playlist: Playlist = playlist
@@ -45,3 +57,11 @@ class PlaylistService:
     def rename(self, name: str):
         self.playlist.name = name
         self.playlist.save()
+
+    @Decorators.lookup_user
+    def invite_user(self, user: User):
+        self.playlist.access_users.add(user)
+
+    @Decorators.lookup_user
+    def revoke_user(self, user: User):
+        self.playlist.access_users.filter(user=user).delete()

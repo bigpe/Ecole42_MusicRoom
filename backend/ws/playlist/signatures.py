@@ -23,6 +23,11 @@ class RequestPayload:
         playlist_name: str  #: Playlist name for create new one
         access_type: Union[str, Playlist.AccessTypes] = Playlist.AccessTypes.public  #: Playlist access type
 
+    @dataclass
+    class ModifyPlaylistAccess(BasePayload):
+        """Modify playlist access"""
+        user_id: int  #: User id to grant/remove access to playlist
+
 
 class RequestPayloadWrap:
     @dataclass
@@ -45,6 +50,16 @@ class RequestPayloadWrap:
     class RemoveTrack(BasePayload):
         #: Remove track from playlist signature mock for swift
         remove_track: Union[RequestPayload.ModifyPlaylistTracks, dict]
+
+    @dataclass
+    class InviteToPlaylist(BasePayload):
+        #: Invite someone to access this playlist
+        invite_to_playlist: Union[RequestPayload.ModifyPlaylistAccess, dict]
+
+    @dataclass
+    class RevokeFromPlaylist(BasePayload):
+        #: Revoke user's access from this playlist
+        revoke_from_playlist: Union[RequestPayload.ModifyPlaylistAccess, dict]
 
 
 class ResponsePayload:

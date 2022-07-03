@@ -72,6 +72,8 @@ class PlaylistRetrieveConsumer(BaseConsumer):
     request_type_resolver = {
         'add_track': RequestPayloadWrap.AddTrack,
         'remove_track': RequestPayloadWrap.RemoveTrack,
+        'invite_to_playlist': RequestPayloadWrap.InviteToPlaylist,
+        'revoke_from_playlist': RequestPayloadWrap.RevokeFromPlaylist,
     }
 
     # TODO Add permission for connect (only for accessed users)
@@ -133,6 +135,26 @@ class PlaylistRetrieveConsumer(BaseConsumer):
             playlist = PlaylistService(playlist.id)
             playlist.remove_track(payload.track_id)
 
+    class InviteToPlaylist(BaseEvent):
+        """Invite someone to access this playlist"""
+        request_payload_type = RequestPayload.ModifyPlaylistAccess
+        hidden = False
+
+        @get_playlist
+        def before_send(self, message: Message, payload: request_payload_type, playlist: PlaylistModel):
+            playlist = PlaylistService(playlist.id)
+            playlist.invite_user(payload.user_id)
+
+    class RevokeFromPlaylist(BaseEvent):
+        """Revoke user's access from this playlist"""
+        request_payload_type = RequestPayload.ModifyPlaylistAccess
+        hidden = False
+
+        @get_playlist
+        def before_send(self, message: Message, payload: request_payload_type, playlist: PlaylistModel):
+            playlist = PlaylistService(playlist.id)
+            playlist.revoke_user(payload.user_id)
+
 
 class EventsList:
     playlist_changed: PlaylistRetrieveConsumer.PlaylistChanged = camel_to_dot(
@@ -143,6 +165,10 @@ class EventsList:
     remove_playlist: PlaylistsConsumer.RemovePlaylist = camel_to_dot(PlaylistsConsumer.RemovePlaylist.__name__)
     add_track: PlaylistRetrieveConsumer.AddTrack = camel_to_dot(PlaylistRetrieveConsumer.AddTrack.__name__)
     remove_track: PlaylistRetrieveConsumer.RemoveTrack = camel_to_dot(PlaylistRetrieveConsumer.RemoveTrack.__name__)
+    invite_to_playlist: PlaylistRetrieveConsumer.InviteToPlaylist = camel_to_dot(
+        PlaylistRetrieveConsumer.InviteToPlaylist.__name__)
+    revoke_from_playlist: PlaylistRetrieveConsumer.RevokeFromPlaylist = camel_to_dot(
+        PlaylistRetrieveConsumer.RevokeFromPlaylist.__name__)
 
 
 class Examples:
@@ -191,5 +217,17 @@ class Examples:
     remove_track_request = Action(
         event=str(EventsList.remove_track),
         payload=RequestPayload.ModifyPlaylistTracks(track_id=1).to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
+    invite_to_playlist_request = Action(
+        event=str(EventsList.invite_to_playlist),
+        payload=RequestPayload.ModifyPlaylistAccess(user_id=1).to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
+    revoke_from_playlist_request = Action(
+        event=str(EventsList.revoke_from_playlist),
+        payload=RequestPayload.ModifyPlaylistAccess(user_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
