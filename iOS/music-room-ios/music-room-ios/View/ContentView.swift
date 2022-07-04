@@ -208,16 +208,19 @@ struct ContentView: View {
                             .dynamicTypeSize(.xLarge)
                         
                         VStack(spacing: 8) {
-                            ProgressView(value: 0.5, total: 1)
+                            ProgressView(
+                                value: ((viewModel.currentSessionTrack?.progress ?? 0) as NSDecimalNumber).doubleValue,
+                                total: ((viewModel.currentTrack?.duration ?? 0) as NSDecimalNumber).doubleValue
+                            )
                                 .tint(viewModel.secondaryControlsColor)
                             
                             HStack {
-                                Text("--:--")
+                                Text(viewModel.currentSessionTrack?.progress?.time ?? "--:--")
                                     .foregroundColor(viewModel.secondaryControlsColor)
                                 
                                 Spacer()
                                 
-                                Text("--:--")
+                                Text(viewModel.currentTrack?.duration.time ?? "--:--")
                                     .foregroundColor(viewModel.secondaryControlsColor)
                             }
                         }

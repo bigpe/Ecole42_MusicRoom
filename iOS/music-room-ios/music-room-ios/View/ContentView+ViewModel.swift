@@ -500,15 +500,7 @@ extension ContentView {
         @Published
         var playerSession: PlayerSession? {
             didSet {
-                currentTrack = {
-                    guard
-                        let currentTrackID = playerSession?.trackQueue.first?.track
-                    else {
-                        return nil
-                    }
-                    
-                    return track(byID: currentTrackID)
-                }()
+                currentSessionTrack = playerSession?.trackQueue.first
                 
                 queuedTracks = {
                     playerSession?
@@ -535,6 +527,21 @@ extension ContentView {
                 debugPrint(error)
                 
                 try await DiskCacheService.updateEntity(PlayerSession?.none)
+            }
+        }
+        
+        @Published
+        var currentSessionTrack: SessionTrack? {
+            didSet {
+                currentTrack = {
+                    guard
+                        let currentTrackID = currentSessionTrack?.track
+                    else {
+                        return nil
+                    }
+                    
+                    return track(byID: currentTrackID)
+                }()
             }
         }
         

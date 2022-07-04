@@ -39,6 +39,7 @@
 		C3D7159728726D6300B0625A /* TokenObtainPairModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */; };
 		C3D7159928726E5600B0625A /* TokenRefreshModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159828726E5600B0625A /* TokenRefreshModel.swift */; };
 		C3D7159D28728AD600B0625A /* DiskCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159C28728AD600B0625A /* DiskCacheService.swift */; };
+		C3D7159F2872C37000B0625A /* Decimal+Time.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159E2872C37000B0625A /* Decimal+Time.swift */; };
 		C3E715BE285E4DAD0038667B /* PlayerWebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E715BD285E4DAD0038667B /* PlayerWebSocket.swift */; };
 		C3E715C0285E50660038667B /* PlaylistWebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E715BF285E50660038667B /* PlaylistWebSocket.swift */; };
 /* End PBXBuildFile section */
@@ -74,6 +75,7 @@
 		C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenObtainPairModel.swift; sourceTree = "<group>"; };
 		C3D7159828726E5600B0625A /* TokenRefreshModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRefreshModel.swift; sourceTree = "<group>"; };
 		C3D7159C28728AD600B0625A /* DiskCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskCacheService.swift; sourceTree = "<group>"; };
+		C3D7159E2872C37000B0625A /* Decimal+Time.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Decimal+Time.swift"; sourceTree = "<group>"; };
 		C3E715BD285E4DAD0038667B /* PlayerWebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerWebSocket.swift; sourceTree = "<group>"; };
 		C3E715BF285E50660038667B /* PlaylistWebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistWebSocket.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -131,6 +133,7 @@
 				C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */,
 				C3434AE1286F752000D07785 /* GenerateImage.swift */,
 				C3434AE3286F756900D07785 /* ASCGImageBuffer.swift */,
+				C3D7159E2872C37000B0625A /* Decimal+Time.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -295,6 +298,7 @@
 				C3434ADE286F6C4D00D07785 /* SubControlButtonStyle.swift in Sources */,
 				C3E715BE285E4DAD0038667B /* PlayerWebSocket.swift in Sources */,
 				C3E715C0285E50660038667B /* PlaylistWebSocket.swift in Sources */,
+				C3D7159F2872C37000B0625A /* Decimal+Time.swift in Sources */,
 				C33B7C1B285F7E68000399BA /* SessionTrack.swift in Sources */,
 				C33B7C21285F844C000399BA /* Playlist.swift in Sources */,
 				C3535C49286A38CE007EA197 /* API+Error.swift in Sources */,
