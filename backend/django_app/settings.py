@@ -168,6 +168,7 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60 * 24),
+    'ROTATE_REFRESH_TOKENS': True
 }
 
 DOCS_ROOT = BASE_DIR / 'docs' / 'build' / 'html'
