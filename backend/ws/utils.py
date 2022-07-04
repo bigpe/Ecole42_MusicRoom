@@ -22,7 +22,6 @@ class ActionRef(Action):
     def to_data(self, to_json=False, pop_system=False):
         if isinstance(self.payload, tuple):
             self.payload = self.payload[0]
-        self.payload = dict_key_reformat(self.payload, snake_to_camel)
         if not self.payload.get(dot_to_camel(self.event), None):
             self.payload = {dot_to_camel(self.event): self.payload}
         return super(ActionRef, self).to_data(to_json, pop_system)
