@@ -131,7 +131,6 @@
 				C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */,
 				C3434AE1286F752000D07785 /* GenerateImage.swift */,
 				C3434AE3286F756900D07785 /* ASCGImageBuffer.swift */,
-				C3D7159C28728AD600B0625A /* DiskCacheService.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -142,6 +141,7 @@
 				C3535C46286A386F007EA197 /* API.swift */,
 				C3535C48286A38CE007EA197 /* API+Error.swift */,
 				C3535C4D286A3980007EA197 /* API+Keychain.swift */,
+				C3D7159C28728AD600B0625A /* DiskCacheService.swift */,
 				C3535C54286A3B5B007EA197 /* Extensions */,
 				C33B7C11285E8EDD000399BA /* WebSocket */,
 				C33B7C12285E8EED000399BA /* Entities */,
