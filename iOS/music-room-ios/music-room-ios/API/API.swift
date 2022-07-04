@@ -36,22 +36,6 @@ extension ParameterEncoder where Self == JSONParameterEncoder {
     }
 }
 
-public struct RefreshTokenRequestDtoModel: Codable, Hashable {
-    
-    /** Refresh token */
-    public var refreshToken: String
-    
-    public init(
-        refreshToken: String
-    ) {
-        self.refreshToken = refreshToken
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(refreshToken)
-    }
-}
-
 public class API {
     public lazy var closureEventMonitor: ClosureEventMonitor = {
         let monitor = ClosureEventMonitor()
@@ -109,19 +93,19 @@ public class API {
     // MARK: - Base URL
     
     public var baseURL: URL? {
-        URL(string: "https://snbf3muzcc.execute-api.us-east-1.amazonaws.com/dev/")
+        URL(string: "https://music-room-test.herokuapp.com/")
     }
     
     public init() {}
     
-    // MARK: - Refresh
+    // MARK: - Auth
     
-    var authRefreshURL: URL {
+    var authURL: URL {
         get throws {
             guard
                 let url =
                     URL(
-                        string: "auth/refresh/",
+                        string: "api/auth/",
                         relativeTo: baseURL
                     )
             else { throw .api.invalidURL }
@@ -130,8 +114,46 @@ public class API {
         }
     }
     
-    public func refresh(
-        _ parameters: RefreshTokenRequestDtoModel
+    public func authRequest(
+        _ parameters: TokenObtainPairModel
+    ) async throws -> APICredential {
+        let apiCredential = APICredential(
+            token:
+                try await AF.request(
+                    try authURL,
+                    method: .post,
+                    parameters: parameters,
+                    encoder: .apiJSON
+                )
+                .validate()
+                .serializingAPI()
+                .value,
+            createdAt: Date()
+        )
+        
+        keychainCredential = apiCredential
+        
+        return apiCredential
+    }
+    
+    // MARK: - Refresh
+    
+    var authRefreshURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "token/refresh/",
+                        relativeTo: try authURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func refreshRequest(
+        _ parameters: TokenRefreshModel
     ) async throws -> APICredential {
         let apiCredential = APICredential(
             token:
@@ -153,6 +175,138 @@ public class API {
     }
     
     public func refreshToken(_ token: String) async throws -> APICredential {
-        try await refresh(RefreshTokenRequestDtoModel(refreshToken: token))
+        try await refreshRequest(TokenRefreshModel(refresh: token))
+    }
+    
+    // MARK: - Sign Out
+    
+    public func signOut() {
+        keychainCredential = nil
+    }
+    
+    // MARK: - Playlists
+    
+    var playlistURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "api/playlist/",
+                        relativeTo: baseURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func playlistRequest() async throws -> [Playlist] {
+        try await session.request(
+            try playlistURL,
+            method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
+    }
+    
+    // MARK: - Own Playlists
+    
+    var ownPlaylistURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "api/playlist/own/",
+                        relativeTo: try playlistURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func ownPlaylistRequest() async throws -> [Playlist] {
+        try await session.request(
+            try ownPlaylistURL,
+            method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
+    }
+    
+    // MARK: - Tracks
+    
+    var trackURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "api/track/",
+                        relativeTo: baseURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func trackRequest() async throws -> [Track] {
+        try await session.request(
+            try trackURL,
+            method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
+    }
+    
+    // MARK: - Player Session
+    
+    var playerURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "api/player/",
+                        relativeTo: baseURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    var playerSessionURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "session/",
+                        relativeTo: try playerURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func playerSessionRequest() async throws -> PlayerSession {
+        let dataTask: DataTask<PlayerSession> = try await session.request(
+            try playerSessionURL,
+            method: .get
+        ).serializingAPI()
+        
+        debugPrint(try await dataTask.response)
+        
+        return
+        try await session.request(
+            try playerSessionURL,
+            method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
     }
 }

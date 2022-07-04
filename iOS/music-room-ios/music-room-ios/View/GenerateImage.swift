@@ -1346,6 +1346,7 @@ public func drawIcon(
     var locations: [CGFloat] = [1.0, 0.0]
     
     let colorSpace = CGColorSpaceCreateDeviceRGB()
+    
     guard
         let gradient = CGGradient(
             colorsSpace: colorSpace,

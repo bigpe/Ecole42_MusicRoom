@@ -12,7 +12,11 @@ public struct PlayerSession: Codable, Identifiable {
     
     public let trackQueue: [SessionTrack]
     
-    public let mode: String?
+    public enum Mode: String, Codable {
+        case normal, `repeat`
+    }
+    
+    public let mode: Mode?
     
     public let playlist: Int
     
@@ -21,7 +25,7 @@ public struct PlayerSession: Codable, Identifiable {
     public init(
         id: Int? = nil,
         trackQueue: [SessionTrack],
-        mode: String? = nil,
+        mode: Mode? = nil,
         playlist: Int,
         author: Int
     ) {
@@ -30,5 +34,13 @@ public struct PlayerSession: Codable, Identifiable {
         self.mode = mode
         self.playlist = playlist
         self.author = author
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case trackQueue = "track_queue"
+        case mode
+        case playlist
+        case author
     }
 }

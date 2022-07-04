@@ -14,7 +14,17 @@ public struct Playlist: Codable, Identifiable {
     
     public let name: String
     
-    public let type: PlaylistType?
+    public enum `Type`: String, Codable {
+        case `public`, `private`
+    }
+    
+    public let type: `Type`?
+    
+    public enum AccessType: String, Codable {
+        case `default`, custom
+    }
+    
+    public let accessType: AccessType?
     
     public let author: Int
     
@@ -22,13 +32,24 @@ public struct Playlist: Codable, Identifiable {
         id: Int? = nil,
         tracks: [PlaylistTrack],
         name: String,
-        type: PlaylistType? = nil,
+        type: `Type`? = nil,
+        accessType: AccessType? = nil,
         author: Int
     ) {
         self.id = id
         self.tracks = tracks
         self.name = name
         self.type = type
+        self.accessType = accessType
         self.author = author
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case tracks
+        case name
+        case type
+        case accessType = "access_type"
+        case author
     }
 }

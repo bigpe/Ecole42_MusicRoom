@@ -12,15 +12,15 @@ public struct Track: Codable, Identifiable {
     
     public let name: String
     
-    public let file: String?
+    public let file: String
     
-    public let duration: Decimal?
+    public let duration: Decimal
     
     public init(
         id: Int? = nil,
         name: String,
-        file: String? = nil,
-        duration: Decimal? = nil
+        file: String,
+        duration: Decimal
     ) {
         self.id = id
         self.name = name

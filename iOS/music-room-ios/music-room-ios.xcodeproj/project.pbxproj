@@ -14,10 +14,8 @@
 		C33B7C1D285F8043000399BA /* PlayerSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C1C285F8043000399BA /* PlayerSession.swift */; };
 		C33B7C1F285F8349000399BA /* PlaylistTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C1E285F8349000399BA /* PlaylistTrack.swift */; };
 		C33B7C21285F844C000399BA /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C20285F844C000399BA /* Playlist.swift */; };
-		C33B7C23285F8559000399BA /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C22285F8559000399BA /* User.swift */; };
 		C33B7C25285F85E6000399BA /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C24285F85E6000399BA /* Track.swift */; };
 		C33B7C27285F87D6000399BA /* PlaylistMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C26285F87D6000399BA /* PlaylistMessage.swift */; };
-		C33B7C29285F88E4000399BA /* PlaylistType.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C28285F88E4000399BA /* PlaylistType.swift */; };
 		C3434ADC286F481000D07785 /* PINRemoteImage in Frameworks */ = {isa = PBXBuildFile; productRef = C3434ADB286F481000D07785 /* PINRemoteImage */; };
 		C3434ADE286F6C4D00D07785 /* SubControlButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */; };
 		C3434AE0286F6E7900D07785 /* ControlButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3434ADF286F6E7900D07785 /* ControlButtonStyle.swift */; };
@@ -38,6 +36,9 @@
 		C36ABA19285BBBFC008D4D03 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36ABA18285BBBFC008D4D03 /* ContentView.swift */; };
 		C36ABA1B285BBBFD008D4D03 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */; };
 		C36ABA1E285BBBFD008D4D03 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1D285BBBFD008D4D03 /* Preview Assets.xcassets */; };
+		C3D7159728726D6300B0625A /* TokenObtainPairModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */; };
+		C3D7159928726E5600B0625A /* TokenRefreshModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159828726E5600B0625A /* TokenRefreshModel.swift */; };
+		C3D7159D28728AD600B0625A /* DiskCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159C28728AD600B0625A /* DiskCacheService.swift */; };
 		C3E715BE285E4DAD0038667B /* PlayerWebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E715BD285E4DAD0038667B /* PlayerWebSocket.swift */; };
 		C3E715C0285E50660038667B /* PlaylistWebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E715BF285E50660038667B /* PlaylistWebSocket.swift */; };
 /* End PBXBuildFile section */
@@ -50,10 +51,8 @@
 		C33B7C1C285F8043000399BA /* PlayerSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSession.swift; sourceTree = "<group>"; };
 		C33B7C1E285F8349000399BA /* PlaylistTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistTrack.swift; sourceTree = "<group>"; };
 		C33B7C20285F844C000399BA /* Playlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
-		C33B7C22285F8559000399BA /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		C33B7C24285F85E6000399BA /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
 		C33B7C26285F87D6000399BA /* PlaylistMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistMessage.swift; sourceTree = "<group>"; };
-		C33B7C28285F88E4000399BA /* PlaylistType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistType.swift; sourceTree = "<group>"; };
 		C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubControlButtonStyle.swift; sourceTree = "<group>"; };
 		C3434ADF286F6E7900D07785 /* ControlButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlButtonStyle.swift; sourceTree = "<group>"; };
 		C3434AE1286F752000D07785 /* GenerateImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateImage.swift; sourceTree = "<group>"; };
@@ -72,6 +71,9 @@
 		C36ABA18285BBBFC008D4D03 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C36ABA1D285BBBFD008D4D03 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenObtainPairModel.swift; sourceTree = "<group>"; };
+		C3D7159828726E5600B0625A /* TokenRefreshModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRefreshModel.swift; sourceTree = "<group>"; };
+		C3D7159C28728AD600B0625A /* DiskCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskCacheService.swift; sourceTree = "<group>"; };
 		C3E715BD285E4DAD0038667B /* PlayerWebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerWebSocket.swift; sourceTree = "<group>"; };
 		C3E715BF285E50660038667B /* PlaylistWebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistWebSocket.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -110,9 +112,9 @@
 				C33B7C1C285F8043000399BA /* PlayerSession.swift */,
 				C33B7C1E285F8349000399BA /* PlaylistTrack.swift */,
 				C33B7C20285F844C000399BA /* Playlist.swift */,
-				C33B7C22285F8559000399BA /* User.swift */,
 				C33B7C24285F85E6000399BA /* Track.swift */,
-				C33B7C28285F88E4000399BA /* PlaylistType.swift */,
+				C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */,
+				C3D7159828726E5600B0625A /* TokenRefreshModel.swift */,
 				C3535C4F286A39EA007EA197 /* Authentication */,
 			);
 			path = Entities;
@@ -129,6 +131,7 @@
 				C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */,
 				C3434AE1286F752000D07785 /* GenerateImage.swift */,
 				C3434AE3286F756900D07785 /* ASCGImageBuffer.swift */,
+				C3D7159C28728AD600B0625A /* DiskCacheService.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -284,7 +287,6 @@
 				C3535C53286A3A28007EA197 /* APICredential.swift in Sources */,
 				C33B7C14285E8F08000399BA /* PlayerEventsList.swift in Sources */,
 				C3535C51286A3A07007EA197 /* APIAuthenticator.swift in Sources */,
-				C33B7C29285F88E4000399BA /* PlaylistType.swift in Sources */,
 				C3535C3D286A2321007EA197 /* ContentView+ViewModel.swift in Sources */,
 				C33B7C1D285F8043000399BA /* PlayerSession.swift in Sources */,
 				C33B7C17285E906B000399BA /* PlaylistEventsList.swift in Sources */,
@@ -294,7 +296,6 @@
 				C3E715BE285E4DAD0038667B /* PlayerWebSocket.swift in Sources */,
 				C3E715C0285E50660038667B /* PlaylistWebSocket.swift in Sources */,
 				C33B7C1B285F7E68000399BA /* SessionTrack.swift in Sources */,
-				C33B7C23285F8559000399BA /* User.swift in Sources */,
 				C33B7C21285F844C000399BA /* Playlist.swift in Sources */,
 				C3535C49286A38CE007EA197 /* API+Error.swift in Sources */,
 				C3535C47286A386F007EA197 /* API.swift in Sources */,
@@ -302,8 +303,11 @@
 				C33B7C25285F85E6000399BA /* Track.swift in Sources */,
 				C3535C5A286B616D007EA197 /* ContentView+AuthSheet.swift in Sources */,
 				C3434AE2286F752000D07785 /* GenerateImage.swift in Sources */,
+				C3D7159928726E5600B0625A /* TokenRefreshModel.swift in Sources */,
 				C33B7C19285EB170000399BA /* PlayerMessage.swift in Sources */,
 				C33B7C1F285F8349000399BA /* PlaylistTrack.swift in Sources */,
+				C3D7159D28728AD600B0625A /* DiskCacheService.swift in Sources */,
+				C3D7159728726D6300B0625A /* TokenObtainPairModel.swift in Sources */,
 				C33B7C27285F87D6000399BA /* PlaylistMessage.swift in Sources */,
 				C3535C3F286A3025007EA197 /* ContentView+MusicKit.swift in Sources */,
 				C3535C4E286A3980007EA197 /* API+Keychain.swift in Sources */,

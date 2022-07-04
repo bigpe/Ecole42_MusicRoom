@@ -13,7 +13,7 @@ public struct PlaylistMessage: Codable {
     public enum Payload: Codable {
         case renamePlaylist(playlistId: Int, playlistName: String)
         
-        case addPlaylist(playlistName: String, type: PlaylistType)
+        case addPlaylist(playlistName: String, type: Playlist.`Type`)
         
         case removePlaylist(playlistId: Int, playlistName: String?)
         

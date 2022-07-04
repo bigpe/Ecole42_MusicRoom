@@ -12,11 +12,21 @@ extension ContentView {
     
     @MainActor
     class ViewModel: ObservableObject {
+        
+        // MARK: - Interface State
+        
         enum InterfaceState {
             case player
             
             case playlist
+            
+            case library
         }
+        
+        @Published
+        var interfaceState = InterfaceState.player
+        
+        // MARK: - Player State
         
         enum PlayerState {
             case playing, paused
@@ -34,6 +44,20 @@ extension ContentView {
             }
         }
         
+        @Published
+        var playerState = PlayerState.paused
+        
+        // MARK: - Library State
+        
+        enum LibraryState {
+            case ownPlaylists, playlists, tracks
+        }
+        
+        @Published
+        var libraryState = LibraryState.ownPlaylists
+        
+        // MARK: - Shuffle State
+        
         enum ShuffleState {
             case on, off
             
@@ -49,6 +73,37 @@ extension ContentView {
                 }()
             }
         }
+        
+        @Published
+        var shuffleState = ShuffleState.off
+        
+        // MARK: - Repeat State
+        
+        enum RepeatState {
+            case on, off
+            
+            mutating func toggle() {
+                self = {
+                    switch self {
+                    case .on:
+                        return .off
+                        
+                    case .off:
+                        return .on
+                    }
+                }()
+            }
+        }
+        
+        @Published
+        var repeatState = RepeatState.off
+        
+        // MARK: - Sign Out
+        
+        @Published
+        var showingSignOutConfirmation = false
+        
+        // MARK: - Image Manager
         
         enum ImageManager {
             static func cachedImage(_ trackName: String) -> UIImage? {
@@ -111,6 +166,10 @@ extension ContentView {
             }
         }
         
+        // MARK: Interface Constants
+        
+        var placeholderTitle = "Not Playing"
+        
         let primaryControlsColor = Color.primary
         
         let secondaryControlsColor = Color.primary.opacity(0.55)
@@ -126,6 +185,11 @@ extension ContentView {
             ignoresSafeAreaEdges: Edge.Set.all
             
         )
+        
+        // MARK: - Artwork
+        
+        @Published
+        var artworkTransitionAnchor = UnitPoint.topLeading
         
         var playerArtworkPadding: CGFloat {
             switch playerState {
@@ -145,18 +209,9 @@ extension ContentView {
         func updatePlayerArtworkWidth(_ geometry: GeometryProxy) {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-
+                
                 self.playerArtworkWidth = geometry.size.width
             }
-
-//            return ZStack(alignment: .center) {
-//                RoundedRectangle(cornerRadius: 8, style: .circular)
-//                    .fill(artworkPlaceholder.backgroundColor)
-//
-//                Image(systemName: "music.note")
-//                    .font(.system(size: geometry.size.width * 0.375, weight: .medium, design: .default))
-//                    .foregroundColor(artworkPlaceholder.foregroundColor)
-//            }
         }
         
         var artworkPlaceholder = (
@@ -293,11 +348,11 @@ extension ContentView {
             else {
                 return .zero
             }
-
+            
             switch interfaceState {
-            case .player:
+            case .player, .library:
                 return playlistArtworkWidth / playerArtworkWidth
-
+                
             case .playlist:
                 return playerArtworkWidth / playlistArtworkWidth
             }
@@ -331,39 +386,161 @@ extension ContentView {
         )?
             .withRenderingMode(.alwaysOriginal) ?? UIImage()
         
-        @Published
-        var showingSignOutConfirmation = false
+        // MARK: - Update Data
+        
+        func updateData(_ api: API) {
+            Task {
+                do {
+                    try await updateOwnPlaylists(api)
+                } catch {
+                    debugPrint(error)
+                }
+            }
+            
+            Task {
+                do {
+                    try await updatePlaylists(api)
+                } catch {
+                    debugPrint(error)
+                }
+            }
+            
+            Task {
+                do {
+                    try await updateTracks(api)
+                } catch {
+                    debugPrint(error)
+                }
+            }
+            
+            Task {
+                do {
+                    try await updatePlayerSession(api)
+                } catch {
+                    debugPrint(error)
+                }
+            }
+        }
+        
+        // MARK: - Own Playlists
         
         @Published
-        var interfaceState = InterfaceState.player
+        var ownPlaylists = [Playlist]()
+        
+        func updateOwnPlaylists(_ api: API) async throws {
+            Task {
+                ownPlaylists = try await DiskCacheService.entity
+            }
+            
+            do {
+                let ownPlaylists = try await api.ownPlaylistRequest()
+                
+                self.ownPlaylists = ownPlaylists
+                
+                try await DiskCacheService.updateEntity(ownPlaylists)
+            } catch {
+                debugPrint(error)
+                
+                try await DiskCacheService.updateEntity([Playlist]?.none)
+            }
+        }
+        
+        // MARK: - Playlists
         
         @Published
-        var playerState = PlayerState.paused
+        var playlists = [Playlist]()
+        
+        func updatePlaylists(_ api: API) async throws {
+            Task {
+                playlists = try await DiskCacheService.entity
+            }
+            
+            do {
+                let playlists = try await api.playlistRequest()
+                
+                self.playlists = playlists
+                
+                try await DiskCacheService.updateEntity(playlists)
+            } catch {
+                debugPrint(error)
+                
+                try await DiskCacheService.updateEntity([Playlist]?.none)
+            }
+        }
+        
+        // MARK: - Tracks
         
         @Published
-        var shuffleState = ShuffleState.off
-        
-        @Published
-        var track: Track?
-        
-        var placeholderTitle = "Not Playing"
-        
-        @Published
-        var playlist: Playlist?
-        
         var tracks = [Track]()
         
-        var playlistTracks: [Track] {
-            return [
-                Track(id: 1, name: "Jakarta — One Desire"),
-                Track(id: 2, name: "Don Diablo — Silence"),
-                Track(id: 3, name: "Adele — Skyfall"),
-            ]
-            
-            (playlist?.tracks ?? [])
-                .map { playlistTrack in
-                    tracks.first(where: { $0.id == playlistTrack.id }) ?? Track(name: "Unknown")
-                }
+        func track(byID trackID: Int) -> Track? {
+            tracks.first(where: { $0.id == trackID })
         }
+        
+        func updateTracks(_ api: API) async throws {
+            Task {
+                tracks = try await DiskCacheService.entity
+            }
+            
+            do {
+                let tracks = try await api.trackRequest()
+                
+                self.tracks = tracks
+                
+                try await DiskCacheService.updateEntity(tracks)
+            } catch {
+                debugPrint(error)
+                
+                try await DiskCacheService.updateEntity([Track]?.none)
+            }
+        }
+        
+        // MARK: Player Session
+        
+        @Published
+        var playerSession: PlayerSession? {
+            didSet {
+                currentTrack = {
+                    guard
+                        let currentTrackID = playerSession?.trackQueue.first?.track
+                    else {
+                        return nil
+                    }
+                    
+                    return track(byID: currentTrackID)
+                }()
+                
+                queuedTracks = {
+                    playerSession?
+                        .trackQueue
+                        .map {
+                            track(byID: $0.track) ?? Track(name: "Unknown", file: "", duration: 0)
+                        } ?? []
+                }()
+            }
+        }
+        
+        func updatePlayerSession(_ api: API) async throws {
+            Task {
+                playerSession = try await DiskCacheService.entity
+            }
+            
+            do {
+                let playerSession = try await api.playerSessionRequest()
+                
+                self.playerSession = playerSession
+                
+                try await DiskCacheService.updateEntity(playerSession)
+            } catch {
+                debugPrint(error)
+                
+                try await DiskCacheService.updateEntity(PlayerSession?.none)
+            }
+        }
+        
+        @Published
+        var currentTrack: Track?
+        
+        var queuedTracks = [Track]()
     }
 }

@@ -11,7 +11,7 @@ import Security
 // MARK: - Keychain
 
 extension API {
-    public func updateKeychain(withCredential credential: APICredential) throws {
+    func updateKeychain(withCredential credential: APICredential) throws {
         let credentialData = try JSONEncoder().encode(credential)
         
         let updateQuery =
@@ -50,7 +50,7 @@ extension API {
         }
     }
     
-    public var keychainCredential: APICredential? {
+    var keychainCredential: APICredential? {
         get {
             let getQuery =
             [
