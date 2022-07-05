@@ -107,7 +107,7 @@ class BaseConsumer(JsonWebsocketConsumer):
     @database_sync_to_async
     def dispatch(self, message):
         handler: Callable = getattr(self, get_handler_name(message), None)
-        if isinstance(handler, BaseEvent):
+        if hasattr(handler, 'hidden'):
             handler: BaseEvent.__class__
             handler(consumer=self, event=message)
         else:
