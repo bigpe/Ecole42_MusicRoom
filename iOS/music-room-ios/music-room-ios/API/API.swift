@@ -15,23 +15,7 @@ extension ParameterEncoder where Self == JSONParameterEncoder {
     /// Provides a default `JSONParameterEncoder` instance.
     public static var apiJSON: JSONParameterEncoder {
         JSONParameterEncoder(
-            encoder: {
-                let encoder = JSONEncoder()
-                
-                encoder.dateEncodingStrategy = .formatted(
-                    {
-                        let dateFormatter = DateFormatter()
-                        
-                        dateFormatter.calendar = Calendar(identifier: .iso8601)
-                        
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
-                        
-                        return dateFormatter
-                    }()
-                )
-                
-                return encoder
-            }()
+            encoder: API.Encoder()
         )
     }
 }
@@ -49,11 +33,9 @@ public class API {
     
     // MARK: - Web Socket
     
-    private static let testUserID = "55"
+    lazy var playerWebSocket = PlayerWebSocket?.none // try? PlayerWebSocket(api: self)
     
-    let playerWebSocket = try? PlayerWebSocket(userID: testUserID)
-    
-    let playlistWebSocket = try? PlaylistWebSocket(userID: testUserID)
+    lazy var playlistWebSocket = PlaylistWebSocket?.none // try? PlaylistWebSocket(api: self)
     
     // MARK: - Authentication
     
@@ -88,7 +70,7 @@ public class API {
         return session
     }
     
-    public lazy var session: Session = cleanSession
+    public var session: Session!
     
     // MARK: - Base URL
     
@@ -96,7 +78,9 @@ public class API {
         URL(string: "https://music-room-test.herokuapp.com/")
     }
     
-    public init() {}
+    public init() {
+        session = cleanSession
+    }
     
     // MARK: - Auth
     
@@ -217,7 +201,7 @@ public class API {
             guard
                 let url =
                     URL(
-                        string: "api/playlist/own/",
+                        string: "own/",
                         relativeTo: try playlistURL
                     )
             else { throw .api.invalidURL }

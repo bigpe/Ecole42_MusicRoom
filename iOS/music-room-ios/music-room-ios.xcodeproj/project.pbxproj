@@ -36,6 +36,7 @@
 		C36ABA19285BBBFC008D4D03 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36ABA18285BBBFC008D4D03 /* ContentView.swift */; };
 		C36ABA1B285BBBFD008D4D03 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */; };
 		C36ABA1E285BBBFD008D4D03 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1D285BBBFD008D4D03 /* Preview Assets.xcassets */; };
+		C3B4998928739914005CB8A7 /* API+Coders.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B4998828739914005CB8A7 /* API+Coders.swift */; };
 		C3D7159728726D6300B0625A /* TokenObtainPairModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */; };
 		C3D7159928726E5600B0625A /* TokenRefreshModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159828726E5600B0625A /* TokenRefreshModel.swift */; };
 		C3D7159D28728AD600B0625A /* DiskCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159C28728AD600B0625A /* DiskCacheService.swift */; };
@@ -72,6 +73,7 @@
 		C36ABA18285BBBFC008D4D03 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C36ABA1D285BBBFD008D4D03 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		C3B4998828739914005CB8A7 /* API+Coders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "API+Coders.swift"; sourceTree = "<group>"; };
 		C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenObtainPairModel.swift; sourceTree = "<group>"; };
 		C3D7159828726E5600B0625A /* TokenRefreshModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRefreshModel.swift; sourceTree = "<group>"; };
 		C3D7159C28728AD600B0625A /* DiskCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskCacheService.swift; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 			children = (
 				C3535C46286A386F007EA197 /* API.swift */,
 				C3535C48286A38CE007EA197 /* API+Error.swift */,
+				C3B4998828739914005CB8A7 /* API+Coders.swift */,
 				C3535C4D286A3980007EA197 /* API+Keychain.swift */,
 				C3D7159C28728AD600B0625A /* DiskCacheService.swift */,
 				C3535C54286A3B5B007EA197 /* Extensions */,
@@ -303,6 +306,7 @@
 				C33B7C21285F844C000399BA /* Playlist.swift in Sources */,
 				C3535C49286A38CE007EA197 /* API+Error.swift in Sources */,
 				C3535C47286A386F007EA197 /* API.swift in Sources */,
+				C3B4998928739914005CB8A7 /* API+Coders.swift in Sources */,
 				C3434AE4286F756900D07785 /* ASCGImageBuffer.swift in Sources */,
 				C33B7C25285F85E6000399BA /* Track.swift in Sources */,
 				C3535C5A286B616D007EA197 /* ContentView+AuthSheet.swift in Sources */,

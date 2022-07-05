@@ -15,13 +15,13 @@ public struct Playlist: Codable, Identifiable {
     public let name: String
     
     public enum `Type`: String, Codable {
-        case `public`, `private`
+        case `default`, custom
     }
     
     public let type: `Type`?
     
     public enum AccessType: String, Codable {
-        case `default`, custom
+        case `public`, `private`
     }
     
     public let accessType: AccessType?

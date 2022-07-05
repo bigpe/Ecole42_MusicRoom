@@ -18,16 +18,16 @@ public struct PlayerSession: Codable, Identifiable {
     
     public let mode: Mode?
     
-    public let playlist: Int
+    public let playlist: Int?
     
-    public let author: Int
+    public let author: Int?
     
     public init(
         id: Int? = nil,
         trackQueue: [SessionTrack],
         mode: Mode? = nil,
-        playlist: Int,
-        author: Int
+        playlist: Int? = nil,
+        author: Int? = nil
     ) {
         self.id = id
         self.trackQueue = trackQueue

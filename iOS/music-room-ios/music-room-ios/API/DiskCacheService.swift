@@ -27,7 +27,7 @@ public enum DiskCacheService<Entity: Codable> {
                 
                 let file = try FileHandle(forReadingFrom: fileURL)
                 
-                let cachedEntity = try JSONDecoder().decode(
+                let cachedEntity = try API.Decoder().decode(
                     Entity.self,
                     from: file.availableData
                 )
@@ -56,7 +56,7 @@ public enum DiskCacheService<Entity: Codable> {
                 return
             }
             
-            let entityData = try JSONEncoder()
+            let entityData = try API.Encoder()
                 .encode(entity)
             
             try entityData

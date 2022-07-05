@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     
+    private let api = API()
+    
     @StateObject
     private var viewModel = ViewModel()
     
@@ -20,8 +22,6 @@ struct ContentView: View {
     
     @StateObject
     private var musicKit = MusicKit()
-    
-    private let api = API()
     
     // MARK: - Cached Artwork Image
     
@@ -471,19 +471,36 @@ struct ContentView: View {
                             case .ownPlaylists:
                                 VStack(alignment: .leading, spacing: 18) {
                                     ForEach(viewModel.ownPlaylists) { playlist in
-                                        HStack(alignment: .center, spacing: 16) {
-                                            Image(uiImage: albumCover)
-                                                .resizable()
-                                                .cornerRadius(4)
-                                                .frame(width: 60, height: 60)
-                                            
-                                            Text(playlist.name)
-                                                .font(.system(size: 18, weight: .medium))
-                                                .foregroundColor(viewModel.primaryControlsColor)
-                                                .padding(.vertical, 12)
-                                            
-                                            Spacer()
+                                        Button {
+                                            Task {
+                                                guard
+                                                    let playlistID = playlist.id
+                                                else {
+                                                    return
+                                                }
+                                                
+                                                try await viewModel.createSession(
+                                                    playlistID: playlistID
+                                                )
+                                                
+                                                viewModel.interfaceState = .player
+                                            }
+                                        } label: {
+                                            HStack(alignment: .center, spacing: 16) {
+                                                Image(uiImage: albumCover)
+                                                    .resizable()
+                                                    .cornerRadius(4)
+                                                    .frame(width: 60, height: 60)
+                                                
+                                                Text(playlist.name)
+                                                    .font(.system(size: 18, weight: .medium))
+                                                    .foregroundColor(viewModel.primaryControlsColor)
+                                                    .padding(.vertical, 12)
+                                                
+                                                Spacer()
+                                            }
                                         }
+
                                     }
                                 }
                                 .padding(.top, 8)
@@ -493,18 +510,38 @@ struct ContentView: View {
                             case .playlists:
                                 VStack(alignment: .leading, spacing: 18) {
                                     ForEach(viewModel.playlists) { playlist in
-                                        HStack(alignment: .center, spacing: 16) {
-                                            Image(uiImage: albumCover)
-                                                .resizable()
-                                                .cornerRadius(4)
-                                                .frame(width: 60, height: 60)
-                                            
-                                            Text(playlist.name)
-                                                .font(.system(size: 18, weight: .medium))
-                                                .foregroundColor(viewModel.primaryControlsColor)
-                                                .padding(.vertical, 12)
-                                            
-                                            Spacer()
+                                        Button {
+                                            Task {
+                                                guard
+                                                    let playlistID = playlist.id
+                                                else {
+                                                    return
+                                                }
+                                                
+                                                do {
+                                                    try await viewModel.createSession(
+                                                        playlistID: playlistID
+                                                    )
+                                                } catch {
+                                                    debugPrint(error)
+                                                }
+                                                
+                                                viewModel.interfaceState = .player
+                                            }
+                                        } label: {
+                                            HStack(alignment: .center, spacing: 16) {
+                                                Image(uiImage: albumCover)
+                                                    .resizable()
+                                                    .cornerRadius(4)
+                                                    .frame(width: 60, height: 60)
+                                                
+                                                Text(playlist.name)
+                                                    .font(.system(size: 18, weight: .medium))
+                                                    .foregroundColor(viewModel.primaryControlsColor)
+                                                    .padding(.vertical, 12)
+                                                
+                                                Spacer()
+                                            }
                                         }
                                     }
                                 }
@@ -515,18 +552,32 @@ struct ContentView: View {
                             case .tracks:
                                 VStack(alignment: .leading, spacing: 12) {
                                     ForEach(viewModel.tracks) { track in
-                                        HStack(alignment: .center, spacing: 16) {
-                                            cachedArtworkImage(track.name)
-                                                .resizable()
-                                                .cornerRadius(4)
-                                                .frame(width: 60, height: 60)
-                                            
-                                            Text(track.name)
-                                                .font(.system(size: 18, weight: .medium))
-                                                .foregroundColor(viewModel.primaryControlsColor)
-                                                .padding(.vertical, 12)
-                                            
-                                            Spacer()
+                                        Button {
+                                            Task {
+                                                guard
+                                                    let trackID = track.id
+                                                else {
+                                                    return
+                                                }
+                                                
+                                                try await viewModel.playTrack(trackID: trackID)
+                                                
+                                                viewModel.interfaceState = .player
+                                            }
+                                        } label: {
+                                            HStack(alignment: .center, spacing: 16) {
+                                                cachedArtworkImage(track.name)
+                                                    .resizable()
+                                                    .cornerRadius(4)
+                                                    .frame(width: 60, height: 60)
+                                                
+                                                Text(track.name)
+                                                    .font(.system(size: 18, weight: .medium))
+                                                    .foregroundColor(viewModel.primaryControlsColor)
+                                                    .padding(.vertical, 12)
+                                                
+                                                Spacer()
+                                            }
                                         }
                                     }
                                 }
@@ -565,17 +616,7 @@ struct ContentView: View {
                     
                     Button {
                         Task {
-//                            let track = Track(name: "One Republic — Let's Hurt Tonight")
-//
-//                            musicKit.artworkURLs[track.name] = URL(string: "https://is4-ssl.mzstatic.com/image/thumb/Music125/v4/00/26/2c/00262ccd-0ac1-6f1b-8dda-fe96959fc334/21UMGIM70368.rgb.jpg/1000x1000bb.jpg")
-//
-//                            viewModel.currentTrack = track
-                            
-                            do {
-                                try await api.playerWebSocket?.playPreviousTrack()
-                            } catch {
-                                debugPrint(error)
-                            }
+                            try await viewModel.backward()
                         }
                     } label: {
                         Image(systemName: "backward.fill")
@@ -587,13 +628,13 @@ struct ContentView: View {
                     Button {
                         Task {
                             do {
-//                                switch viewModel.playerState {
-//                                case .playing:
-//                                    try await api.playerWebSocket?.pauseTrack()
-//
-//                                case .paused:
-//                                    try await api.playerWebSocket?.playTrack()
-//                                }
+                                switch viewModel.playerState {
+                                case .playing:
+                                    try await viewModel.pause()
+
+                                case .paused:
+                                    try await viewModel.resume()
+                                }
                                 
                                 await MainActor.run {
                                     viewModel.animatingPlayerState.toggle()
@@ -625,17 +666,7 @@ struct ContentView: View {
                     
                     Button {
                         Task {
-//                            let track = Track(name: "Adele — Skyfall")
-//
-//                            musicKit.artworkURLs[track.name] = URL(string: "https://is4ssl.mzstatic.com/image/thumb/Music125/v4/b3/fe/cf/b3fecf76-0359-8e14-0651-4b101fc68a3f/886443673632.jpg/1000x1000bb.jpg")
-//
-//                            viewModel.sessionTrack = track
-                            
-                            do {
-                                try await api.playerWebSocket?.playNextTrack()
-                            } catch {
-                                debugPrint(error)
-                            }
+                            try await viewModel.backward()
                         }
                     } label: {
                         Image(systemName: "forward.fill")
@@ -771,11 +802,17 @@ struct ContentView: View {
             // MARK: - Sign Out Confirmation Dialog
             
             Button(role: .destructive) {
-                viewModel.showingSignOutConfirmation = false
-                
-                api.signOut()
-                
-                authSheet.isShowing = true
+                Task {
+                    await MainActor.run {
+                        viewModel.showingSignOutConfirmation = false
+                    }
+                    
+                    try await viewModel.signOut()
+                    
+                    await MainActor.run {
+                        authSheet.isShowing = true
+                    }
+                }
             } label: {
                 Text("Yes")
             }
@@ -826,14 +863,7 @@ struct ContentView: View {
                             }
                             
                             do {
-                                _ = try await api.authRequest(
-                                    TokenObtainPairModel(
-                                        username: username,
-                                        password: password
-                                    )
-                                )
-                                
-                                viewModel.updateData(api)
+                                try await viewModel.auth(username, password)
                                 
                                 await MainActor.run {
                                     authSheet.isLoading = false
@@ -875,70 +905,12 @@ struct ContentView: View {
             
             // MARK: - On Appear
             
-            authSheet.isShowing = !api.isAuthorized
+            viewModel.api = api
             
-            viewModel.updateData(api)
-            
-            if let playerWebSocket = api.playerWebSocket, !playerWebSocket.isSubscribed {
-                playerWebSocket
-                    .onReceive { event in
-                        switch event {
-                            
-                        case .playTrack:
-                            viewModel.playerState = .playing
-                            
-                        case .playNextTrack:
-                            break
-                            
-                        case .playPreviousTrack:
-                            break
-                            
-                        case .shuffle:
-                            viewModel.shuffleState.toggle()
-                            
-                        case .pauseTrack:
-                            viewModel.playerState = .paused
-                            
-                        case .resumeTrack:
-                            viewModel.playerState = .playing
-                            
-                        case .stopTrack:
-                            viewModel.playerState = .paused
-                            
-                        default:
-                            break
-                        }
-                    }
-            }
-            
-            if let playlistWebSocket = api.playlistWebSocket, !playlistWebSocket.isSubscribed {
-                playlistWebSocket
-                    .onReceive { event in
-                        switch event {
-                            
-                        case .playlistChanged:
-                            break
-                            
-                        case .playlistsChanged:
-                            break
-                            
-                        case .renamePlaylist:
-                            break
-                            
-                        case .addPlaylist:
-                            break
-                            
-                        case .removePlaylist:
-                            break
-                            
-                        case .addTrack:
-                            break
-                            
-                        case .removeTrack:
-                            break
-                            
-                        }
-                    }
+            if viewModel.isAuthorized {
+                viewModel.updateData()
+            } else {
+                authSheet.isShowing = !viewModel.isAuthorized
             }
         }
     }

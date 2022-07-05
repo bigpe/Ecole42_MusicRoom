@@ -11,15 +11,24 @@ public struct PlaylistMessage: Codable {
     public let event: PlaylistEventsList
     
     public enum Payload: Codable {
-        case renamePlaylist(playlistId: Int, playlistName: String)
         
-        case addPlaylist(playlistName: String, type: Playlist.`Type`)
+        // MARK: - Requests
         
-        case removePlaylist(playlistId: Int, playlistName: String?)
+        case changePlaylist(playlist_id: Int, playlist_name: String, playlist_access_type: Playlist.AccessType)
         
-        case addTrack(trackId: Int)
+        case addPlaylist(playlist_name: String, access_type: Playlist.AccessType)
         
-        case removeTrack(trackId: Int)
+        case removePlaylist(playlist_id: Int, playlist_name: String?, playlist_access_type: Playlist.AccessType?)
+        
+        case addTrack(track_id: Int)
+        
+        case removeTrack(track_id: Int)
+        
+        case inviteToPlaylist(user_id: Int)
+        
+        case revokeFromPlaylist(user_id: Int)
+        
+        // MARK: - Responses
         
         case playlistsChanged(playlist: Playlist?, playlists: [Playlist]?)
     }

@@ -11,29 +11,34 @@ public struct PlayerMessage: Codable {
     public let event: PlayerEventsList
     
     public enum Payload: Codable {
-        case createSession(playlistId: Int, shuffle: Bool)
+        
+        // MARK: - Requests
+        
+        case createSession(playlist_id: Int, shuffle: Bool)
         
         case removeSession
         
-        case playTrack(playerSessionId: Int, trackId: Int)
+        case playTrack(player_session_id: Int, track_id: Int)
         
-        case playNextTrack(playerSessionId: Int, trackId: Int?)
+        case playNextTrack(player_session_id: Int, track_id: Int?)
         
-        case playPreviousTrack(playerSessionId: Int, trackId: Int?)
+        case playPreviousTrack(player_session_id: Int, track_id: Int?)
         
-        case shuffle(playerSessionId: Int, trackId: Int?)
+        case shuffle(player_session_id: Int, track_id: Int?)
         
-        case pauseTrack(playerSessionId: Int, trackId: Int?)
+        case pauseTrack(player_session_id: Int, track_id: Int?)
         
-        case resumeTrack(playerSessionId: Int, trackId: Int?)
+        case resumeTrack(player_session_id: Int, track_id: Int?)
         
-        case stopTrack(playerSessionId: Int, trackId: Int?)
+        case stopTrack(player_session_id: Int, track_id: Int?)
         
-        case syncTrack(playerSessionId: Int, progress: Int)
+        case syncTrack(player_session_id: Int, progress: Int)
         
-        case sessionChanged(playerSession: PlayerSession)
+        // MARK: - Responses
         
-        case session(playerSession: PlayerSession)
+        case session(player_session: PlayerSession?)
+        
+        case sessionChanged(player_session: PlayerSession?)
     }
     
     public let payload: Payload

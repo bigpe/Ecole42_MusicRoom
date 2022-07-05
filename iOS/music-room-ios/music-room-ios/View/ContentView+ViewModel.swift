@@ -13,6 +13,8 @@ extension ContentView {
     @MainActor
     class ViewModel: ObservableObject {
         
+        weak var api: API!
+        
         // MARK: - Interface State
         
         enum InterfaceState {
@@ -388,10 +390,10 @@ extension ContentView {
         
         // MARK: - Update Data
         
-        func updateData(_ api: API) {
+        func updateData() {
             Task {
                 do {
-                    try await updateOwnPlaylists(api)
+                    try await updateOwnPlaylists()
                 } catch {
                     debugPrint(error)
                 }
@@ -399,7 +401,7 @@ extension ContentView {
             
             Task {
                 do {
-                    try await updatePlaylists(api)
+                    try await updatePlaylists()
                 } catch {
                     debugPrint(error)
                 }
@@ -407,7 +409,7 @@ extension ContentView {
             
             Task {
                 do {
-                    try await updateTracks(api)
+                    try await updateTracks()
                 } catch {
                     debugPrint(error)
                 }
@@ -415,11 +417,13 @@ extension ContentView {
             
             Task {
                 do {
-                    try await updatePlayerSession(api)
+                    try await updatePlayerSession()
                 } catch {
                     debugPrint(error)
                 }
             }
+            
+//            subscribeToPlayer()
         }
         
         // MARK: - Own Playlists
@@ -427,7 +431,7 @@ extension ContentView {
         @Published
         var ownPlaylists = [Playlist]()
         
-        func updateOwnPlaylists(_ api: API) async throws {
+        func updateOwnPlaylists() async throws {
             Task {
                 ownPlaylists = try await DiskCacheService.entity
             }
@@ -450,7 +454,7 @@ extension ContentView {
         @Published
         var playlists = [Playlist]()
         
-        func updatePlaylists(_ api: API) async throws {
+        func updatePlaylists() async throws {
             Task {
                 playlists = try await DiskCacheService.entity
             }
@@ -477,7 +481,7 @@ extension ContentView {
             tracks.first(where: { $0.id == trackID })
         }
         
-        func updateTracks(_ api: API) async throws {
+        func updateTracks() async throws {
             Task {
                 tracks = try await DiskCacheService.entity
             }
@@ -512,7 +516,7 @@ extension ContentView {
             }
         }
         
-        func updatePlayerSession(_ api: API) async throws {
+        func updatePlayerSession() async throws {
             Task {
                 playerSession = try await DiskCacheService.entity
             }
@@ -549,5 +553,175 @@ extension ContentView {
         var currentTrack: Track?
         
         var queuedTracks = [Track]()
+        
+        // MARK: - Actions
+        
+        var isAuthorized: Bool {
+            api.isAuthorized
+        }
+        
+        func auth(_ username: String, _ password: String) async throws {
+            _ = try await api.authRequest(
+                TokenObtainPairModel(
+                    username: username,
+                    password: password
+                )
+            )
+            
+            updateData()
+        }
+        
+        func signOut() async throws {
+            api.signOut()
+        }
+        
+        // MARK: - Player WebSocket
+        
+        func createSession(playlistID: Int) async throws {
+            try await api.playerWebSocket?.send(PlayerMessage(
+                event: .createSession,
+                payload: .createSession(
+                    playlist_id: playlistID,
+                    shuffle: {
+                        switch shuffleState {
+                        case .off:
+                            return false
+                            
+                        case .on:
+                            return true
+                        }
+                    }()
+                )
+            ))
+        }
+        
+        func backward() async throws {
+            guard
+                let playerSessionID = playerSession?.id,
+                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+            else {
+                throw .api.custom(errorDescription: "")
+            }
+            
+            try await api.playerWebSocket?.send(PlayerMessage(
+                event: .playPreviousTrack,
+                payload: .playPreviousTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentTrackID
+                )
+            ))
+        }
+        
+        func resume() async throws {
+            guard
+                let playerSessionID = playerSession?.id,
+                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+            else {
+                throw .api.custom(errorDescription: "")
+            }
+            
+            try await api.playerWebSocket?.send(PlayerMessage(
+                event: .resumeTrack,
+                payload: .resumeTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentTrackID
+                )
+            ))
+        }
+        
+        func pause() async throws {
+            guard
+                let playerSessionID = playerSession?.id,
+                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+            else {
+                throw .api.custom(errorDescription: "")
+            }
+            
+            try await api.playerWebSocket?.send(PlayerMessage(
+                event: .pauseTrack,
+                payload: .pauseTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentTrackID
+                )
+            ))
+        }
+        
+        func forward() async throws {
+            guard
+                let playerSessionID = playerSession?.id,
+                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+            else {
+                throw .api.custom(errorDescription: "")
+            }
+            
+            try await api.playerWebSocket?.send(PlayerMessage(
+                event: .playNextTrack,
+                payload: .playNextTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentTrackID
+                )
+            ))
+        }
+        
+        func playTrack(trackID: Int) async throws {
+            guard
+                let playerSessionID = playerSession?.id
+            else {
+                throw .api.custom(errorDescription: "")
+            }
+            
+            try await api.playerWebSocket?.send(PlayerMessage(
+                event: .playTrack,
+                payload: .playTrack(
+                    player_session_id: playerSessionID,
+                    track_id: trackID
+                )
+            ))
+        }
+        
+        func subscribeToPlayer() {
+            if let playerWebSocket = api.playerWebSocket, !playerWebSocket.isSubscribed {
+                playerWebSocket
+                    .onReceive { message in
+                        switch message.payload {
+                        case .createSession(playlist_id: let playlist_id, shuffle: let shuffle):
+                            break
+                            
+                        case .removeSession:
+                            break
+                            
+                        case .playTrack(player_session_id: let player_session_id, track_id: let track_id):
+                            break
+                            
+                        case .playNextTrack(player_session_id: let player_session_id, track_id: let track_id):
+                            break
+                            
+                        case .playPreviousTrack(player_session_id: let player_session_id, track_id: let track_id):
+                            break
+                            
+                        case .shuffle(player_session_id: let player_session_id, track_id: let track_id):
+                            break
+                            
+                        case .pauseTrack(player_session_id: let player_session_id, track_id: let track_id):
+                            break
+                            
+                        case .resumeTrack(player_session_id: let player_session_id, track_id: let track_id):
+                            break
+                            
+                        case .stopTrack(player_session_id: let player_session_id, track_id: let track_id):
+                            break
+                            
+                        case .syncTrack(player_session_id: let player_session_id, progress: let progress):
+                            break
+                            
+                        case .session(player_session: let player_session):
+                            debugPrint(player_session)
+                            
+                        case .sessionChanged(player_session: let player_session):
+                            debugPrint(player_session)
+                        }
+                    }
+            }
+        }
     }
 }

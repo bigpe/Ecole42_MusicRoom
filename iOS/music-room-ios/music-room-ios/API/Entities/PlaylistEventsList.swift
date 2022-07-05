@@ -12,7 +12,7 @@ public enum PlaylistEventsList: String, Codable {
     
     case playlistsChanged = "playlists.changed"
     
-    case renamePlaylist = "rename.playlist"
+    case changePlaylist = "change.playlist"
     
     case addPlaylist = "add.playlist"
     
@@ -21,4 +21,8 @@ public enum PlaylistEventsList: String, Codable {
     case addTrack = "add.track"
     
     case removeTrack = "remove.track"
+    
+    case inviteToPlaylist = "invite.to.playlist"
+    
+    case revokeFromPlaylist = "revoke.from.playlist"
 }

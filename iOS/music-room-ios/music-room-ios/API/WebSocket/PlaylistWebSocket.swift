@@ -8,6 +8,9 @@
 import Foundation
 
 public class PlaylistWebSocket {
+    
+    private weak var api: API!
+    
     public var isSubscribed = false
     
     private let webSocketTask: URLSessionWebSocketTask
@@ -39,30 +42,6 @@ public class PlaylistWebSocket {
         try await send(.playlistChanged)
     }
     
-    public func playlistsChanged() async throws {
-        try await send(.playlistsChanged)
-    }
-    
-    public func renamePlaylist() async throws {
-        try await send(.renamePlaylist)
-    }
-    
-    public func addPlaylist() async throws {
-        try await send(.addPlaylist)
-    }
-    
-    public func removePlaylist() async throws {
-        try await send(.removePlaylist)
-    }
-    
-    public func addTrack() async throws {
-        try await send(.addTrack)
-    }
-    
-    public func removeTrack() async throws {
-        try await send(.removeTrack)
-    }
-    
     public func onReceive(_ block: @escaping (PlaylistEventsList) -> Void) {
         isSubscribed = true
         
@@ -75,17 +54,29 @@ public class PlaylistWebSocket {
         }
     }
     
-    // MARK: - Init with UserID
+    // MARK: - Init with API
     
-    public init(userID: String) throws {
+    public init(api: API) throws {
         guard
-            let url = URL(string: "wss://music-room-test.herokuapp.com/ws/playlist/\(userID)/")
+            let url =
+                URL(
+                    string: "ws/playlist/",
+                    relativeTo: api.baseURL
+                ),
+            let accessToken = api.keychainCredential?.token.access
         else {
             throw NSError()
         }
         
-        webSocketTask = URLSession.shared.webSocketTask(with: URLRequest(url: url))
+        var request = URLRequest(url: url)
         
+        request.headers.add(
+            name: "Authorization",
+            value: "Bearer \(accessToken)"
+        )
+        
+        webSocketTask = URLSession.shared.webSocketTask(with: request)
+
         webSocketTask.resume()
     }
 }

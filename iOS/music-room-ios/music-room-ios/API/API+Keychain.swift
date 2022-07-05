@@ -12,7 +12,7 @@ import Security
 
 extension API {
     func updateKeychain(withCredential credential: APICredential) throws {
-        let credentialData = try JSONEncoder().encode(credential)
+        let credentialData = try API.Encoder().encode(credential)
         
         let updateQuery =
         [
@@ -65,7 +65,7 @@ extension API {
             
             guard getStatus == errSecSuccess,
                   let credentialData = getItem as? Data,
-                  let credential = try? JSONDecoder().decode(APICredential.self, from: credentialData)
+                  let credential = try? API.Decoder().decode(APICredential.self, from: credentialData)
             else {
                 return nil
             }
