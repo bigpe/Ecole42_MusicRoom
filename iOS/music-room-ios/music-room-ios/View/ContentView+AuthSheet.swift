@@ -22,9 +22,5 @@ extension ContentView {
         
         @Published
         var isLoading = false
-        
-        enum Field {
-            case username, password
-        }
     }
 }

@@ -8,9 +8,12 @@
 import Foundation
 
 public enum PlaylistEventsList: String, Codable {
-    case playlistChanged = "playlist.changed"
+    
+    // MARK: - Responses
     
     case playlistsChanged = "playlists.changed"
+    
+    // MARK: - Requests
     
     case changePlaylist = "change.playlist"
     

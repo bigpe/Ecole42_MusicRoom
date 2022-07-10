@@ -33,9 +33,9 @@ public class API {
     
     // MARK: - Web Socket
     
-    lazy var playerWebSocket = PlayerWebSocket?.none // try? PlayerWebSocket(api: self)
+    lazy var playerWebSocket = try? PlayerWebSocket(api: self)
     
-    lazy var playlistWebSocket = PlaylistWebSocket?.none // try? PlaylistWebSocket(api: self)
+    lazy var playlistWebSocket = try? PlaylistWebSocket(api: self)
     
     // MARK: - Authentication
     

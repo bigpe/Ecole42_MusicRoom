@@ -17,11 +17,20 @@ struct ContentView: View {
     @StateObject
     private var authSheet = AuthSheet()
     
-    @FocusState
-    var focusedField: AuthSheet.Field?
+    @StateObject
+    private var addPlaylistSheet = AddPlaylistSheet()
     
     @StateObject
     private var musicKit = MusicKit()
+    
+    // MARK: - Field
+    
+    enum Field {
+        case authUsername, authPassword, addPlaylistName, addPlaylistAccessType
+    }
+    
+    @FocusState
+    var focusedField: Field?
     
     // MARK: - Cached Artwork Image
     
@@ -209,8 +218,8 @@ struct ContentView: View {
                         
                         VStack(spacing: 8) {
                             ProgressView(
-                                value: ((viewModel.currentSessionTrack?.progress ?? 0) as NSDecimalNumber).doubleValue,
-                                total: ((viewModel.currentTrack?.duration ?? 0) as NSDecimalNumber).doubleValue
+                                value: viewModel.trackProgress.value,
+                                total: viewModel.trackProgress.total
                             )
                                 .tint(viewModel.secondaryControlsColor)
                             
@@ -245,6 +254,7 @@ struct ContentView: View {
                         
                         Text(viewModel.currentTrack?.name ?? viewModel.placeholderTitle)
                             .font(.system(size: 18, weight: .semibold))
+                            .multilineTextAlignment(.leading)
                             .foregroundColor(viewModel.primaryControlsColor)
                         
                         Spacer()
@@ -289,6 +299,14 @@ struct ContentView: View {
                                 
                                 Button {
                                     viewModel.repeatState.toggle()
+                                    
+                                    Task {
+                                        do {
+                                            try await viewModel.shuffle()
+                                        } catch {
+                                            debugPrint(error)
+                                        }
+                                    }
                                 } label: {
                                     switch viewModel.repeatState {
                                     case .off:
@@ -453,7 +471,7 @@ struct ContentView: View {
                             switch viewModel.libraryState {
                             case .ownPlaylists, .playlists:
                                 Button {
-                                    // FIXME: Add
+                                    addPlaylistSheet.isShowing = true
                                 } label: {
                                     Image(systemName: "plus.circle")
                                         .font(.system(size: 24, weight: .medium))
@@ -494,6 +512,7 @@ struct ContentView: View {
                                                 
                                                 Text(playlist.name)
                                                     .font(.system(size: 18, weight: .medium))
+                                                    .multilineTextAlignment(.leading)
                                                     .foregroundColor(viewModel.primaryControlsColor)
                                                     .padding(.vertical, 12)
                                                 
@@ -537,6 +556,7 @@ struct ContentView: View {
                                                 
                                                 Text(playlist.name)
                                                     .font(.system(size: 18, weight: .medium))
+                                                    .multilineTextAlignment(.leading)
                                                     .foregroundColor(viewModel.primaryControlsColor)
                                                     .padding(.vertical, 12)
                                                 
@@ -573,6 +593,7 @@ struct ContentView: View {
                                                 
                                                 Text(track.name)
                                                     .font(.system(size: 18, weight: .medium))
+                                                    .multilineTextAlignment(.leading)
                                                     .foregroundColor(viewModel.primaryControlsColor)
                                                     .padding(.vertical, 12)
                                                 
@@ -793,6 +814,228 @@ struct ContentView: View {
             .padding(.horizontal, 32)
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $addPlaylistSheet.isShowing, content: {
+            
+            // MARK: - Add Playlist Sheet
+            
+            NavigationView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(spacing: 16) {
+                        Picker(selection: $addPlaylistSheet.accessType) {
+                            ForEach(Playlist.AccessType.allCases) { accessType in
+                                Text(accessType.description)
+                            }
+                        } label: {
+                            Text("Access")
+                        }
+                        .pickerStyle(.segmented)
+                        
+                        TextField(text: $addPlaylistSheet.nameText) {
+                            Text("Playlist Name")
+                        }
+                        .textFieldStyle(.roundedBorder)
+                        .textInputAutocapitalization(.never)
+                        .focused($focusedField, equals: .addPlaylistName)
+                    }
+                    
+                    Divider()
+                    
+                    Button {
+                        addPlaylistSheet.isShowingAddTrack = true
+                    } label: {
+                        Label("Add Music", systemImage: "plus.circle.fill")
+                    }
+                    .tint(.pink)
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            ForEach(
+                                addPlaylistSheet
+                                    .tracks
+                                    .filter {
+                                        addPlaylistSheet.selectedTracks.contains($0.id)
+                                    }
+                            ) { track in
+                                Button {
+//                                Task {
+//                                    guard
+//                                        let trackID = track.id
+//                                    else {
+//                                        return
+//                                    }
+//
+//                                    try await viewModel.playTrack(trackID: trackID)
+//
+//                                    viewModel.interfaceState = .player
+//                                }
+                                } label: {
+                                    HStack(alignment: .center, spacing: 16) {
+                                        cachedArtworkImage(track.name)
+                                            .resizable()
+                                            .cornerRadius(4)
+                                            .frame(width: 60, height: 60)
+                                        
+                                        Text(track.name)
+                                            .font(.system(size: 18, weight: .medium))
+                                            .multilineTextAlignment(.leading)
+                                            .foregroundColor(viewModel.primaryControlsColor)
+                                            .padding(.vertical, 12)
+                                        
+                                        Spacer()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .navigationBarTitle("New Playlist")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigationBarLeading) {
+                        Button {
+                            addPlaylistSheet.isShowing = false
+                            
+                            // FIXME: Confirmation
+                            
+                            addPlaylistSheet.reset()
+                        } label: {
+                            Text("Cancel")
+                        }
+                        
+                    }
+                    
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        Button {
+                            let playlistName = addPlaylistSheet.nameText
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                            
+                            let accessType = addPlaylistSheet.accessType
+                            
+                            guard
+                                !playlistName.isEmpty,
+                                !addPlaylistSheet.isLoading,
+                                let playlistWebSocket = api.playlistWebSocket
+                            else {
+                                return
+                            }
+                            
+                            Task {
+                                do {
+                                    await MainActor.run {
+                                        addPlaylistSheet.isLoading = true
+                                    }
+                                    
+                                    try await playlistWebSocket.send(PlaylistMessage(
+                                        event: .addPlaylist,
+                                        payload: .addPlaylist(
+                                            playlist_name: playlistName,
+                                            access_type: accessType
+                                        )
+                                    ))
+                                    
+                                    for selectedTrackID in addPlaylistSheet.selectedTracks {
+                                        guard
+                                            let selectedTrackID = selectedTrackID
+                                        else {
+                                            continue
+                                        }
+                                        
+                                        try await playlistWebSocket.send(PlaylistMessage(
+                                            event: .addTrack,
+                                            payload: .addTrack(track_id: selectedTrackID)
+                                        ))
+                                    }
+                                    
+                                    await MainActor.run {
+                                        addPlaylistSheet.isLoading = false
+                                        
+                                        addPlaylistSheet.isShowing = false
+                                        
+                                        addPlaylistSheet.reset()
+                                    }
+                                } catch {
+                                    await MainActor.run {
+                                        addPlaylistSheet.isLoading = false
+                                    }
+                                    
+                                    debugPrint(error)
+                                }
+                            }
+                        } label: {
+                            if !addPlaylistSheet.isLoading {
+                                Text("Done")
+                                    .fontWeight(.semibold)
+                            } else {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                            }
+                        }
+                        
+                    }
+                }
+            }
+            .accentColor(.pink)
+            .padding(.horizontal, 16)
+            .sheet(isPresented: $addPlaylistSheet.isShowingAddTrack, content: {
+                
+                // MARK: - Add Track Sheet
+                
+                NavigationView {
+                    List(
+                        addPlaylistSheet.tracks
+                    ) { track in
+                        Button {
+                            if addPlaylistSheet.selectedTracks.contains(track.id) {
+                                addPlaylistSheet.selectedTracks.remove(track.id)
+                            } else {
+                                addPlaylistSheet.selectedTracks.insert(track.id)
+                            }
+                        } label: {
+                            HStack(alignment: .center, spacing: 16) {
+                                cachedArtworkImage(track.name)
+                                    .resizable()
+                                    .cornerRadius(4)
+                                    .frame(width: 60, height: 60)
+                                
+                                Text(track.name)
+                                    .font(.system(size: 18, weight: .medium))
+                                    .multilineTextAlignment(.leading)
+                                    .foregroundColor(viewModel.primaryControlsColor)
+                                    .padding(.vertical, 12)
+                                
+                                Spacer()
+                                
+                                if addPlaylistSheet.selectedTracks.contains(track.id) {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(
+                                            size: 16,
+                                            weight: .medium
+                                        ))
+                                        .padding(.top, 4)
+                                        .foregroundColor(.pink)
+                                }
+                            }
+                        }
+                    }
+                    .listStyle(.inset)
+                    .navigationBarTitle("Add Tracks")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .navigationBarTrailing) {
+                            Button {
+                                addPlaylistSheet.isShowingAddTrack = false
+                            } label: {
+                                Text("Done")
+                                    .fontWeight(.semibold)
+                            }
+
+                        }
+                    }
+                }
+                .accentColor(.pink)
+                .padding(.horizontal, 16)
+            })
+        })
         .confirmationDialog(
             "Sign Out?",
             isPresented: $viewModel.showingSignOutConfirmation,
@@ -835,11 +1078,11 @@ struct ContentView: View {
                         }
                         .textFieldStyle(.roundedBorder)
                         .textInputAutocapitalization(.never)
-                        .focused($focusedField, equals: .username)
+                        .focused($focusedField, equals: .authUsername)
                         
                         SecureField("Password", text: $authSheet.passwordText)
                             .textFieldStyle(.roundedBorder)
-                            .focused($focusedField, equals: .password)
+                            .focused($focusedField, equals: .authPassword)
                     }
                     
                     Button {
@@ -910,7 +1153,7 @@ struct ContentView: View {
             if viewModel.isAuthorized {
                 viewModel.updateData()
             } else {
-                authSheet.isShowing = !viewModel.isAuthorized
+//                authSheet.isShowing = !viewModel.isAuthorized
             }
         }
     }

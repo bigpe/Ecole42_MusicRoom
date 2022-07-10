@@ -388,6 +388,17 @@ extension ContentView {
         )?
             .withRenderingMode(.alwaysOriginal) ?? UIImage()
         
+        // MARK: - Track Progress
+        
+        struct TrackProgress {
+            let value: Double
+            
+            let total: Double
+        }
+        
+        @Published
+        var trackProgress = TrackProgress(value: 0, total: 0)
+        
         // MARK: - Update Data
         
         func updateData() {
@@ -423,7 +434,7 @@ extension ContentView {
                 }
             }
             
-//            subscribeToPlayer()
+            subscribeToPlayer()
         }
         
         // MARK: - Own Playlists
@@ -513,6 +524,18 @@ extension ContentView {
                             track(byID: $0.track) ?? Track(name: "Unknown", file: "", duration: 0)
                         } ?? []
                 }()
+                
+                switch playerSession?.mode {
+                
+                case .normal:
+                    repeatState = .off
+                    
+                case .repeat:
+                    repeatState = .on
+                    
+                default:
+                    break
+                }
             }
         }
         
@@ -546,6 +569,33 @@ extension ContentView {
                     
                     return track(byID: currentTrackID)
                 }()
+                
+                trackProgress = TrackProgress(
+                    value: ((currentSessionTrack?.progress ?? 0) as NSDecimalNumber).doubleValue,
+                    total: ((currentTrack?.duration ?? 0) as NSDecimalNumber).doubleValue
+                )
+                
+                guard
+                    let currentSessionTrack = currentSessionTrack
+                else {
+                    return
+                }
+                
+                switch currentSessionTrack.state {
+                    
+                case .paused, .stopped:
+                    animatingPlayerState.toggle()
+                    
+                    playerState = .paused
+                    
+                case .playing:
+                    animatingPlayerState.toggle()
+                    
+                    playerState = .playing
+                    
+                default:
+                    break
+                }
             }
         }
         
@@ -620,7 +670,7 @@ extension ContentView {
                 throw .api.custom(errorDescription: "")
             }
             
-            try await api.playerWebSocket?.send(PlayerMessage(
+            _ = try await api.playerWebSocket?.send(PlayerMessage(
                 event: .resumeTrack,
                 payload: .resumeTrack(
                     player_session_id: playerSessionID,
@@ -679,46 +729,47 @@ extension ContentView {
             ))
         }
         
+        func shuffle() async throws {
+            guard
+                let playerSessionID = playerSession?.id,
+                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+            else {
+                throw .api.custom(errorDescription: "")
+            }
+            
+            try await api.playerWebSocket?.send(PlayerMessage(
+                event: .shuffle,
+                payload: .shuffle(
+                    player_session_id: playerSessionID,
+                    track_id: currentTrackID
+                )
+            ))
+        }
+        
         func subscribeToPlayer() {
             if let playerWebSocket = api.playerWebSocket, !playerWebSocket.isSubscribed {
                 playerWebSocket
-                    .onReceive { message in
+                    .onReceive { [unowned self] (message) in
+                        debugPrint(message)
+                        
                         switch message.payload {
-                        case .createSession(playlist_id: let playlist_id, shuffle: let shuffle):
+                            
+                        case .session(player_session: let playerSession):
+                            Task { [unowned self] in
+                                await MainActor.run { [unowned self] in
+                                    self.playerSession = playerSession
+                                }
+                            }
+                            
+                        case .sessionChanged(player_session: let playerSession):
+                            Task { [unowned self] in
+                                await MainActor.run { [unowned self] in
+                                    self.playerSession = playerSession
+                                }
+                            }
+                            
+                        default:
                             break
-                            
-                        case .removeSession:
-                            break
-                            
-                        case .playTrack(player_session_id: let player_session_id, track_id: let track_id):
-                            break
-                            
-                        case .playNextTrack(player_session_id: let player_session_id, track_id: let track_id):
-                            break
-                            
-                        case .playPreviousTrack(player_session_id: let player_session_id, track_id: let track_id):
-                            break
-                            
-                        case .shuffle(player_session_id: let player_session_id, track_id: let track_id):
-                            break
-                            
-                        case .pauseTrack(player_session_id: let player_session_id, track_id: let track_id):
-                            break
-                            
-                        case .resumeTrack(player_session_id: let player_session_id, track_id: let track_id):
-                            break
-                            
-                        case .stopTrack(player_session_id: let player_session_id, track_id: let track_id):
-                            break
-                            
-                        case .syncTrack(player_session_id: let player_session_id, progress: let progress):
-                            break
-                            
-                        case .session(player_session: let player_session):
-                            debugPrint(player_session)
-                            
-                        case .sessionChanged(player_session: let player_session):
-                            debugPrint(player_session)
                         }
                     }
             }

@@ -8,9 +8,14 @@
 import Foundation
 
 public enum PlayerEventsList: String, Codable {
+    
+    // MARK: - Responses
+    
     case session = "session"
     
     case sessionChanged = "session.changed"
+    
+    // MARK: - Requests
     
     case createSession = "create.session"
     

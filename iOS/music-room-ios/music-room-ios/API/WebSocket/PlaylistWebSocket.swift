@@ -17,32 +17,46 @@ public class PlaylistWebSocket {
     
     // MARK: - Send Event
     
-    public func send(_ event: PlaylistEventsList) async throws {
-        try await webSocketTask.send(.string(event.rawValue))
+    public func send(_ message: PlaylistMessage) async throws {
+        let encodedMessageData = try API.Encoder().encode(message)
+        
+        guard
+            let encodedMessageString = String(data: encodedMessageData, encoding: .utf8)
+        else {
+            throw .api.custom(errorDescription: "Can't encode message")
+        }
+        
+        try await webSocketTask.send(.string(encodedMessageString))
     }
     
-    // MARK: - Receive Event
+    // MARK: - Receive Message
     
-    public func receive() async throws -> PlaylistEventsList {
+    public func receive() async throws -> PlaylistMessage {
         let message = try await webSocketTask.receive()
         
         guard
             case let .string(rawValue) = message,
-            let event = PlaylistEventsList(rawValue: rawValue)
+            let data = rawValue.data(using: .utf8)
         else {
-            throw NSError()
+            throw .api.custom(errorDescription: "Playlist WebSocket")
         }
         
-        return event
+        do {
+            let playlistMessage = try API.Decoder().decode(PlaylistMessage.self, from: data)
+            
+            return playlistMessage
+        } catch {
+            
+            print(rawValue, "\n\n")
+            print(error)
+            
+            throw error
+        }
     }
     
     // MARK: - Events
     
-    public func playlistChanged() async throws {
-        try await send(.playlistChanged)
-    }
-    
-    public func onReceive(_ block: @escaping (PlaylistEventsList) -> Void) {
+    public func onReceive(_ block: @escaping (PlaylistMessage) -> Void) {
         isSubscribed = true
         
         Task {

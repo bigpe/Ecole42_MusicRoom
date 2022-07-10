@@ -20,8 +20,21 @@ public struct Playlist: Codable, Identifiable {
     
     public let type: `Type`?
     
-    public enum AccessType: String, Codable {
+    public enum AccessType: String, Codable, CaseIterable, Identifiable, CustomStringConvertible {
         case `public`, `private`
+        
+        public var id: Self { self }
+        
+        public var description: String {
+            switch self {
+                
+            case .public:
+                return "Public"
+                
+            case .private:
+                return "Private"
+            }
+        }
     }
     
     public let accessType: AccessType?
