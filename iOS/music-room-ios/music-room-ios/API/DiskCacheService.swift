@@ -8,43 +8,35 @@
 import Foundation
 
 public enum DiskCacheService<Entity: Codable> {
-    private static var fileURL: URL {
-        get throws {
-            try FileManager.default.url(
-                for: .documentDirectory,
-                in: .userDomainMask,
-                appropriateFor: nil,
-                create: false
+    private static func fileURL(name: String) throws -> URL {
+        try FileManager.default.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: false
+        )
+        .appendingPathComponent("\(Entity.self)+\(name).data")
+    }
+    
+    public static func entity(name: String) async throws -> Entity {
+        try await Task { () -> Entity in
+            let fileURL = try fileURL(name: name)
+            
+            let file = try FileHandle(forReadingFrom: fileURL)
+            
+            let cachedEntity = try API.Decoder().decode(
+                Entity.self,
+                from: file.availableData
             )
-            .appendingPathComponent("\(Entity.self).data")
+            
+            return cachedEntity
         }
+        .value
     }
     
-    public static var entity: Entity {
-        get async throws {
-            try await Task { () -> Entity in
-                let fileURL = try fileURL
-                
-                let file = try FileHandle(forReadingFrom: fileURL)
-                
-                let cachedEntity = try API.Decoder().decode(
-                    Entity.self,
-                    from: file.availableData
-                )
-                
-                return cachedEntity
-            }
-            .value
-        }
-    }
-    
-    public static func updateEntity(_ entity: Entity?) async throws {
+    public static func updateEntity(_ entity: Entity?, name: String) async throws {
         try await Task {
-            guard
-                let fileURL = try fileURL
-            else {
-                return
-            }
+            let fileURL = try fileURL(name: name)
             
             guard
                 let entity = entity

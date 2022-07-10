@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct PlaylistTrack: Codable, Identifiable {
-    public let id: Int?
+public struct PlaylistTrack: Codable, Identifiable, Hashable {
+    public let id: Int
     
     public let order: Int?
     
@@ -17,7 +17,7 @@ public struct PlaylistTrack: Codable, Identifiable {
     public let playlist: Int
     
     public init(
-        id: Int? = nil,
+        id: Int,
         order: Int? = nil,
         track: Int,
         playlist: Int

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Track: Codable, Identifiable {
+public struct Track: Codable, Identifiable, Hashable {
     public let id: Int?
     
     public let name: String

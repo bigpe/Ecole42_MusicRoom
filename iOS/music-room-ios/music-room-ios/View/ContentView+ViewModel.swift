@@ -444,7 +444,7 @@ extension ContentView {
         
         func updateOwnPlaylists() async throws {
             Task {
-                ownPlaylists = try await DiskCacheService.entity
+                ownPlaylists = try await DiskCacheService.entity(name: "Own")
             }
             
             do {
@@ -452,11 +452,11 @@ extension ContentView {
                 
                 self.ownPlaylists = ownPlaylists
                 
-                try await DiskCacheService.updateEntity(ownPlaylists)
+                try await DiskCacheService.updateEntity(ownPlaylists, name: "Own")
             } catch {
                 debugPrint(error)
                 
-                try await DiskCacheService.updateEntity([Playlist]?.none)
+                try await DiskCacheService.updateEntity([Playlist]?.none, name: "Own")
             }
         }
         
@@ -467,7 +467,7 @@ extension ContentView {
         
         func updatePlaylists() async throws {
             Task {
-                playlists = try await DiskCacheService.entity
+                playlists = try await DiskCacheService.entity(name: "All")
             }
             
             do {
@@ -475,11 +475,11 @@ extension ContentView {
                 
                 self.playlists = playlists
                 
-                try await DiskCacheService.updateEntity(playlists)
+                try await DiskCacheService.updateEntity(playlists, name: "All")
             } catch {
                 debugPrint(error)
                 
-                try await DiskCacheService.updateEntity([Playlist]?.none)
+                try await DiskCacheService.updateEntity([Playlist]?.none, name: "All")
             }
         }
         
@@ -494,7 +494,7 @@ extension ContentView {
         
         func updateTracks() async throws {
             Task {
-                tracks = try await DiskCacheService.entity
+                tracks = try await DiskCacheService.entity(name: "All")
             }
             
             do {
@@ -502,11 +502,11 @@ extension ContentView {
                 
                 self.tracks = tracks
                 
-                try await DiskCacheService.updateEntity(tracks)
+                try await DiskCacheService.updateEntity(tracks, name: "All")
             } catch {
                 debugPrint(error)
                 
-                try await DiskCacheService.updateEntity([Track]?.none)
+                try await DiskCacheService.updateEntity([Track]?.none, name: "All")
             }
         }
         
@@ -541,7 +541,7 @@ extension ContentView {
         
         func updatePlayerSession() async throws {
             Task {
-                playerSession = try await DiskCacheService.entity
+                playerSession = try await DiskCacheService.entity(name: "")
             }
             
             do {
@@ -549,11 +549,11 @@ extension ContentView {
                 
                 self.playerSession = playerSession
                 
-                try await DiskCacheService.updateEntity(playerSession)
+                try await DiskCacheService.updateEntity(playerSession, name: "")
             } catch {
                 debugPrint(error)
                 
-                try await DiskCacheService.updateEntity(PlayerSession?.none)
+                try await DiskCacheService.updateEntity(PlayerSession?.none, name: "")
             }
         }
         
@@ -767,6 +767,28 @@ extension ContentView {
                                     self.playerSession = playerSession
                                 }
                             }
+                            
+                        default:
+                            break
+                        }
+                    }
+            }
+        }
+        
+        func subscribeToPlaylist() {
+            if let playlistWebSocket = api.playlistWebSocket, !playlistWebSocket.isSubscribed {
+                playlistWebSocket
+                    .onReceive { [unowned self] (message) in
+                        debugPrint(message)
+                        
+                        switch message.payload {
+                        case .playlistsChanged(let playlist, let playlists):
+                            debugPrint(playlist, playlists)
+                            //                            Task { [unowned self] in
+                            //                                await MainActor.run { [unowned self] in
+                            //                                    self.playerSession = playerSession
+                            //                                }
+                            //                            }
                             
                         default:
                             break

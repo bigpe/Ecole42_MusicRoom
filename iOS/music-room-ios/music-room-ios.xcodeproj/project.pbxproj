@@ -38,6 +38,7 @@
 		C36ABA1B285BBBFD008D4D03 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */; };
 		C36ABA1E285BBBFD008D4D03 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36ABA1D285BBBFD008D4D03 /* Preview Assets.xcassets */; };
 		C3B4998928739914005CB8A7 /* API+Coders.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B4998828739914005CB8A7 /* API+Coders.swift */; };
+		C3B6A8E9287B4C4A00DAACD9 /* ContentView+PlaylistSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B6A8E8287B4C4A00DAACD9 /* ContentView+PlaylistSheet.swift */; };
 		C3D7159728726D6300B0625A /* TokenObtainPairModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */; };
 		C3D7159928726E5600B0625A /* TokenRefreshModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159828726E5600B0625A /* TokenRefreshModel.swift */; };
 		C3D7159D28728AD600B0625A /* DiskCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D7159C28728AD600B0625A /* DiskCacheService.swift */; };
@@ -76,6 +77,7 @@
 		C36ABA1A285BBBFD008D4D03 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C36ABA1D285BBBFD008D4D03 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C3B4998828739914005CB8A7 /* API+Coders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "API+Coders.swift"; sourceTree = "<group>"; };
+		C3B6A8E8287B4C4A00DAACD9 /* ContentView+PlaylistSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+PlaylistSheet.swift"; sourceTree = "<group>"; };
 		C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenObtainPairModel.swift; sourceTree = "<group>"; };
 		C3D7159828726E5600B0625A /* TokenRefreshModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRefreshModel.swift; sourceTree = "<group>"; };
 		C3D7159C28728AD600B0625A /* DiskCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskCacheService.swift; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 				C3535C3C286A2321007EA197 /* ContentView+ViewModel.swift */,
 				C3535C59286B616D007EA197 /* ContentView+AuthSheet.swift */,
 				C31DB513287A7CFA00EAEA62 /* ContentView+AddPlaylistSheet.swift */,
+				C3B6A8E8287B4C4A00DAACD9 /* ContentView+PlaylistSheet.swift */,
 				C3535C3E286A3025007EA197 /* ContentView+MusicKit.swift */,
 				C3434ADF286F6E7900D07785 /* ControlButtonStyle.swift */,
 				C3434ADD286F6C4D00D07785 /* SubControlButtonStyle.swift */,
@@ -317,6 +320,7 @@
 				C3D7159928726E5600B0625A /* TokenRefreshModel.swift in Sources */,
 				C33B7C19285EB170000399BA /* PlayerMessage.swift in Sources */,
 				C33B7C1F285F8349000399BA /* PlaylistTrack.swift in Sources */,
+				C3B6A8E9287B4C4A00DAACD9 /* ContentView+PlaylistSheet.swift in Sources */,
 				C31DB514287A7CFA00EAEA62 /* ContentView+AddPlaylistSheet.swift in Sources */,
 				C3D7159D28728AD600B0625A /* DiskCacheService.swift in Sources */,
 				C3D7159728726D6300B0625A /* TokenObtainPairModel.swift in Sources */,

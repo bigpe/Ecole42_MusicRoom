@@ -21,6 +21,9 @@ struct ContentView: View {
     private var addPlaylistSheet = AddPlaylistSheet()
     
     @StateObject
+    private var playlistSheet = PlaylistSheet()
+    
+    @StateObject
     private var musicKit = MusicKit()
     
     // MARK: - Field
@@ -282,7 +285,17 @@ struct ContentView: View {
                             
                             HStack(spacing: 8) {
                                 Button {
-                                    viewModel.shuffleState.toggle()
+                                    viewModel.shuffleState = .on
+                                    
+                                    Task {
+                                        do {
+                                            try await viewModel.shuffle()
+                                        } catch {
+                                            debugPrint(error)
+                                        }
+                                    }
+                                    
+                                    viewModel.shuffleState = .off
                                 } label: {
                                     switch viewModel.shuffleState {
                                     case .off:
@@ -298,15 +311,7 @@ struct ContentView: View {
                                 }
                                 
                                 Button {
-                                    viewModel.repeatState.toggle()
-                                    
-                                    Task {
-                                        do {
-                                            try await viewModel.shuffle()
-                                        } catch {
-                                            debugPrint(error)
-                                        }
-                                    }
+//                                    viewModel.repeatState.toggle()
                                 } label: {
                                     switch viewModel.repeatState {
                                     case .off:
@@ -490,19 +495,21 @@ struct ContentView: View {
                                 VStack(alignment: .leading, spacing: 18) {
                                     ForEach(viewModel.ownPlaylists) { playlist in
                                         Button {
-                                            Task {
-                                                guard
-                                                    let playlistID = playlist.id
-                                                else {
-                                                    return
-                                                }
-                                                
-                                                try await viewModel.createSession(
-                                                    playlistID: playlistID
-                                                )
-                                                
-                                                viewModel.interfaceState = .player
-                                            }
+//                                            Task {
+//                                                guard
+//                                                    let playlistID = playlist.id
+//                                                else {
+//                                                    return
+//                                                }
+//
+//                                                try await viewModel.createSession(
+//                                                    playlistID: playlistID
+//                                                )
+//
+//                                                viewModel.interfaceState = .player
+//                                            }
+                                            
+                                            playlistSheet.selectedPlaylist = playlist
                                         } label: {
                                             HStack(alignment: .center, spacing: 16) {
                                                 Image(uiImage: albumCover)
@@ -519,7 +526,6 @@ struct ContentView: View {
                                                 Spacer()
                                             }
                                         }
-
                                     }
                                 }
                                 .padding(.top, 8)
@@ -530,23 +536,25 @@ struct ContentView: View {
                                 VStack(alignment: .leading, spacing: 18) {
                                     ForEach(viewModel.playlists) { playlist in
                                         Button {
-                                            Task {
-                                                guard
-                                                    let playlistID = playlist.id
-                                                else {
-                                                    return
-                                                }
-                                                
-                                                do {
-                                                    try await viewModel.createSession(
-                                                        playlistID: playlistID
-                                                    )
-                                                } catch {
-                                                    debugPrint(error)
-                                                }
-                                                
-                                                viewModel.interfaceState = .player
-                                            }
+//                                            Task {
+//                                                guard
+//                                                    let playlistID = playlist.id
+//                                                else {
+//                                                    return
+//                                                }
+//
+//                                                do {
+//                                                    try await viewModel.createSession(
+//                                                        playlistID: playlistID
+//                                                    )
+//                                                } catch {
+//                                                    debugPrint(error)
+//                                                }
+//
+//                                                viewModel.interfaceState = .player
+//                                            }
+                                            
+                                            playlistSheet.selectedPlaylist = playlist
                                         } label: {
                                             HStack(alignment: .center, spacing: 16) {
                                                 Image(uiImage: albumCover)
@@ -601,6 +609,7 @@ struct ContentView: View {
                                             }
                                         }
                                     }
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 }
                                 .padding(.top, 8)
                                 .padding(.bottom, 24)
@@ -841,7 +850,23 @@ struct ContentView: View {
                     Divider()
                     
                     Button {
-                        addPlaylistSheet.isShowingAddTrack = true
+                        Task {
+                            guard
+                                let playlistID = playlistSheet.selectedPlaylist?.id
+                            else {
+                                return
+                            }
+                            
+                            do {
+                                try await viewModel.createSession(
+                                    playlistID: playlistID
+                                )
+                            } catch {
+                                debugPrint(error)
+                            }
+                            
+                            viewModel.interfaceState = .player
+                        }
                     } label: {
                         Label("Add Music", systemImage: "plus.circle.fill")
                     }
@@ -946,6 +971,11 @@ struct ContentView: View {
                                         ))
                                     }
                                     
+                                    do {
+                                        try await viewModel.updatePlaylists()
+                                        try await viewModel.updateOwnPlaylists()
+                                    }
+                                    
                                     await MainActor.run {
                                         addPlaylistSheet.isLoading = false
                                         
@@ -982,7 +1012,7 @@ struct ContentView: View {
                 
                 NavigationView {
                     List(
-                        addPlaylistSheet.tracks
+                        viewModel.tracks
                     ) { track in
                         Button {
                             if addPlaylistSheet.selectedTracks.contains(track.id) {
@@ -1018,7 +1048,7 @@ struct ContentView: View {
                         }
                     }
                     .listStyle(.inset)
-                    .navigationBarTitle("Add Tracks")
+                    .navigationBarTitle("Add Music")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -1028,13 +1058,125 @@ struct ContentView: View {
                                 Text("Done")
                                     .fontWeight(.semibold)
                             }
-
+                            
                         }
                     }
                 }
                 .accentColor(.pink)
                 .padding(.horizontal, 16)
             })
+        })
+        .sheet(isPresented: $playlistSheet.isShowing, content: {
+            
+            // MARK: - Playlist Sheet
+            
+            NavigationView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(spacing: 16) {
+                        if let playlistName = playlistSheet.selectedPlaylist?.name {
+                            Text(playlistName)
+                                .font(.title)
+                        }
+                        
+//                        Picker(selection: playlistSheet.selectedPlaylist?.accessType) {
+//                            ForEach(Playlist.AccessType.allCases) { accessType in
+//                                Text(accessType.description)
+//                            }
+//                        } label: {
+//                            Text("Access")
+//                        }
+//                        .pickerStyle(.segmented)
+                    }
+                    
+                    Divider()
+                    
+                    Button {
+                        addPlaylistSheet.isShowingAddTrack = true
+                    } label: {
+                        Label("Play Now", systemImage: "play.circle.fill")
+                    }
+                    .tint(.pink)
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            ForEach(
+                                playlistSheet.selectedPlaylist?.tracks
+                                    .sorted(by: { leftValue, rightValue in
+                                        guard
+                                            let leftOrder = leftValue.order,
+                                            let rightOrder = rightValue.order
+                                        else {
+                                            return true
+                                        }
+                                        
+                                        return leftOrder < rightOrder
+                                    })
+                                    .compactMap { playlistTrack in
+                                        viewModel.tracks.first(where: { $0.id == playlistTrack.track })
+                                    } ?? []
+                            ) { track in
+                                Button {
+                                    //                                Task {
+                                    //                                    guard
+                                    //                                        let trackID = track.id
+                                    //                                    else {
+                                    //                                        return
+                                    //                                    }
+                                    //
+                                    //                                    try await viewModel.playTrack(trackID: trackID)
+                                    //
+                                    //                                    viewModel.interfaceState = .player
+                                    //                                }
+                                } label: {
+                                    HStack(alignment: .center, spacing: 16) {
+                                        cachedArtworkImage(track.name)
+                                            .resizable()
+                                            .cornerRadius(4)
+                                            .frame(width: 60, height: 60)
+
+                                        Text(track.name)
+                                            .font(.system(size: 18, weight: .medium))
+                                            .multilineTextAlignment(.leading)
+                                            .foregroundColor(viewModel.primaryControlsColor)
+                                            .padding(.vertical, 12)
+
+                                        Spacer()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .navigationBarTitle("Playlist")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigationBarLeading) {
+                        Button {
+                            playlistSheet.selectedPlaylist = nil
+                        } label: {
+                            Text("Cancel")
+                        }
+                        
+                    }
+                    
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        Button {
+                            playlistSheet.selectedPlaylist = nil
+                        } label: {
+                            if !addPlaylistSheet.isLoading {
+                                Text("Done")
+                                    .fontWeight(.semibold)
+                            } else {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                            }
+                        }
+                        
+                    }
+                }
+            }
+            .accentColor(.pink)
+            .padding(.horizontal, 16)
         })
         .confirmationDialog(
             "Sign Out?",
