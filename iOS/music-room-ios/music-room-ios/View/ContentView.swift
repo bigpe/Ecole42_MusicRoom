@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 struct ContentView: View {
     
@@ -229,12 +230,12 @@ struct ContentView: View {
                                 .tint(viewModel.secondaryControlsColor)
                             
                             HStack {
-                                Text(viewModel.currentSessionTrack?.progress?.time ?? "--:--")
+                                Text(Decimal(viewModel.trackProgress.value).time)
                                     .foregroundColor(viewModel.secondaryControlsColor)
                                 
                                 Spacer()
                                 
-                                Text(viewModel.currentTrack?.duration.time ?? "--:--")
+                                Text(Decimal(viewModel.trackProgress.total).time)
                                     .foregroundColor(viewModel.secondaryControlsColor)
                             }
                         }
@@ -684,7 +685,7 @@ struct ContentView: View {
                     
                     Button {
                         Task {
-                            try await viewModel.backward()
+                            try await viewModel.forward()
                         }
                     } label: {
                         Image(systemName: "forward.fill")

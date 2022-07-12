@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PINRemoteImage
+import AVFoundation
 
 extension ContentView {
     
@@ -536,26 +537,29 @@ extension ContentView {
         @Published
         var playerSession: PlayerSession? {
             didSet {
-                currentSessionTrack = playerSession?.trackQueue.first
-                
-                queuedTracks = {
-                    playerSession?
-                        .trackQueue
-                        .map {
-                            track(byID: $0.track) ?? Track(name: "Unknown", file: "", duration: 0)
-                        } ?? []
-                }()
-                
-                switch playerSession?.mode {
-                
-                case .normal:
-                    repeatState = .off
+                withAnimation {
+                    currentSessionTrack = playerSession?.trackQueue.first
                     
-                case .repeat:
-                    repeatState = .on
+                    queuedTracks = {
+                        playerSession?
+                            .trackQueue
+                            .dropFirst()
+                            .map {
+                                track(byID: $0.track) ?? Track(name: "Unknown", file: "", duration: 0)
+                            } ?? []
+                    }()
                     
-                default:
-                    break
+                    switch playerSession?.mode {
+                        
+                    case .normal:
+                        repeatState = .off
+                        
+                    case .repeat:
+                        repeatState = .on
+                        
+                    default:
+                        break
+                    }
                 }
             }
         }
@@ -677,6 +681,58 @@ extension ContentView {
             ))
         }
         
+        private func playCurrentTrack() {
+            guard
+                let currentTrackFile = self.currentTrack?.file
+                    .replacingOccurrences(of: "http://", with: "https://"),
+                let currentTrackURL = URL(string: currentTrackFile)
+            else {
+                return
+            }
+            
+            let playerItem = AVPlayerItem(url: currentTrackURL)
+            
+            player.replaceCurrentItem(with: playerItem)
+            
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback)
+            } catch {
+                debugPrint(error.localizedDescription)
+            }
+            
+            player.play()
+            
+            player.addPeriodicTimeObserver(
+                forInterval: CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC)),
+                queue: .main
+            ) { cmTime in
+                let value = CMTimeGetSeconds(cmTime)
+                let total = NSDecimalNumber(decimal: self.currentTrack?.duration ?? 0).doubleValue
+                
+                withAnimation {
+                    self.trackProgress = TrackProgress(value: value, total: total)
+                }
+                
+                guard
+                    let sessionID = self.playerSession?.id
+                else {
+                    return
+                }
+                
+                Task {
+                    try await self.api.playerWebSocket?.send(
+                        PlayerMessage(
+                            event: .syncTrack,
+                            payload: .syncTrack(
+                                player_session_id: sessionID,
+                                progress: Int(value)
+                            )
+                        )
+                    )
+                }
+            }
+        }
+        
         func backward() async throws {
             guard
                 let playerSessionID = playerSession?.id,
@@ -702,6 +758,8 @@ extension ContentView {
                 throw .api.custom(errorDescription: "")
             }
             
+            playCurrentTrack()
+            
             _ = try await api.playerWebSocket?.send(PlayerMessage(
                 event: .resumeTrack,
                 payload: .resumeTrack(
@@ -719,6 +777,8 @@ extension ContentView {
                 throw .api.custom(errorDescription: "")
             }
             
+            player.pause()
+            
             try await api.playerWebSocket?.send(PlayerMessage(
                 event: .pauseTrack,
                 payload: .pauseTrack(
@@ -735,6 +795,12 @@ extension ContentView {
             else {
                 throw .api.custom(errorDescription: "")
             }
+            
+            player.pause()
+            
+            currentTrack = queuedTracks.removeFirst()
+            
+            playCurrentTrack()
             
             try await api.playerWebSocket?.send(PlayerMessage(
                 event: .playNextTrack,
@@ -782,11 +848,13 @@ extension ContentView {
             if let playerWebSocket = api.playerWebSocket, !playerWebSocket.isSubscribed {
                 playerWebSocket
                     .onReceive { [unowned self] (message) in
-                        debugPrint(message)
-                        
                         switch message.payload {
                             
                         case .session(let playerSession):
+                            if let playerSession = playerSession {
+                                print(playerSession.trackQueue.map { $0.id! })
+                            }
+                            
                             Task { [unowned self] in
                                 await MainActor.run { [unowned self] in
                                     self.playerSession = playerSession
@@ -794,6 +862,10 @@ extension ContentView {
                             }
                             
                         case .sessionChanged(let playerSession):
+                            if let playerSession = playerSession {
+                                print(playerSession.trackQueue.map { $0.id! })
+                            }
+                            
                             Task { [unowned self] in
                                 await MainActor.run { [unowned self] in
                                     self.playerSession = playerSession
@@ -862,5 +934,13 @@ extension ContentView {
                     }
             }
         }
+        
+        // MARK: - Player
+        
+        lazy var player = {
+            let player = AVPlayer()
+            
+            return player
+        }()
     }
 }
