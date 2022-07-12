@@ -1,13 +1,13 @@
 //
-//  PlaylistWebSocket.swift
+//  PlaylistsWebSocket.swift
 //  music-room-ios
 //
-//  Created by Nikita Arutyunov on 12.07.2022.
+//  Created by Nikita Arutyunov on 18.06.2022.
 //
 
 import Foundation
 
-public class PlaylistWebSocket {
+public class PlaylistsWebSocket {
     
     private weak var api: API!
     
@@ -17,7 +17,7 @@ public class PlaylistWebSocket {
     
     // MARK: - Send Event
     
-    public func send(_ message: PlaylistMessage) async throws {
+    public func send(_ message: PlaylistsMessage) async throws {
         let encodedMessageData = try API.Encoder().encode(message)
         
         guard
@@ -31,7 +31,7 @@ public class PlaylistWebSocket {
     
     // MARK: - Receive Message
     
-    public func receive() async throws -> PlaylistMessage {
+    public func receive() async throws -> PlaylistsMessage {
         let message = try await webSocketTask.receive()
         
         guard
@@ -42,9 +42,9 @@ public class PlaylistWebSocket {
         }
         
         do {
-            let playlistMessage = try API.Decoder().decode(PlaylistMessage.self, from: data)
+            let playlistsMessage = try API.Decoder().decode(PlaylistsMessage.self, from: data)
             
-            return playlistMessage
+            return playlistsMessage
         } catch {
             
             print(rawValue, "\n\n")
@@ -56,7 +56,7 @@ public class PlaylistWebSocket {
     
     // MARK: - Events
     
-    public func onReceive(_ block: @escaping (PlaylistMessage) -> Void) {
+    public func onReceive(_ block: @escaping (PlaylistsMessage) -> Void) {
         isSubscribed = true
         
         Task {
@@ -70,11 +70,11 @@ public class PlaylistWebSocket {
     
     // MARK: - Init with API
     
-    public init(api: API, playlistID: Int) throws {
+    public init(api: API) throws {
         guard
             let url =
                 URL(
-                    string: "ws/playlist/\(playlistID)/",
+                    string: "ws/playlist/",
                     relativeTo: api.baseURL
                 ),
             let accessToken = api.keychainCredential?.token.access
@@ -90,7 +90,7 @@ public class PlaylistWebSocket {
         )
         
         webSocketTask = URLSession.shared.webSocketTask(with: request)
-        
+
         webSocketTask.resume()
     }
 }

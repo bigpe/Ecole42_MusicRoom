@@ -11,15 +11,9 @@ public enum PlaylistEventsList: String, Codable {
     
     // MARK: - Responses
     
-    case playlistsChanged = "playlists.changed"
+    case playlistChanged = "playlist.changed"
     
     // MARK: - Requests
-    
-    case changePlaylist = "change.playlist"
-    
-    case addPlaylist = "add.playlist"
-    
-    case removePlaylist = "remove.playlist"
     
     case addTrack = "add.track"
     

@@ -29,7 +29,9 @@ struct ContentView: View {
     // MARK: - Field
     
     enum Field {
-        case authUsername, authPassword, addPlaylistName, addPlaylistAccessType
+        case authUsername, authPassword,
+             addPlaylistName, addPlaylistAccessType,
+             playlistName, playlistAccessType
     }
     
     @FocusState
@@ -495,21 +497,15 @@ struct ContentView: View {
                                 VStack(alignment: .leading, spacing: 18) {
                                     ForEach(viewModel.ownPlaylists) { playlist in
                                         Button {
-//                                            Task {
-//                                                guard
-//                                                    let playlistID = playlist.id
-//                                                else {
-//                                                    return
-//                                                }
-//
-//                                                try await viewModel.createSession(
-//                                                    playlistID: playlistID
-//                                                )
-//
-//                                                viewModel.interfaceState = .player
-//                                            }
+                                            guard
+                                                let playlistID = playlist.id
+                                            else {
+                                                return
+                                            }
                                             
                                             playlistSheet.selectedPlaylist = playlist
+                                            
+                                            viewModel.subscribeToPlaylist(playlistID: playlistID)
                                         } label: {
                                             HStack(alignment: .center, spacing: 16) {
                                                 Image(uiImage: albumCover)
@@ -536,25 +532,15 @@ struct ContentView: View {
                                 VStack(alignment: .leading, spacing: 18) {
                                     ForEach(viewModel.playlists) { playlist in
                                         Button {
-//                                            Task {
-//                                                guard
-//                                                    let playlistID = playlist.id
-//                                                else {
-//                                                    return
-//                                                }
-//
-//                                                do {
-//                                                    try await viewModel.createSession(
-//                                                        playlistID: playlistID
-//                                                    )
-//                                                } catch {
-//                                                    debugPrint(error)
-//                                                }
-//
-//                                                viewModel.interfaceState = .player
-//                                            }
+                                            guard
+                                                let playlistID = playlist.id
+                                            else {
+                                                return
+                                            }
                                             
                                             playlistSheet.selectedPlaylist = playlist
+                                            
+                                            viewModel.subscribeToPlaylist(playlistID: playlistID)
                                         } label: {
                                             HStack(alignment: .center, spacing: 16) {
                                                 Image(uiImage: albumCover)
@@ -579,7 +565,9 @@ struct ContentView: View {
                                 
                             case .tracks:
                                 VStack(alignment: .leading, spacing: 12) {
-                                    ForEach(viewModel.tracks) { track in
+                                    ForEach(
+                                        viewModel.tracks
+                                    ) { track in
                                         Button {
                                             Task {
                                                 guard
@@ -850,23 +838,7 @@ struct ContentView: View {
                     Divider()
                     
                     Button {
-                        Task {
-                            guard
-                                let playlistID = playlistSheet.selectedPlaylist?.id
-                            else {
-                                return
-                            }
-                            
-                            do {
-                                try await viewModel.createSession(
-                                    playlistID: playlistID
-                                )
-                            } catch {
-                                debugPrint(error)
-                            }
-                            
-                            viewModel.interfaceState = .player
-                        }
+                        addPlaylistSheet.isShowingAddMusic = true
                     } label: {
                         Label("Add Music", systemImage: "plus.circle.fill")
                     }
@@ -875,7 +847,7 @@ struct ContentView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 12) {
                             ForEach(
-                                addPlaylistSheet
+                                viewModel
                                     .tracks
                                     .filter {
                                         addPlaylistSheet.selectedTracks.contains($0.id)
@@ -913,6 +885,7 @@ struct ContentView: View {
                         }
                     }
                 }
+                .padding(.horizontal, 16)
                 .navigationBarTitle("New Playlist")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -939,50 +912,89 @@ struct ContentView: View {
                             guard
                                 !playlistName.isEmpty,
                                 !addPlaylistSheet.isLoading,
-                                let playlistWebSocket = api.playlistWebSocket
+                                let playlistsWebSocket = api.playlistsWebSocket
                             else {
                                 return
                             }
+                            
+                            let playlistUUID = UUID()
                             
                             Task {
                                 do {
                                     await MainActor.run {
                                         addPlaylistSheet.isLoading = true
-                                    }
-                                    
-                                    try await playlistWebSocket.send(PlaylistMessage(
-                                        event: .addPlaylist,
-                                        payload: .addPlaylist(
-                                            playlist_name: playlistName,
-                                            access_type: accessType
-                                        )
-                                    ))
-                                    
-                                    for selectedTrackID in addPlaylistSheet.selectedTracks {
-                                        guard
-                                            let selectedTrackID = selectedTrackID
-                                        else {
-                                            continue
+                                        
+                                        addPlaylistSheet.cancellable = viewModel.$ownPlaylists.sink {
+                                            guard
+                                                let playlistID = $0.first(where: {
+                                                    $0.name == playlistUUID.description
+                                                })?.id
+                                            else {
+                                                return
+                                            }
+                                            
+                                            addPlaylistSheet.cancellable = nil
+                                            
+                                            Task {
+                                                guard
+                                                    let playlistWebSocket = api.playlistWebSocket(
+                                                        playlistID: playlistID
+                                                    )
+                                                else {
+                                                    return
+                                                }
+                                                
+                                                for trackID in addPlaylistSheet.selectedTracks {
+                                                    guard
+                                                        let trackID = trackID
+                                                    else {
+                                                        continue
+                                                    }
+                                                    
+                                                    try await playlistWebSocket.send(
+                                                        PlaylistMessage(
+                                                            event: .addTrack,
+                                                            payload: .addTrack(track_id: trackID)
+                                                        )
+                                                    )
+                                                }
+                                                
+                                                try await playlistsWebSocket.send(
+                                                    PlaylistsMessage(
+                                                        event: .changePlaylist,
+                                                        payload: .changePlaylist(
+                                                            playlist_id: playlistID,
+                                                            playlist_name: playlistName,
+                                                            playlist_access_type: accessType
+                                                        )
+                                                    )
+                                                )
+                                                
+                                                do {
+                                                    try await viewModel.updatePlaylists()
+                                                    try await viewModel.updateOwnPlaylists()
+                                                }
+                                                
+                                                await MainActor.run {
+                                                    addPlaylistSheet.isLoading = false
+                                                    
+                                                    addPlaylistSheet.isShowing = false
+                                                    
+                                                    addPlaylistSheet.reset()
+                                                }
+                                            }
                                         }
-                                        
-                                        try await playlistWebSocket.send(PlaylistMessage(
-                                            event: .addTrack,
-                                            payload: .addTrack(track_id: selectedTrackID)
-                                        ))
                                     }
                                     
-                                    do {
-                                        try await viewModel.updatePlaylists()
-                                        try await viewModel.updateOwnPlaylists()
-                                    }
-                                    
-                                    await MainActor.run {
-                                        addPlaylistSheet.isLoading = false
-                                        
-                                        addPlaylistSheet.isShowing = false
-                                        
-                                        addPlaylistSheet.reset()
-                                    }
+                                    try await playlistsWebSocket.send(
+                                        PlaylistsMessage(
+                                            event: .addPlaylist,
+                                            payload: .addPlaylist(
+                                                playlist_name: playlistUUID.description,
+                                                access_type: accessType
+                                            )
+                                        )
+                                    )
                                 } catch {
                                     await MainActor.run {
                                         addPlaylistSheet.isLoading = false
@@ -1005,8 +1017,7 @@ struct ContentView: View {
                 }
             }
             .accentColor(.pink)
-            .padding(.horizontal, 16)
-            .sheet(isPresented: $addPlaylistSheet.isShowingAddTrack, content: {
+            .sheet(isPresented: $addPlaylistSheet.isShowingAddMusic, content: {
                 
                 // MARK: - Add Track Sheet
                 
@@ -1048,12 +1059,13 @@ struct ContentView: View {
                         }
                     }
                     .listStyle(.inset)
+                    .padding(.horizontal, 16)
                     .navigationBarTitle("Add Music")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItemGroup(placement: .navigationBarTrailing) {
                             Button {
-                                addPlaylistSheet.isShowingAddTrack = false
+                                addPlaylistSheet.isShowingAddMusic = false
                             } label: {
                                 Text("Done")
                                     .fontWeight(.semibold)
@@ -1063,7 +1075,6 @@ struct ContentView: View {
                     }
                 }
                 .accentColor(.pink)
-                .padding(.horizontal, 16)
             })
         })
         .sheet(isPresented: $playlistSheet.isShowing, content: {
@@ -1073,80 +1084,163 @@ struct ContentView: View {
             NavigationView {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(spacing: 16) {
-                        if let playlistName = playlistSheet.selectedPlaylist?.name {
-                            Text(playlistName)
+                        if !playlistSheet.isEditing {
+                            Text(playlistSheet.selectedPlaylist?.name ?? "")
                                 .font(.title)
+                        } else {
+                            Picker(selection: $playlistSheet.accessType) {
+                                ForEach(Playlist.AccessType.allCases) { accessType in
+                                    Text(accessType.description)
+                                }
+                            } label: {
+                                Text("Access")
+                            }
+                            .pickerStyle(.segmented)
+                            
+                            TextField(text: $playlistSheet.nameText) {
+                                Text("Playlist Name")
+                            }
+                            .textFieldStyle(.roundedBorder)
+                            .textInputAutocapitalization(.never)
+                            .focused($focusedField, equals: .playlistName)
                         }
-                        
-//                        Picker(selection: playlistSheet.selectedPlaylist?.accessType) {
-//                            ForEach(Playlist.AccessType.allCases) { accessType in
-//                                Text(accessType.description)
-//                            }
-//                        } label: {
-//                            Text("Access")
-//                        }
-//                        .pickerStyle(.segmented)
                     }
                     
                     Divider()
                     
-                    Button {
-                        addPlaylistSheet.isShowingAddTrack = true
-                    } label: {
-                        Label("Play Now", systemImage: "play.circle.fill")
-                    }
-                    .tint(.pink)
-                    
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            ForEach(
-                                playlistSheet.selectedPlaylist?.tracks
-                                    .sorted(by: { leftValue, rightValue in
-                                        guard
-                                            let leftOrder = leftValue.order,
-                                            let rightOrder = rightValue.order
-                                        else {
-                                            return true
-                                        }
-                                        
-                                        return leftOrder < rightOrder
-                                    })
-                                    .compactMap { playlistTrack in
-                                        viewModel.tracks.first(where: { $0.id == playlistTrack.track })
-                                    } ?? []
-                            ) { track in
-                                Button {
-                                    //                                Task {
-                                    //                                    guard
-                                    //                                        let trackID = track.id
-                                    //                                    else {
-                                    //                                        return
-                                    //                                    }
-                                    //
-                                    //                                    try await viewModel.playTrack(trackID: trackID)
-                                    //
-                                    //                                    viewModel.interfaceState = .player
-                                    //                                }
-                                } label: {
-                                    HStack(alignment: .center, spacing: 16) {
-                                        cachedArtworkImage(track.name)
-                                            .resizable()
-                                            .cornerRadius(4)
-                                            .frame(width: 60, height: 60)
-
-                                        Text(track.name)
-                                            .font(.system(size: 18, weight: .medium))
-                                            .multilineTextAlignment(.leading)
-                                            .foregroundColor(viewModel.primaryControlsColor)
-                                            .padding(.vertical, 12)
-
-                                        Spacer()
+                    HStack {
+                        Button {
+                            Task {
+                                guard
+                                    let playlistID = playlistSheet.selectedPlaylist?.id
+                                else {
+                                    return
+                                }
+                                
+                                do {
+                                    try await viewModel.createSession(
+                                        playlistID: playlistID
+                                    )
+                                } catch {
+                                    debugPrint(error)
+                                }
+                                
+                                api.playlistWebSockets.removeValue(forKey: playlistID)
+                                
+                                playlistSheet.selectedPlaylist = nil
+                                
+                                viewModel.interfaceState = .player
+                            }
+                        } label: {
+                            Label("Play Now", systemImage: "play.circle.fill")
+                        }
+                        .tint(.pink)
+                        
+                        Spacer()
+                        
+                        if playlistSheet.isEditable {
+                            Button {
+                                Task {
+                                    guard
+                                        let playlistID = playlistSheet.selectedPlaylist?.id,
+                                        let playlistWebSocket = api.playlistsWebSocket
+                                    else {
+                                        return
                                     }
+                                    
+                                    do {
+                                        try await playlistWebSocket.send(
+                                            PlaylistsMessage(
+                                                event: .removePlaylist,
+                                                payload: .removePlaylist(
+                                                    playlist_id: playlistID,
+                                                    playlist_name: nil,
+                                                    playlist_access_type: nil
+                                                )
+                                            )
+                                        )
+                                    } catch {
+                                        debugPrint(error)
+                                    }
+                                    
+                                    playlistSheet.selectedPlaylist = nil
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash.circle.fill")
+                            }
+                            .tint(.pink)
+                        }
+                    }
+                    
+                    List(
+                        playlistSheet.tracks
+                    ) { track in
+                        HStack(alignment: .center, spacing: 16) {
+                            cachedArtworkImage(track.name)
+                                .resizable()
+                                .cornerRadius(4)
+                                .frame(width: 60, height: 60)
+                                .padding(.leading, -16)
+                            
+                            Text(track.name)
+                                .font(.system(size: 18, weight: .medium))
+                                .multilineTextAlignment(.leading)
+                                .foregroundColor(viewModel.primaryControlsColor)
+                                .padding(.vertical, 12)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            if playlistSheet.isEditable {
+                                Button(role: .destructive) {
+                                    guard
+                                        let trackID = track.id,
+                                        let playlistID = playlistSheet.selectedPlaylist?.id,
+                                        let playlistWebSocket = api.playlistWebSocket(
+                                            playlistID: playlistID
+                                        )
+                                    else {
+                                        return
+                                    }
+                                    
+                                    Task {
+                                        try await playlistWebSocket.send(
+                                            PlaylistMessage(
+                                                event: .removeTrack,
+                                                payload: .removeTrack(track_id: trackID)
+                                            )
+                                        )
+                                        
+                                        playlistSheet.cancellable = viewModel.$ownPlaylists.sink {
+                                            guard
+                                                let playlist = $0.first(where: {
+                                                    $0.id == playlistID
+                                                })
+                                            else {
+                                                return
+                                            }
+                                            
+                                            playlistSheet.cancellable = nil
+                                            
+                                            playlistSheet.selectedPlaylist = playlist
+                                        }
+                                    }
+                                } label: {
+                                    Text("Delete")
                                 }
                             }
                         }
                     }
+                    .listStyle(.plain)
+                    
+                    if playlistSheet.isEditable {
+                        Button {
+                            playlistSheet.isShowingAddMusic = true
+                        } label: {
+                            Label("Add Music", systemImage: "plus.circle.fill")
+                        }
+                    }
+
                 }
+                .padding(.horizontal, 16)
                 .navigationBarTitle("Playlist")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -1161,11 +1255,87 @@ struct ContentView: View {
                     
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Button {
-                            playlistSheet.selectedPlaylist = nil
+                            if !playlistSheet.isEditing {
+                                playlistSheet.isEditing = true
+                            } else {
+                                let playlistName = playlistSheet.nameText
+                                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                                
+                                let accessType = playlistSheet.accessType
+                                
+                                guard
+                                    playlistName != playlistSheet.selectedPlaylist?.name
+                                        || accessType != playlistSheet.selectedPlaylist?.accessType
+                                else {
+                                    playlistSheet.isEditing = false
+                                    
+                                    return
+                                }
+                                
+                                guard
+                                    !playlistName.isEmpty,
+                                    !addPlaylistSheet.isLoading,
+                                    let playlistID = playlistSheet.selectedPlaylist?.id,
+                                    let playlistsWebSocket = api.playlistsWebSocket
+                                else {
+                                    return
+                                }
+                                
+                                playlistSheet.isLoading = true
+                                
+                                Task {
+                                    do {
+                                        playlistSheet.cancellable = viewModel.$ownPlaylists.sink {
+                                            guard
+                                                let playlist = $0.first(where: {
+                                                    $0.id == playlistID
+                                                })
+                                            else {
+                                                return
+                                            }
+                                            
+                                            playlistSheet.cancellable = nil
+                                            
+                                            playlistSheet.selectedPlaylist = playlist
+                                        }
+                                        
+                                        try await playlistsWebSocket.send(
+                                            PlaylistsMessage(
+                                                event: .changePlaylist,
+                                                payload: .changePlaylist(
+                                                    playlist_id: playlistID,
+                                                    playlist_name: playlistName,
+                                                    playlist_access_type: accessType
+                                                )
+                                            )
+                                        )
+                                        
+                                        do {
+                                            try await viewModel.updatePlaylists()
+                                            try await viewModel.updateOwnPlaylists()
+                                        }
+                                        
+                                        await MainActor.run {
+                                            playlistSheet.isEditing = false
+                                            playlistSheet.isLoading = false
+                                        }
+                                    } catch {
+                                        await MainActor.run {
+                                            playlistSheet.isEditing = false
+                                            playlistSheet.isLoading = false
+                                        }
+                                    }
+                                }
+                            }
                         } label: {
-                            if !addPlaylistSheet.isLoading {
-                                Text("Done")
-                                    .fontWeight(.semibold)
+                            if !playlistSheet.isLoading {
+                                if !playlistSheet.isEditing {
+                                    Text("Edit")
+                                        .fontWeight(.semibold)
+                                } else {
+                                    Text("Done")
+                                        .fontWeight(.semibold)
+                                }
                             } else {
                                 ProgressView()
                                     .progressViewStyle(.circular)
@@ -1176,7 +1346,116 @@ struct ContentView: View {
                 }
             }
             .accentColor(.pink)
-            .padding(.horizontal, 16)
+            .sheet(isPresented: $playlistSheet.isShowingAddMusic, content: {
+                
+                // MARK: - Add Track Sheet
+                
+                NavigationView {
+                    List(
+                        viewModel.tracks
+                    ) { track in
+                        Button {
+                            if playlistSheet.selectedAddMusicTracks.contains(track.id) {
+                                playlistSheet.selectedAddMusicTracks.remove(track.id)
+                            } else {
+                                playlistSheet.selectedAddMusicTracks.insert(track.id)
+                            }
+                        } label: {
+                            HStack(alignment: .center, spacing: 16) {
+                                cachedArtworkImage(track.name)
+                                    .resizable()
+                                    .cornerRadius(4)
+                                    .frame(width: 60, height: 60)
+                                
+                                Text(track.name)
+                                    .font(.system(size: 18, weight: .medium))
+                                    .multilineTextAlignment(.leading)
+                                    .foregroundColor(viewModel.primaryControlsColor)
+                                    .padding(.vertical, 12)
+                                
+                                Spacer()
+                                
+                                if playlistSheet.selectedAddMusicTracks.contains(track.id) {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(
+                                            size: 16,
+                                            weight: .medium
+                                        ))
+                                        .padding(.top, 4)
+                                        .foregroundColor(.pink)
+                                }
+                            }
+                        }
+                    }
+                    .listStyle(.inset)
+                    .padding(.horizontal, 16)
+                    .navigationBarTitle("Add Music")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .navigationBarTrailing) {
+                            Button {
+                                playlistSheet.isLoadingAddMusic = true
+                                
+                                guard
+                                    let playlistID = playlistSheet.selectedPlaylist?.id,
+                                    let playlistWebSocket = api.playlistWebSocket(
+                                        playlistID: playlistID
+                                    )
+                                else {
+                                    return
+                                }
+                                
+                                Task {
+                                    playlistSheet.cancellable = viewModel.$ownPlaylists.sink {
+                                        guard
+                                            let playlist = $0.first(where: {
+                                                $0.id == playlistID
+                                            })
+                                        else {
+                                            return
+                                        }
+                                        
+                                        playlistSheet.selectedPlaylist = playlist
+                                    }
+                                    
+                                    for trackID in playlistSheet.selectedAddMusicTracks {
+                                        guard
+                                            let trackID = trackID
+                                        else {
+                                            continue
+                                        }
+                                        
+                                        try await playlistWebSocket.send(
+                                            PlaylistMessage(
+                                                event: .addTrack,
+                                                payload: .addTrack(track_id: trackID)
+                                            )
+                                        )
+                                    }
+                                    
+                                    await MainActor.run {
+                                        playlistSheet.selectedAddMusicTracks = []
+                                        
+                                        playlistSheet.isLoadingAddMusic = false
+                                        
+                                        playlistSheet.isShowingAddMusic = false
+                                    }
+                                }
+                            } label: {
+                                if !playlistSheet.isLoadingAddMusic {
+                                    Text("Done")
+                                        .fontWeight(.semibold)
+                                } else {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+                .accentColor(.pink)
+            })
         })
         .confirmationDialog(
             "Sign Out?",
@@ -1292,10 +1571,12 @@ struct ContentView: View {
             
             viewModel.api = api
             
+            playlistSheet.viewModel = viewModel
+            
             if viewModel.isAuthorized {
                 viewModel.updateData()
             } else {
-//                authSheet.isShowing = !viewModel.isAuthorized
+                authSheet.isShowing = !viewModel.isAuthorized
             }
         }
     }

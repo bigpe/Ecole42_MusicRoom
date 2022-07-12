@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 extension ContentView {
     @MainActor
@@ -24,31 +25,12 @@ extension ContentView {
         var isLoading = false
         
         @Published
-        var tracks = [
-            Track(id: 1, name: "Gorillaz — DARE", file: "", duration: 321),
-            Track(id: 2, name: "Gesaffelstein — Ignio", file: "", duration: 456),
-            Track(id: 3, name: "Adele — Skyfall", file: "", duration: 123),
-            Track(id: 4, name: "Gorillaz — DARE", file: "", duration: 321),
-            Track(id: 5, name: "Gesaffelstein — Ignio", file: "", duration: 456),
-            Track(id: 6, name: "Adele — Skyfall", file: "", duration: 123),
-            Track(id: 7, name: "Gorillaz — DARE", file: "", duration: 321),
-            Track(id: 8, name: "Gesaffelstein — Ignio", file: "", duration: 456),
-            Track(id: 9, name: "Adele — Skyfall", file: "", duration: 123),
-            Track(id: 10, name: "Gorillaz — DARE", file: "", duration: 321),
-            Track(id: 11, name: "Gesaffelstein — Ignio", file: "", duration: 456),
-            Track(id: 12, name: "Adele — Skyfall", file: "", duration: 123),
-            Track(id: 13, name: "Gorillaz — DARE", file: "", duration: 321),
-            Track(id: 14, name: "Gesaffelstein — Ignio", file: "", duration: 456),
-            Track(id: 15, name: "Adele — Skyfall", file: "", duration: 123),
-            Track(id: 16, name: "Gorillaz — DARE", file: "", duration: 321),
-            Track(id: 17, name: "Gesaffelstein — Ignio", file: "", duration: 456),
-        ]
-        
-        @Published
-        var isShowingAddTrack = false
+        var isShowingAddMusic = false
         
         @Published
         var selectedTracks = Set<Int?>()
+        
+        var cancellable: AnyCancellable?
         
         func reset() {
             nameText = ""

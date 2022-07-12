@@ -37,7 +37,7 @@ public struct Playlist: Codable, Identifiable {
         }
     }
     
-    public let accessType: AccessType?
+    public let accessType: AccessType
     
     public let author: Int
     
@@ -46,7 +46,7 @@ public struct Playlist: Codable, Identifiable {
         tracks: [PlaylistTrack],
         name: String,
         type: `Type`? = nil,
-        accessType: AccessType? = nil,
+        accessType: AccessType,
         author: Int
     ) {
         self.id = id

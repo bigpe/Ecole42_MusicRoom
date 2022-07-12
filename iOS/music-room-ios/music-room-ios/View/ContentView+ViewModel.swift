@@ -435,12 +435,23 @@ extension ContentView {
             }
             
             subscribeToPlayer()
+            subscribeToPlaylists()
         }
         
         // MARK: - Own Playlists
         
         @Published
-        var ownPlaylists = [Playlist]()
+        var ownPlaylists = [Playlist]() {
+            didSet {
+                Task {
+                    do {
+                        try await updatePlaylists()
+                    } catch {
+                        debugPrint(error)
+                    }
+                }
+            }
+        }
         
         func updateOwnPlaylists() async throws {
             Task {
@@ -450,14 +461,19 @@ extension ContentView {
             do {
                 let ownPlaylists = try await api.ownPlaylistRequest()
                 
-                self.ownPlaylists = ownPlaylists
-                
-                try await DiskCacheService.updateEntity(ownPlaylists, name: "Own")
+                try await saveOwnPlaylists(ownPlaylists)
             } catch {
                 debugPrint(error)
                 
                 try await DiskCacheService.updateEntity([Playlist]?.none, name: "Own")
             }
+        }
+        
+        @MainActor
+        func saveOwnPlaylists(_ ownPlaylists: [Playlist]) async throws {
+            self.ownPlaylists = ownPlaylists
+            
+            try await DiskCacheService.updateEntity(ownPlaylists, name: "Own")
         }
         
         // MARK: - Playlists
@@ -473,14 +489,19 @@ extension ContentView {
             do {
                 let playlists = try await api.playlistRequest()
                 
-                self.playlists = playlists
-                
-                try await DiskCacheService.updateEntity(playlists, name: "All")
+                try await savePlaylists(playlists)
             } catch {
                 debugPrint(error)
                 
                 try await DiskCacheService.updateEntity([Playlist]?.none, name: "All")
             }
+        }
+        
+        @MainActor
+        func savePlaylists(_ playlists: [Playlist]) async throws {
+            self.playlists = playlists
+            
+            try await DiskCacheService.updateEntity(playlists, name: "All")
         }
         
         // MARK: - Tracks
@@ -570,10 +591,21 @@ extension ContentView {
                     return track(byID: currentTrackID)
                 }()
                 
-                trackProgress = TrackProgress(
-                    value: ((currentSessionTrack?.progress ?? 0) as NSDecimalNumber).doubleValue,
-                    total: ((currentTrack?.duration ?? 0) as NSDecimalNumber).doubleValue
+                let currentSessionTrackProgressValue = currentSessionTrack?.progress
+                let currentTrackDuration = currentTrack?.duration
+                
+                let progressValue = ((currentSessionTrackProgressValue ?? 0) as NSDecimalNumber)
+                    .doubleValue
+                
+                let progressTotal = ((currentTrackDuration ?? 0) as NSDecimalNumber)
+                    .doubleValue
+                
+                let trackProgress = TrackProgress(
+                    value: progressValue,
+                    total: progressTotal
                 )
+                
+                self.trackProgress = trackProgress
                 
                 guard
                     let currentSessionTrack = currentSessionTrack
@@ -754,14 +786,14 @@ extension ContentView {
                         
                         switch message.payload {
                             
-                        case .session(player_session: let playerSession):
+                        case .session(let playerSession):
                             Task { [unowned self] in
                                 await MainActor.run { [unowned self] in
                                     self.playerSession = playerSession
                                 }
                             }
                             
-                        case .sessionChanged(player_session: let playerSession):
+                        case .sessionChanged(let playerSession):
                             Task { [unowned self] in
                                 await MainActor.run { [unowned self] in
                                     self.playerSession = playerSession
@@ -775,20 +807,54 @@ extension ContentView {
             }
         }
         
-        func subscribeToPlaylist() {
-            if let playlistWebSocket = api.playlistWebSocket, !playlistWebSocket.isSubscribed {
+        func subscribeToPlaylists() {
+            if let playlistsWebSocket = api.playlistsWebSocket, !playlistsWebSocket.isSubscribed {
+                playlistsWebSocket
+                    .onReceive { [unowned self] (message) in
+                        switch message.payload {
+                        case .playlistsChanged(let ownPlaylists):
+                            Task {
+                                try await saveOwnPlaylists(ownPlaylists)
+                            }
+
+                        default:
+                            break
+                        }
+                    }
+            }
+        }
+        
+        func subscribeToPlaylist(playlistID: Int) {
+            if let playlistWebSocket = api.playlistWebSocket(playlistID: playlistID), !playlistWebSocket.isSubscribed {
                 playlistWebSocket
                     .onReceive { [unowned self] (message) in
-                        debugPrint(message)
-                        
                         switch message.payload {
-                        case .playlistsChanged(let playlist, let playlists):
-                            debugPrint(playlist, playlists)
-                            //                            Task { [unowned self] in
-                            //                                await MainActor.run { [unowned self] in
-                            //                                    self.playerSession = playerSession
-                            //                                }
-                            //                            }
+                        case .playlistChanged(let playlist):
+                            Task {
+                                if let playlistsIndex = playlists.firstIndex(where: {
+                                    $0.id == playlist.id
+                                }) {
+                                    var playlists = playlists
+                                    
+                                    playlists[playlistsIndex] = playlist
+                                    
+                                    Task {
+                                        try await savePlaylists(playlists)
+                                    }
+                                }
+                                
+                                if let ownPlaylistsIndex = ownPlaylists.firstIndex(where: {
+                                    $0.id == playlist.id
+                                }) {
+                                    var ownPlaylists = ownPlaylists
+                                    
+                                    ownPlaylists[ownPlaylistsIndex] = playlist
+                                    
+                                    Task {
+                                        try await saveOwnPlaylists(ownPlaylists)
+                                    }
+                                }
+                            }
                             
                         default:
                             break

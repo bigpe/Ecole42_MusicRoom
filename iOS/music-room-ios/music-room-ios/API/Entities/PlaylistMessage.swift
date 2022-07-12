@@ -14,12 +14,6 @@ public struct PlaylistMessage: Codable {
         
         // MARK: - Requests
         
-        case changePlaylist(playlist_id: Int, playlist_name: String, playlist_access_type: Playlist.AccessType)
-        
-        case addPlaylist(playlist_name: String, access_type: Playlist.AccessType)
-        
-        case removePlaylist(playlist_id: Int, playlist_name: String?, playlist_access_type: Playlist.AccessType?)
-        
         case addTrack(track_id: Int)
         
         case removeTrack(track_id: Int)
@@ -30,7 +24,7 @@ public struct PlaylistMessage: Codable {
         
         // MARK: - Responses
         
-        case playlistsChanged(playlist: Playlist?, playlists: [Playlist]?)
+        case playlistChanged(playlist: Playlist)
     }
     
     public let payload: Payload

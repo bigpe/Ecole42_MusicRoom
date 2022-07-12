@@ -35,7 +35,23 @@ public class API {
     
     lazy var playerWebSocket = try? PlayerWebSocket(api: self)
     
-    lazy var playlistWebSocket = try? PlaylistWebSocket(api: self)
+    lazy var playlistsWebSocket = try? PlaylistsWebSocket(api: self)
+    
+    lazy var playlistWebSockets = [Int: PlaylistWebSocket]()
+    
+    func playlistWebSocket(playlistID: Int) -> PlaylistWebSocket? {
+        guard
+            let playlistWebSocket = playlistWebSockets[playlistID]
+        else {
+            let playlistWebSocket = try? PlaylistWebSocket(api: self, playlistID: playlistID)
+            
+            playlistWebSockets[playlistID] = playlistWebSocket
+            
+            return playlistWebSocket
+        }
+        
+        return playlistWebSocket
+    }
     
     // MARK: - Authentication
     
@@ -277,12 +293,12 @@ public class API {
     }
     
     public func playerSessionRequest() async throws -> PlayerSession {
-        let dataTask: DataTask<PlayerSession> = try await session.request(
+        let dataTask: DataTask<PlayerSession> = session.request(
             try playerSessionURL,
             method: .get
         ).serializingAPI()
         
-        debugPrint(try await dataTask.response)
+        debugPrint(await dataTask.response)
         
         return
         try await session.request(

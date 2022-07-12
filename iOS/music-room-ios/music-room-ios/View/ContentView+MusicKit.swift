@@ -12,7 +12,6 @@ extension ContentView {
     
     @MainActor
     class MusicKit: ObservableObject {
-        
         private var inProgressSearchTerms = [String]()
         
         @Published
