@@ -48,11 +48,13 @@ class PlaylistService:
 
     @Decorators.lookup_track
     def add_track(self, track: [int, Track]):
-        self.playlist.tracks.create(track=track, order=0)
+        self.playlist.tracks.create(track=track, order=-1)
+        self.resort()
 
     @Decorators.lookup_track
     def remove_track(self, track: [int, Track]):
         self.playlist.tracks.filter(track=track).delete()
+        self.resort()
 
     def change(self, name: str = None, access_type: [str, Playlist.AccessTypes] = None):
         if not name:
@@ -74,3 +76,8 @@ class PlaylistService:
     def change_access_type(self, access_type: Playlist.AccessTypes):
         self.playlist.access_type = access_type
         self.playlist.save()
+
+    def resort(self):
+        for i, track in enumerate(self.playlist.tracks.all()):
+            track.order = i
+            track.save()
