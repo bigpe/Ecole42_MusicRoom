@@ -130,7 +130,10 @@ class PlayerService:
         self.player_session.track_queue.all().delete()
         for i in range(len(tracks)):
             random_track = random.choice(tracks)
-            session_track = SessionTrack.objects.create(track=tracks.pop(tracks.index(random_track)), order=i)
+            session_track = SessionTrack.objects.create(
+                track=tracks.pop(tracks.index(random_track)).track,
+                order=i
+            )
             self.player_session.track_queue.add(session_track)
 
     def pause_track(self):
