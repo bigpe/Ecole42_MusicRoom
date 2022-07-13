@@ -32,8 +32,9 @@ def user_post_save(instance: User, created, **kwargs):
 
 
 def audio_file_validator(file: FieldFile):
+    allowed_extensions = ['mp3', 'flac']
     file_extension = file.name.split('.')[-1]
-    if not file_extension == 'mp3':
+    if file_extension not in allowed_extensions:
         raise ValidationError(
             'Audio file wrong extension',
             params={'value': file_extension},

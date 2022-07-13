@@ -61,7 +61,6 @@ class PlayerService:
 
     @Decorators.lookup_track
     def play_track(self, track: [int, SessionTrack]) -> SessionTrack:
-        self.reset_tracks_progress()
         first_track = self.current_track
         next_track = track
         last_track = self.previous_track
@@ -75,13 +74,13 @@ class PlayerService:
             first_track.order = self.player_session.track_queue.all().count()
 
         first_track.state = SessionTrack.States.stopped
-        first_track.progress = 0
         next_track.state = SessionTrack.States.playing
         next_track.save()
         first_track.save()
         last_track.save()
         track.save()
 
+        self.reset_tracks_progress()
         self.resort()
         return track
 
