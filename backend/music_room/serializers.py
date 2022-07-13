@@ -1,5 +1,11 @@
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer as TokenRefreshBaseSerializer, \
+    TokenObtainPairSerializer as TokenObtainPairBaseSerializer
 
 from .models import Track, Playlist, PlayerSession, SessionTrack, PlaylistTrack, PlaylistAccess, User
 
@@ -61,3 +67,29 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class TokenExpiresMixin:
+    expires_in = serializers.DateTimeField(required=False)
+
+    def validate(self, attrs):
+        data = super(TokenExpiresMixin, self).validate(attrs)
+        expires_in = timezone.now() + getattr(
+            settings, 'SIMPLE_JWT', {}
+        ).get('ACCESS_TOKEN_LIFETIME', timedelta(minutes=5))
+        data.update({'expires_in': expires_in})
+        return data
+
+
+class TokenObtainPairSerializer(TokenExpiresMixin, TokenObtainPairBaseSerializer):
+    ...
+
+
+class TokenRefreshSerializer(TokenExpiresMixin, TokenRefreshBaseSerializer):
+    ...
+
+
+class TokenResponseSerializer(serializers.Serializer):
+    expires_in = serializers.DateTimeField()
+    refresh = serializers.CharField()
+    access = serializers.CharField()

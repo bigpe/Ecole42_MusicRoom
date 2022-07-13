@@ -178,3 +178,4 @@ def player_session_post_save(instance: PlayerSession, created, **kwargs):
     for i, playlist_track in enumerate(playlist_tracks):
         session_track = SessionTrack.objects.create(track=playlist_track.track, order=i)
         instance.track_queue.add(session_track)
+

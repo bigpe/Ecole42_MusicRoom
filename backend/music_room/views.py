@@ -5,10 +5,11 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .models import Track, Playlist, PlayerSession
-from .serializers import TrackSerializer, PlaylistSerializer, PlayerSessionSerializer, UserSerializer
+from .serializers import TrackSerializer, PlaylistSerializer, PlayerSessionSerializer, UserSerializer, \
+    TokenObtainPairSerializer, TokenRefreshSerializer, TokenResponseSerializer
 
 User = get_user_model()
 
@@ -75,8 +76,9 @@ class AuthView(TokenObtainPairView):
 
     Login or Register new profile (if not exist) and get access and refresh token
     """
+    serializer_class = TokenObtainPairSerializer
 
-    @swagger_auto_schema(responses={200: TokenRefreshSerializer()})
+    @swagger_auto_schema(responses={200: TokenResponseSerializer()})
     def post(self, request, *args, **kwargs):
         user = authenticate(**request.data)
         if not user:
@@ -86,3 +88,17 @@ class AuthView(TokenObtainPairView):
             user = user_serializer.create(request.data)
         login(request, user)
         return super(AuthView, self).post(request, *args, **kwargs)
+
+
+class TokenRefreshWithExpiresView(TokenRefreshView):
+    """
+    Refresh token
+
+    Refresh already created access token by refresh token
+    """
+    serializer_class = TokenRefreshSerializer
+
+    @swagger_auto_schema(responses={200: TokenResponseSerializer()})
+    def post(self, request, *args, **kwargs):
+        return super(TokenRefreshWithExpiresView, self).post(request, *args, **kwargs)
+
