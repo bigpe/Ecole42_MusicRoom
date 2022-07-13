@@ -228,8 +228,10 @@ class BaseConsumer(JsonWebsocketConsumer):
 
         def before():
             if before_send and not message.before_send_activated:
-                before_send(message, payload)
+                e: Action = before_send(message, payload)
                 message.before_send_activate()
+                if e:
+                    return e
                 return True
             return False
 
@@ -238,6 +240,8 @@ class BaseConsumer(JsonWebsocketConsumer):
             action: Action = action_for_initiator(message, payload)
             if action:
                 self.send_json(content=action.to_data())
+            if isinstance(activated, Action):
+                self.send_json(content=activated.to_data())
             if message.before_send_activated and not activated:
                 message.before_send_drop()
 
@@ -246,6 +250,8 @@ class BaseConsumer(JsonWebsocketConsumer):
             action: Action = action_for_target(message, payload)
             if action:
                 self.send_json(content=action.to_data())
+            if isinstance(activated, Action):
+                self.send_json(content=activated.to_data())
             if message.before_send_activated and not activated:
                 message.before_send_drop()
 

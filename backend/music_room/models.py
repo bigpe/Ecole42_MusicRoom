@@ -127,7 +127,7 @@ class SessionTrack(models.Model):
     #: Track time progress from duration
     progress = models.FloatField(default=0)
     #: Tracks order in queue
-    order: int = models.PositiveIntegerField(default=0)
+    order: int = models.IntegerField(default=0)
 
     class Meta:
         ordering = ['-votes_count', 'order']

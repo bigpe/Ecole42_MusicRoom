@@ -63,51 +63,26 @@ class PlayerService:
     def play_track(self, track: [int, SessionTrack]) -> SessionTrack:
         self.reset_tracks_progress()
         first_track = self.current_track
-        next_track = self.next_track
+        next_track = track
         last_track = self.previous_track
 
-        first_track.order, next_track.order = next_track.order, first_track.order
-        if first_track != next_track:
-            first_track.order, last_track.order = last_track.order, first_track.order
+        reverse = False
+        if next_track == last_track:
+            reverse = True
+
+        next_track.order = -1
+        if not reverse:
+            first_track.order = self.player_session.track_queue.all().count()
 
         first_track.state = SessionTrack.States.stopped
+        first_track.progress = 0
         next_track.state = SessionTrack.States.playing
-
-        first_track.save()
         next_track.save()
-        if next_track.id != last_track.id:
-            last_track.save()
+        first_track.save()
+        last_track.save()
+        track.save()
 
-        # first_track = self.current_track
-        # next_track = self.next_track
-        # last_track = self.previous_track
-        #
-        # if track == last_track:
-        #     first_track, last_track = last_track, first_track
-        #
-        # first_track.order, next_track.order = next_track.order, first_track.order
-        # first_track.order, last_track.order = last_track.order, first_track.order
-        #
-        # first_track.state = SessionTrack.States.stopped
-        # next_track.state = SessionTrack.States.playing
-        # first_track.save()
-        # next_track.save()
-        # last_track.save()
-        #
-        for i, t in enumerate(self.player_session.track_queue.all()):
-            t.order = i
-            t.save()
-        #
-        # current_track = self.player_session.track_queue.first()
-        # if current_track.votes.count():
-        #     current_track.votes.clear()
-        #     current_track.votes_count = current_track.votes.count()
-        #     current_track.save()
-        #     n, p = self.next_track, self.previous_track
-        #     n.order, p.order = p.order, n.order
-        #     n.save()
-        #     p.save()
-        # print(self.player_session.track_queue.all())
+        self.resort()
         return track
 
     @property
@@ -162,3 +137,7 @@ class PlayerService:
         track.progress = progress
         track.save()
 
+    def resort(self):
+        for i, track in enumerate(self.player_session.track_queue.all()):
+            track.order = i
+            track.save()
