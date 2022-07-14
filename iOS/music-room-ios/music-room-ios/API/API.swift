@@ -263,6 +263,32 @@ public class API {
         .value
     }
     
+    // MARK: - Users
+    
+    var usersURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "api/users/",
+                        relativeTo: baseURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func usersRequest() async throws -> [User] {
+        try await session.request(
+            try usersURL,
+            method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
+    }
+    
     // MARK: - Player Session
     
     var playerURL: URL {
