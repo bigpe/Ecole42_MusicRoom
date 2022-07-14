@@ -25,6 +25,8 @@
 		C34EB880287EE95E00D7389D /* ProgressSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB87F287EE95E00D7389D /* ProgressSlider.swift */; };
 		C34EB883287F230B00D7389D /* ContentView+ViewModel-Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB882287F230B00D7389D /* ContentView+ViewModel-Player.swift */; };
 		C34EB88528805E7000D7389D /* TokenResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB88428805E7000D7389D /* TokenResponseModel.swift */; };
+		C34EB88728806FDE00D7389D /* IndexedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB88628806FDE00D7389D /* IndexedCollection.swift */; };
+		C34EB889288088C900D7389D /* InteractiveDismissableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB888288088C900D7389D /* InteractiveDismissableView.swift */; };
 		C3535C3D286A2321007EA197 /* ContentView+ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C3C286A2321007EA197 /* ContentView+ViewModel.swift */; };
 		C3535C3F286A3025007EA197 /* ContentView+MusicKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C3E286A3025007EA197 /* ContentView+MusicKit.swift */; };
 		C3535C47286A386F007EA197 /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C46286A386F007EA197 /* API.swift */; };
@@ -72,6 +74,8 @@
 		C34EB881287F21B900D7389D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C34EB882287F230B00D7389D /* ContentView+ViewModel-Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ViewModel-Player.swift"; sourceTree = "<group>"; };
 		C34EB88428805E7000D7389D /* TokenResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenResponseModel.swift; sourceTree = "<group>"; };
+		C34EB88628806FDE00D7389D /* IndexedCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexedCollection.swift; sourceTree = "<group>"; };
+		C34EB888288088C900D7389D /* InteractiveDismissableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveDismissableView.swift; sourceTree = "<group>"; };
 		C3535C3C286A2321007EA197 /* ContentView+ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ViewModel.swift"; sourceTree = "<group>"; };
 		C3535C3E286A3025007EA197 /* ContentView+MusicKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+MusicKit.swift"; sourceTree = "<group>"; };
 		C3535C46286A386F007EA197 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
@@ -161,6 +165,8 @@
 				C3434AE1286F752000D07785 /* GenerateImage.swift */,
 				C3434AE3286F756900D07785 /* ASCGImageBuffer.swift */,
 				C3D7159E2872C37000B0625A /* Time.swift */,
+				C34EB88628806FDE00D7389D /* IndexedCollection.swift */,
+				C34EB888288088C900D7389D /* InteractiveDismissableView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -329,6 +335,7 @@
 				C3434ADE286F6C4D00D07785 /* SubControlButtonStyle.swift in Sources */,
 				C3E715BE285E4DAD0038667B /* PlayerWebSocket.swift in Sources */,
 				C3E715C0285E50660038667B /* PlaylistsWebSocket.swift in Sources */,
+				C34EB889288088C900D7389D /* InteractiveDismissableView.swift in Sources */,
 				C3D7159F2872C37000B0625A /* Time.swift in Sources */,
 				C3615017287CE91A009906E9 /* PlaylistsMessage.swift in Sources */,
 				C33B7C1B285F7E68000399BA /* SessionTrack.swift in Sources */,
@@ -345,6 +352,7 @@
 				C33B7C1F285F8349000399BA /* PlaylistTrack.swift in Sources */,
 				C3B6A8E9287B4C4A00DAACD9 /* ContentView+PlaylistSheet.swift in Sources */,
 				C31DB514287A7CFA00EAEA62 /* ContentView+AddPlaylistSheet.swift in Sources */,
+				C34EB88728806FDE00D7389D /* IndexedCollection.swift in Sources */,
 				C3D7159D28728AD600B0625A /* DiskCacheService.swift in Sources */,
 				C34EB88528805E7000D7389D /* TokenResponseModel.swift in Sources */,
 				C3D7159728726D6300B0625A /* TokenObtainPairModel.swift in Sources */,

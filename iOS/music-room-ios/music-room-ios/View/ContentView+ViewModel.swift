@@ -406,7 +406,7 @@ extension ContentView {
                     return nil
                 }
                 
-                return total - value
+                return value - total
             }
         }
         

@@ -12,8 +12,18 @@ extension ContentView {
     @MainActor
     class AddPlaylistSheet: ObservableObject {
         
+        // MARK: - States
+        
         @Published
         var isShowing = false
+        
+        @Published
+        var isLoading = false
+        
+        @Published
+        var showingCancelConfirmation = false
+        
+        // MARK: - Data
         
         @Published
         var nameText = ""
@@ -22,13 +32,17 @@ extension ContentView {
         var accessType = Playlist.AccessType.private
         
         @Published
-        var isLoading = false
+        var selectedTracks = [Track]()
+        
+        // MARK: - Add Music
         
         @Published
         var isShowingAddMusic = false
         
         @Published
-        var selectedTracks = Set<Int?>()
+        var selectedAddMusicTracks = [Int?]()
+        
+        // MARK: -
         
         var cancellable: AnyCancellable?
         

@@ -39,16 +39,24 @@ extension ContentView {
         @Published
         var isEditing = false
         
+        @Published
+        var showingCancelConfirmation = false
+        
         // MARK: - Add Music
         
         @Published
-        var selectedAddMusicTracks = Set<Int?>()
+        var selectedAddMusicTracks = [Int?]()
         
         @Published
         var isShowingAddMusic = false
         
         @Published
         var isLoadingAddMusic = false
+        
+        // MARK: - Delete
+        
+        @Published
+        var showingDeleteConfirmation = false
         
         // MARK: - Selected Playlist
         

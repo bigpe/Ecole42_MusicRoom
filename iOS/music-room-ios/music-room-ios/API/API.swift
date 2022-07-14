@@ -95,6 +95,9 @@ public class API {
     }
     
     public init() {
+        URLSession.shared.configuration.waitsForConnectivity = true
+        URLSession.shared.configuration.shouldUseExtendedBackgroundIdleMode = true
+        
         session = cleanSession
     }
     

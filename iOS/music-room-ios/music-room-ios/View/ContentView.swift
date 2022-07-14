@@ -233,7 +233,7 @@ struct ContentView: View {
                                 
                                 Spacer()
                                 
-                                Text("-\(viewModel.trackProgress.remaining.time)")
+                                Text(viewModel.trackProgress.remaining.time)
                                     .multilineTextAlignment(.trailing)
                                     .foregroundColor(viewModel.secondaryControlsColor)
                             }
@@ -843,46 +843,32 @@ struct ContentView: View {
                     }
                     .tint(.pink)
                     
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            ForEach(
-                                viewModel
-                                    .tracks
-                                    .filter {
-                                        addPlaylistSheet.selectedTracks.contains($0.id)
-                                    }
-                            ) { track in
-                                Button {
-//                                Task {
-//                                    guard
-//                                        let trackID = track.id
-//                                    else {
-//                                        return
-//                                    }
-//
-//                                    try await viewModel.playTrack(trackID: trackID)
-//
-//                                    viewModel.interfaceState = .player
-//                                }
-                                } label: {
-                                    HStack(alignment: .center, spacing: 16) {
-                                        cachedArtworkImage(track.name)
-                                            .resizable()
-                                            .cornerRadius(4)
-                                            .frame(width: 60, height: 60)
-                                        
-                                        Text(track.name)
-                                            .font(.system(size: 18, weight: .medium))
-                                            .multilineTextAlignment(.leading)
-                                            .foregroundColor(viewModel.primaryControlsColor)
-                                            .padding(.vertical, 12)
-                                        
-                                        Spacer()
-                                    }
-                                }
+                    List(
+                        Array(addPlaylistSheet.selectedTracks.enumerated()),
+                        id: \.offset
+                    ) { index, track in
+                        HStack(alignment: .center, spacing: 16) {
+                            cachedArtworkImage(track.name)
+                                .resizable()
+                                .cornerRadius(4)
+                                .frame(width: 60, height: 60)
+                                .padding(.leading, -16)
+                            
+                            Text(track.name)
+                                .font(.system(size: 18, weight: .medium))
+                                .multilineTextAlignment(.leading)
+                                .foregroundColor(viewModel.primaryControlsColor)
+                                .padding(.vertical, 12)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                addPlaylistSheet.selectedTracks.remove(at: index)
+                            } label: {
+                                Text("Delete")
                             }
                         }
                     }
+                    .listStyle(.plain)
                 }
                 .padding(.horizontal, 16)
                 .navigationBarTitle("New Playlist")
@@ -890,9 +876,16 @@ struct ContentView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .navigationBarLeading) {
                         Button {
-                            addPlaylistSheet.isShowing = false
+                            guard
+                                addPlaylistSheet.nameText.isEmpty,
+                                addPlaylistSheet.selectedTracks.isEmpty
+                            else {
+                                addPlaylistSheet.showingCancelConfirmation = true
+                                
+                                return
+                            }
                             
-                            // FIXME: Confirmation
+                            addPlaylistSheet.isShowing = false
                             
                             addPlaylistSheet.reset()
                         } label: {
@@ -943,9 +936,9 @@ struct ContentView: View {
                                                     return
                                                 }
                                                 
-                                                for trackID in addPlaylistSheet.selectedTracks {
+                                                for track in addPlaylistSheet.selectedTracks {
                                                     guard
-                                                        let trackID = trackID
+                                                        let trackID = track.id
                                                     else {
                                                         continue
                                                     }
@@ -1016,43 +1009,94 @@ struct ContentView: View {
                 }
             }
             .accentColor(.pink)
+            .interactiveDismissDisabled(
+                {
+                    guard
+                        addPlaylistSheet.nameText.isEmpty,
+                        addPlaylistSheet.selectedTracks.isEmpty
+                    else {
+                        return true
+                    }
+                    
+                    return false
+                }(),
+                onAttemptToDismiss: {
+                    addPlaylistSheet.showingCancelConfirmation = true
+                }
+            )
+            .onDisappear {
+                addPlaylistSheet.reset()
+            }
+            .confirmationDialog(
+                "Don't Save New Playlist?",
+                isPresented: $addPlaylistSheet.showingCancelConfirmation,
+                titleVisibility: .visible
+            ) {
+                
+                // MARK: - Add Playlist Dismiss Confirmation Dialog
+                
+                Button(role: .destructive) {
+                    Task {
+                        await MainActor.run {
+                            addPlaylistSheet.showingCancelConfirmation = false
+                            
+                            addPlaylistSheet.isShowing = false
+                            
+                            addPlaylistSheet.reset()
+                        }
+                    }
+                } label: {
+                    Text("Yes")
+                }
+                
+            }
             .sheet(isPresented: $addPlaylistSheet.isShowingAddMusic, content: {
                 
-                // MARK: - Add Track Sheet
+                // MARK: - Add Playlist Add Music Sheet
                 
                 NavigationView {
                     List(
                         viewModel.tracks
                     ) { track in
                         Button {
-                            if addPlaylistSheet.selectedTracks.contains(track.id) {
-                                addPlaylistSheet.selectedTracks.remove(track.id)
+                            if addPlaylistSheet.selectedAddMusicTracks.contains(track.id) {
+                                addPlaylistSheet.selectedAddMusicTracks.removeAll(where: {
+                                    $0 == track.id
+                                })
                             } else {
-                                addPlaylistSheet.selectedTracks.insert(track.id)
+                                addPlaylistSheet.selectedAddMusicTracks.append(track.id)
                             }
                         } label: {
-                            HStack(alignment: .center, spacing: 16) {
-                                cachedArtworkImage(track.name)
-                                    .resizable()
-                                    .cornerRadius(4)
-                                    .frame(width: 60, height: 60)
+                            ZStack {
+                                HStack(alignment: .center, spacing: 16) {
+                                    cachedArtworkImage(track.name)
+                                        .resizable()
+                                        .cornerRadius(4)
+                                        .frame(width: 60, height: 60)
+                                    
+                                    Text(track.name)
+                                        .font(.system(size: 18, weight: .medium))
+                                        .multilineTextAlignment(.leading)
+                                        .foregroundColor(viewModel.primaryControlsColor)
+                                        .padding(.vertical, 12)
+                                    
+                                    Spacer()
+                                }
                                 
-                                Text(track.name)
-                                    .font(.system(size: 18, weight: .medium))
-                                    .multilineTextAlignment(.leading)
-                                    .foregroundColor(viewModel.primaryControlsColor)
-                                    .padding(.vertical, 12)
-                                
-                                Spacer()
-                                
-                                if addPlaylistSheet.selectedTracks.contains(track.id) {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(
-                                            size: 16,
-                                            weight: .medium
-                                        ))
-                                        .padding(.top, 4)
-                                        .foregroundColor(.pink)
+                                if let index = addPlaylistSheet.selectedAddMusicTracks
+                                    .firstIndex(where: { $0 == track.id }) {
+                                    
+                                    HStack(alignment: .center) {
+                                        Spacer()
+                                        
+                                        Label("\(index + 1)", systemImage: "checkmark")
+                                            .font(.system(
+                                                size: 16,
+                                                weight: .medium
+                                            ))
+                                            .padding(.top, 4)
+                                            .foregroundColor(.pink)
+                                    }
                                 }
                             }
                         }
@@ -1064,6 +1108,15 @@ struct ContentView: View {
                     .toolbar {
                         ToolbarItemGroup(placement: .navigationBarTrailing) {
                             Button {
+                                addPlaylistSheet.selectedTracks.append(
+                                    contentsOf: addPlaylistSheet.selectedAddMusicTracks
+                                        .compactMap { trackID in
+                                            viewModel.tracks.first(where: { $0.id == trackID })
+                                        }
+                                )
+                                
+                                addPlaylistSheet.selectedAddMusicTracks.removeAll()
+                                
                                 addPlaylistSheet.isShowingAddMusic = false
                             } label: {
                                 Text("Done")
@@ -1139,35 +1192,10 @@ struct ContentView: View {
                         
                         if playlistSheet.isEditable {
                             Button {
-                                Task {
-                                    guard
-                                        let playlistID = playlistSheet.selectedPlaylist?.id,
-                                        let playlistWebSocket = api.playlistsWebSocket
-                                    else {
-                                        return
-                                    }
-                                    
-                                    do {
-                                        try await playlistWebSocket.send(
-                                            PlaylistsMessage(
-                                                event: .removePlaylist,
-                                                payload: .removePlaylist(
-                                                    playlist_id: playlistID,
-                                                    playlist_name: nil,
-                                                    playlist_access_type: nil
-                                                )
-                                            )
-                                        )
-                                    } catch {
-                                        debugPrint(error)
-                                    }
-                                    
-                                    playlistSheet.selectedPlaylist = nil
-                                }
+                                playlistSheet.isShowingAddMusic = true
                             } label: {
-                                Label("Delete", systemImage: "trash.circle.fill")
+                                Label("Add Music", systemImage: "plus.circle.fill")
                             }
-                            .tint(.pink)
                         }
                     }
                     
@@ -1232,10 +1260,11 @@ struct ContentView: View {
                     
                     if playlistSheet.isEditable {
                         Button {
-                            playlistSheet.isShowingAddMusic = true
+                            playlistSheet.showingDeleteConfirmation = true
                         } label: {
-                            Label("Add Music", systemImage: "plus.circle.fill")
+                            Label("Delete", systemImage: "trash.circle.fill")
                         }
+                        .tint(.pink)
                     }
 
                 }
@@ -1245,6 +1274,20 @@ struct ContentView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .navigationBarLeading) {
                         Button {
+                            let playlistName = playlistSheet.nameText
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                            
+                            let accessType = playlistSheet.accessType
+                            
+                            guard
+                                playlistName == playlistSheet.selectedPlaylist?.name,
+                                accessType == playlistSheet.selectedPlaylist?.accessType
+                            else {
+                                playlistSheet.showingCancelConfirmation = true
+                                
+                                return
+                            }
+                            
                             playlistSheet.selectedPlaylist = nil
                         } label: {
                             Text("Cancel")
@@ -1263,8 +1306,8 @@ struct ContentView: View {
                                 let accessType = playlistSheet.accessType
                                 
                                 guard
-                                    playlistName != playlistSheet.selectedPlaylist?.name
-                                        || accessType != playlistSheet.selectedPlaylist?.accessType
+                                    playlistName != playlistSheet.selectedPlaylist?.name ||
+                                        accessType != playlistSheet.selectedPlaylist?.accessType
                                 else {
                                     playlistSheet.isEditing = false
                                     
@@ -1298,16 +1341,20 @@ struct ContentView: View {
                                             playlistSheet.selectedPlaylist = playlist
                                         }
                                         
-                                        try await playlistsWebSocket.send(
-                                            PlaylistsMessage(
-                                                event: .changePlaylist,
-                                                payload: .changePlaylist(
-                                                    playlist_id: playlistID,
-                                                    playlist_name: playlistName,
-                                                    playlist_access_type: accessType
+                                        do {
+                                            try await playlistsWebSocket.send(
+                                                PlaylistsMessage(
+                                                    event: .changePlaylist,
+                                                    payload: .changePlaylist(
+                                                        playlist_id: playlistID,
+                                                        playlist_name: playlistName,
+                                                        playlist_access_type: accessType
+                                                    )
                                                 )
                                             )
-                                        )
+                                        } catch {
+                                            debugPrint(error)
+                                        }
                                         
                                         do {
                                             try await viewModel.updatePlaylists()
@@ -1343,11 +1390,96 @@ struct ContentView: View {
                         
                     }
                 }
+                .confirmationDialog(
+                    "Delete Playlist?",
+                    isPresented: $playlistSheet.showingDeleteConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    
+                    // MARK: - Delete Playlist Confirmation Dialog
+                    
+                    Button(role: .destructive) {
+                        Task {
+                            guard
+                                let playlistID = playlistSheet.selectedPlaylist?.id,
+                                let playlistWebSocket = api.playlistsWebSocket
+                            else {
+                                return
+                            }
+                            
+                            do {
+                                try await playlistWebSocket.send(
+                                    PlaylistsMessage(
+                                        event: .removePlaylist,
+                                        payload: .removePlaylist(
+                                            playlist_id: playlistID,
+                                            playlist_name: nil,
+                                            playlist_access_type: nil
+                                        )
+                                    )
+                                )
+                            } catch {
+                                debugPrint(error)
+                            }
+                            
+                            playlistSheet.showingDeleteConfirmation = false
+                            
+                            playlistSheet.selectedPlaylist = nil
+                        }
+                    } label: {
+                        Text("Yes")
+                    }
+                    
+                }
             }
             .accentColor(.pink)
+            .interactiveDismissDisabled(
+                {
+                    let playlistName = playlistSheet.nameText
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    
+                    let accessType = playlistSheet.accessType
+                    
+                    guard
+                        playlistName == playlistSheet.selectedPlaylist?.name,
+                        accessType == playlistSheet.selectedPlaylist?.accessType
+                    else {
+                        return true
+                    }
+                    
+                    return false
+                }(),
+                onAttemptToDismiss: {
+                    playlistSheet.showingCancelConfirmation = true
+                }
+            )
+            .confirmationDialog(
+                "Don't Save Playlist Edits?",
+                isPresented: $playlistSheet.showingCancelConfirmation,
+                titleVisibility: .visible
+            ) {
+                
+                // MARK: - Playlist Dismiss Confirmation Dialog
+                
+                Button(role: .destructive) {
+                    Task {
+                        await MainActor.run {
+                            playlistSheet.showingCancelConfirmation = false
+                            
+                            playlistSheet.selectedPlaylist = nil
+                        }
+                    }
+                } label: {
+                    Text("Yes")
+                }
+                
+            }
+            .onDisappear {
+                playlistSheet.selectedPlaylist = nil
+            }
             .sheet(isPresented: $playlistSheet.isShowingAddMusic, content: {
                 
-                // MARK: - Add Track Sheet
+                // MARK: - Playlist Add Music Sheet
                 
                 NavigationView {
                     List(
@@ -1355,33 +1487,43 @@ struct ContentView: View {
                     ) { track in
                         Button {
                             if playlistSheet.selectedAddMusicTracks.contains(track.id) {
-                                playlistSheet.selectedAddMusicTracks.remove(track.id)
+                                playlistSheet.selectedAddMusicTracks.removeAll(where: {
+                                    $0 == track.id
+                                })
                             } else {
-                                playlistSheet.selectedAddMusicTracks.insert(track.id)
+                                playlistSheet.selectedAddMusicTracks.append(track.id)
                             }
                         } label: {
-                            HStack(alignment: .center, spacing: 16) {
-                                cachedArtworkImage(track.name)
-                                    .resizable()
-                                    .cornerRadius(4)
-                                    .frame(width: 60, height: 60)
+                            ZStack {
+                                HStack(alignment: .center, spacing: 16) {
+                                    cachedArtworkImage(track.name)
+                                        .resizable()
+                                        .cornerRadius(4)
+                                        .frame(width: 60, height: 60)
+                                    
+                                    Text(track.name)
+                                        .font(.system(size: 18, weight: .medium))
+                                        .multilineTextAlignment(.leading)
+                                        .foregroundColor(viewModel.primaryControlsColor)
+                                        .padding(.vertical, 12)
+                                    
+                                    Spacer()
+                                }
                                 
-                                Text(track.name)
-                                    .font(.system(size: 18, weight: .medium))
-                                    .multilineTextAlignment(.leading)
-                                    .foregroundColor(viewModel.primaryControlsColor)
-                                    .padding(.vertical, 12)
-                                
-                                Spacer()
-                                
-                                if playlistSheet.selectedAddMusicTracks.contains(track.id) {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(
-                                            size: 16,
-                                            weight: .medium
-                                        ))
-                                        .padding(.top, 4)
-                                        .foregroundColor(.pink)
+                                if let index = playlistSheet.selectedAddMusicTracks
+                                    .firstIndex(where: { $0 == track.id }) {
+                                    
+                                    HStack(alignment: .center) {
+                                        Spacer()
+                                        
+                                        Label("\(index + 1)", systemImage: "checkmark")
+                                            .font(.system(
+                                                size: 16,
+                                                weight: .medium
+                                            ))
+                                            .padding(.top, 4)
+                                            .foregroundColor(.pink)
+                                    }
                                 }
                             }
                         }
@@ -1456,6 +1598,7 @@ struct ContentView: View {
                 .accentColor(.pink)
             })
         })
+        .ignoresSafeArea(.keyboard)
         .confirmationDialog(
             "Sign Out?",
             isPresented: $viewModel.showingSignOutConfirmation,
