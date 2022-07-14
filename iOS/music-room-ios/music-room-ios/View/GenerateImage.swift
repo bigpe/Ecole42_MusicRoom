@@ -1321,6 +1321,7 @@ public func drawIcon(
     icon: UIImage,
     iconSize: CGSize,
     iconColor: UIColor,
+    cornerIcon: UIImage? = nil,
     backgroundColors: [UIColor],
     id: Int?
 ) {
@@ -1332,15 +1333,42 @@ public func drawIcon(
     
     let grayscaleColors = backgroundColors.map { $0.cgColor } as NSArray
     
-    let gradientColors: [NSArray] = [
-        [UIColor(rgb: 0xff516a).cgColor, UIColor(rgb: 0xff885e).cgColor],
-        [UIColor(rgb: 0xffa85c).cgColor, UIColor(rgb: 0xffcd6a).cgColor],
-        [UIColor(rgb: 0x665fff).cgColor, UIColor(rgb: 0x82b1ff).cgColor],
-        [UIColor(rgb: 0x54cb68).cgColor, UIColor(rgb: 0xa0de7e).cgColor],
-        [UIColor(rgb: 0x4acccd).cgColor, UIColor(rgb: 0x00fcfd).cgColor],
-        [UIColor(rgb: 0x2a9ef1).cgColor, UIColor(rgb: 0x72d5fd).cgColor],
-        [UIColor(rgb: 0xd669ed).cgColor, UIColor(rgb: 0xe0a2f3).cgColor],
+    let bootstrapForegroundColor = UIColor(displayP3Red: 0/255, green: 0/255, blue: 0/255, alpha: 0.74)
+    
+    let bootstrapBackgroundColors = [
+        (
+            start: UIColor(displayP3Red: 221/255, green: 179/255, blue: 83/255, alpha: 1),
+            end: UIColor(displayP3Red: 228/255, green: 196/255, blue: 109/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 202/255, green: 90/255, blue: 86/255, alpha: 1),
+            end: UIColor(displayP3Red: 209/255, green: 119/255, blue: 117/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 124/255, green: 202/255, blue: 197/255, alpha: 1),
+            end: UIColor(displayP3Red: 136/255, green: 211/255, blue: 208/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 189/255, green: 199/255, blue: 187/255, alpha: 1),
+            end: UIColor(displayP3Red: 202/255, green: 210/255, blue: 103/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 83/255, green: 79/255, blue: 195/255, alpha: 1),
+            end: UIColor(displayP3Red: 118/255, green: 115/255, blue: 206/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 65/255, green: 81/255, blue: 174/255, alpha: 1),
+            end: UIColor(displayP3Red: 103/255, green: 117/255, blue: 190/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 184/255, green: 78/255, blue: 107/255, alpha: 1),
+            end: UIColor(displayP3Red: 194/255, green: 108/255, blue: 137/255, alpha: 1)
+        ),
     ]
+    
+    let gradientColors: [NSArray] = bootstrapBackgroundColors.map {
+        [$0.start.cgColor, $0.end.cgColor]
+    }
     
     let colorIndex: Int
     
@@ -1404,12 +1432,42 @@ public func drawIcon(
             size: iconSize
         ))
     }
+    
+    context.resetClip()
+    
+    if let cgImage = cornerIcon?.cgImage, let cornerIconSize = cornerIcon?.size {
+        let padding = CGSize(width: size.width * 0.125, height: size.height * 0.125)
+        
+        context.setBlendMode(.softLight)
+        
+        context.setFillColor(bootstrapForegroundColor.cgColor)
+        
+        context.clip(to: CGRect(
+            origin: CGPoint(
+                x: floorToScreenPixels(size.width)
+                - floorToScreenPixels(cornerIconSize.width) - floorToScreenPixels(padding.width),
+                y: floorToScreenPixels(padding.height)
+            ),
+            size: cornerIconSize
+        ), mask: cgImage)
+        
+        context.fill(CGRect(
+            origin: CGPoint(
+                x: floorToScreenPixels(size.width)
+                - floorToScreenPixels(cornerIconSize.width) - floorToScreenPixels(padding.width),
+                y: floorToScreenPixels(padding.height)
+            ),
+            size: cornerIconSize
+        ))
+    }
 }
 
 public func drawLetters(
     context: CGContext,
     size: CGSize,
     round: Bool = false,
+    cornerIcon: UIImage,
+    cornerIconSize: CGSize,
     letters: [String],
     foregroundColor: UIColor,
     backgroundColors: [UIColor],
@@ -1516,7 +1574,7 @@ public func drawLetters(
         attributes: [
             NSAttributedString.Key.font: UIFont.systemFont(
                 ofSize: CGFloat(context.height) * 0.16,
-                weight: .heavy
+                weight: .semibold
             ),
             NSAttributedString.Key.foregroundColor: colorIndex == -1 ? foregroundColor : bootstrapTextColor,
         ]
@@ -1574,4 +1632,32 @@ public func drawLetters(
         end: .zero,
         options: CGGradientDrawingOptions()
     )
+    
+    context.resetClip()
+    
+    if let cgImage = cornerIcon.cgImage {
+        context.setBlendMode(.softLight)
+        
+        context.setFillColor(UIColor.white.cgColor)
+        
+        context.clip(to: CGRect(
+            origin: CGPoint(
+                x: floorToScreenPixels(size.width)
+                - floorToScreenPixels(cornerIconSize.width) - (padding.width + lineOffset.x),
+                y: floorToScreenPixels(size.height)
+                - floorToScreenPixels(cornerIconSize.height) - (padding.height + lineOffset.y)
+            ),
+            size: cornerIconSize
+        ), mask: cgImage)
+        
+        context.fill(CGRect(
+            origin: CGPoint(
+                x: floorToScreenPixels(size.width)
+                - floorToScreenPixels(cornerIconSize.width) - (padding.width + lineOffset.x),
+                y: floorToScreenPixels(size.height)
+                - floorToScreenPixels(cornerIconSize.height) - (padding.height + lineOffset.y)
+            ),
+            size: cornerIconSize
+        ))
+    }
 }
