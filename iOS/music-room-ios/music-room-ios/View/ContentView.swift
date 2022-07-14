@@ -189,7 +189,7 @@ struct ContentView: View {
                                     switch viewModel.playerState {
                                     case .paused:
                                         return -viewModel.playlistArtworkWidth / 4
-                                        
+
                                     case .playing:
                                         return 0
                                     }
@@ -198,7 +198,7 @@ struct ContentView: View {
                                     switch viewModel.playerState {
                                     case .paused:
                                         return -viewModel.playlistArtworkWidth / 4
-                                        
+
                                     case .playing:
                                         return 0
                                     }
@@ -223,19 +223,18 @@ struct ContentView: View {
                             .dynamicTypeSize(.xLarge)
                         
                         VStack(spacing: 8) {
-                            ProgressView(
-                                value: viewModel.trackProgress.value,
-                                total: viewModel.trackProgress.total
-                            )
-                                .tint(viewModel.secondaryControlsColor)
+                            ProgressSlider(trackProgress: $viewModel.trackProgress)
+                                .frame(height: 4)
+                                .accentColor(viewModel.primaryControlsColor)
                             
                             HStack {
-                                Text(Decimal(viewModel.trackProgress.value).time)
+                                Text(viewModel.trackProgress.value.time)
                                     .foregroundColor(viewModel.secondaryControlsColor)
                                 
                                 Spacer()
                                 
-                                Text(Decimal(viewModel.trackProgress.total).time)
+                                Text("-\(viewModel.trackProgress.remaining.time)")
+                                    .multilineTextAlignment(.trailing)
                                     .foregroundColor(viewModel.secondaryControlsColor)
                             }
                         }
@@ -380,7 +379,6 @@ struct ContentView: View {
                         }
                     )
                     .padding(.bottom, -64)
-                    
                     .transition(
                         .move(edge: .bottom)
                         .combined(with: .opacity)

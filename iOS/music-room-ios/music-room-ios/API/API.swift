@@ -127,8 +127,7 @@ public class API {
                 )
                 .validate()
                 .serializingAPI()
-                .value,
-            createdAt: Date()
+                .value
         )
         
         keychainCredential = apiCredential
@@ -165,8 +164,7 @@ public class API {
                 )
                 .validate()
                 .serializingAPI()
-                .value,
-            createdAt: Date()
+                .value
         )
         
         keychainCredential = apiCredential

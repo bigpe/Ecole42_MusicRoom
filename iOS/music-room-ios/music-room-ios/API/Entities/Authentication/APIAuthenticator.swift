@@ -28,14 +28,8 @@ public class APIAuthenticator: Authenticator {
     // MARK: - Authenticator
     
     public func apply(_ credential: Credential, to urlRequest: inout URLRequest) {
-        guard
-            let accessToken = credential.token.access
-        else {
-            return
-        }
-        
         urlRequest.setValue(
-            "Bearer \(accessToken)",
+            "Bearer \(credential.token.access)",
             forHTTPHeaderField: "Authorization"
         )
     }
@@ -68,15 +62,9 @@ public class APIAuthenticator: Authenticator {
         _ urlRequest: URLRequest,
         authenticatedWith credential: Credential
     ) -> Bool {
-        guard
-            let accessToken = credential.token.access
-        else {
-            return false
-        }
-        
-        return urlRequest.headers.contains { header in
+        urlRequest.headers.contains { header in
             header.name == "Authorization"
-            && header.value == "Bearer \(accessToken)"
+            && header.value == "Bearer \(credential.token.access)"
         }
     }
     

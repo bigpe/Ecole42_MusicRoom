@@ -14,6 +14,8 @@ extension ContentView {
     @MainActor
     class ViewModel: ObservableObject {
         
+        // MARK: - API
+        
         weak var api: API!
         
         // MARK: - Interface State
@@ -391,14 +393,31 @@ extension ContentView {
         
         // MARK: - Track Progress
         
-        struct TrackProgress {
-            let value: Double
+        struct TrackProgress: Equatable {
+            let value: Double?
             
-            let total: Double
+            let total: Double?
+            
+            var remaining: Double? {
+                guard
+                    let value = value,
+                    let total = total
+                else {
+                    return nil
+                }
+                
+                return total - value
+            }
         }
         
         @Published
-        var trackProgress = TrackProgress(value: 0, total: 0)
+        var trackProgress = TrackProgress(value: nil, total: nil) {
+            didSet {
+                if Int(trackProgress.value ?? 0) != Int(oldValue.value ?? 0) {
+                    updateNowPlayingInfo()
+                }
+            }
+        }
         
         // MARK: - Update Data
         
@@ -598,10 +617,10 @@ extension ContentView {
                 let currentSessionTrackProgressValue = currentSessionTrack?.progress
                 let currentTrackDuration = currentTrack?.duration
                 
-                let progressValue = ((currentSessionTrackProgressValue ?? 0) as NSDecimalNumber)
+                let progressValue = (currentSessionTrackProgressValue as NSDecimalNumber?)?
                     .doubleValue
                 
-                let progressTotal = ((currentTrackDuration ?? 0) as NSDecimalNumber)
+                let progressTotal = (currentTrackDuration as NSDecimalNumber?)?
                     .doubleValue
                 
                 let trackProgress = TrackProgress(
@@ -609,7 +628,9 @@ extension ContentView {
                     total: progressTotal
                 )
                 
-                self.trackProgress = trackProgress
+                if oldValue?.id != currentSessionTrack?.id {
+                    self.trackProgress = trackProgress
+                }
                 
                 guard
                     let currentSessionTrack = currentSessionTrack
@@ -681,57 +702,9 @@ extension ContentView {
             ))
         }
         
-        private func playCurrentTrack() {
-            guard
-                let currentTrackFile = self.currentTrack?.file
-                    .replacingOccurrences(of: "http://", with: "https://"),
-                let currentTrackURL = URL(string: currentTrackFile)
-            else {
-                return
-            }
-            
-            let playerItem = AVPlayerItem(url: currentTrackURL)
-            
-            player.replaceCurrentItem(with: playerItem)
-            
-            do {
-                try AVAudioSession.sharedInstance().setCategory(.playback)
-            } catch {
-                debugPrint(error.localizedDescription)
-            }
-            
-            player.play()
-            
-            player.addPeriodicTimeObserver(
-                forInterval: CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC)),
-                queue: .main
-            ) { cmTime in
-                let value = CMTimeGetSeconds(cmTime)
-                let total = NSDecimalNumber(decimal: self.currentTrack?.duration ?? 0).doubleValue
-                
-                withAnimation {
-                    self.trackProgress = TrackProgress(value: value, total: total)
-                }
-                
-                guard
-                    let sessionID = self.playerSession?.id
-                else {
-                    return
-                }
-                
-                Task {
-                    try await self.api.playerWebSocket?.send(
-                        PlayerMessage(
-                            event: .syncTrack,
-                            payload: .syncTrack(
-                                player_session_id: sessionID,
-                                progress: Int(value)
-                            )
-                        )
-                    )
-                }
-            }
-        }
+        var playerProgressTimeObserver: Any?
+        var playerSyncTimeObserver: Any?
+        var playerSeekableTimeObserver: Any?
         
         func backward() async throws {
             guard
@@ -777,7 +750,7 @@ extension ContentView {
                 throw .api.custom(errorDescription: "")
             }
             
-            player.pause()
+            pauseCurrentTrack()
             
             try await api.playerWebSocket?.send(PlayerMessage(
                 event: .pauseTrack,
@@ -791,7 +764,8 @@ extension ContentView {
         func forward() async throws {
             guard
                 let playerSessionID = playerSession?.id,
-                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+                let currentTrackID = currentTrack?.id, // TODO: Check CurrentTrack or SessionTrack
+                !queuedTracks.isEmpty
             else {
                 throw .api.custom(errorDescription: "")
             }

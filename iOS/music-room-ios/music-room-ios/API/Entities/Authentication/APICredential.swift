@@ -9,21 +9,17 @@ import Alamofire
 import Foundation
 
 public struct APICredential: Codable, AuthenticationCredential {
-    public let token: TokenRefreshModel
-    
-    public let createdAt: Date
+    public let token: TokenResponseModel
     
     public init(
-        token: TokenRefreshModel,
-        createdAt: Date
+        token: TokenResponseModel
     ) {
         self.token = token
-        self.createdAt = createdAt
     }
     
     // MARK: - AuthenticationCredential
     
     public var requiresRefresh: Bool {
-        false
+        Date().addingTimeInterval(60) >= token.expiresIn
     }
 }
