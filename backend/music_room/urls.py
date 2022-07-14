@@ -6,7 +6,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework.authentication import BasicAuthentication
 
 from .views import TrackListView, PlaylistListView, PlaylistOwnListView, PlayerSessionRetrieveView, AuthView, \
-    TokenRefreshWithExpiresView
+    TokenRefreshWithExpiresView, UserListView
 
 
 class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
@@ -39,4 +39,5 @@ urlpatterns = [
     path('player/session/', PlayerSessionRetrieveView.as_view()),
     path('auth/', AuthView.as_view()),
     path('auth/token/refresh/', TokenRefreshWithExpiresView.as_view()),
+    path('users/', UserListView.as_view()),
 ]

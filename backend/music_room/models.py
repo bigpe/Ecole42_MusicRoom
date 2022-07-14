@@ -9,10 +9,10 @@ from django.db.models.manager import Manager
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from bootstrap.utils import BootstrapMixin, BootstrapGeneric
+from bootstrap.utils import BootstrapMixin
 
 
-class User(AbstractUser):
+class User(AbstractUser, BootstrapMixin):
     ...
     # playlists: PlaylistChanged
 
@@ -60,7 +60,7 @@ def track_post_save(instance: Track, created, *args, **kwargs):
     post_save.connect(track_post_save, sender=Track)
 
 
-class Playlist(models.Model, BootstrapMixin):
+class Playlist(models.Model):
     class Types:
         default = 'default'  #: Default playlist e.g. favourites
         custom = 'custom'  #: Custom playlist, created by user
@@ -91,7 +91,7 @@ class Playlist(models.Model, BootstrapMixin):
     # tracks: PlaylistTrack
 
 
-class PlaylistTrack(models.Model, BootstrapMixin):
+class PlaylistTrack(models.Model):
     track: Track = models.ForeignKey(Track, models.CASCADE)  #: Track object
     order: int = models.IntegerField(default=0)  #: Track order in playlist
     playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='tracks')
@@ -100,7 +100,7 @@ class PlaylistTrack(models.Model, BootstrapMixin):
         ordering = ['order']
 
 
-class PlaylistAccess(models.Model, BootstrapMixin):
+class PlaylistAccess(models.Model):
     user = models.ForeignKey(User, models.CASCADE)
     playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='access_users')
 
@@ -136,12 +136,8 @@ class SessionTrack(models.Model):
     def __str__(self):
         return f'{self.track.name}-{self.state}-{self.order}'
 
-    class Bootstrap(BootstrapGeneric):
-        state = 'stopped'
-        votes_count = 0
 
-
-class PlayerSession(models.Model, BootstrapMixin):
+class PlayerSession(models.Model):
     class Modes:
         repeat = 'repeat'  #: Repeat single track for loop
         normal = 'normal'  #: Normal mode, tracks play in usual order
@@ -159,13 +155,6 @@ class PlayerSession(models.Model, BootstrapMixin):
     mode: Modes = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)
     #: Player Session author
     author: User = models.ForeignKey(User, models.CASCADE)
-
-    class Bootstrap(BootstrapGeneric):
-        @staticmethod
-        def after_bootstrap(model):
-            for i, track in enumerate(model.track_queue.all()):
-                track.order = i
-                track.save()
 
 
 @receiver(post_save, sender=PlayerSession)

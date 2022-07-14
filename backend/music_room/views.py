@@ -102,3 +102,16 @@ class TokenRefreshWithExpiresView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         return super(TokenRefreshWithExpiresView, self).post(request, *args, **kwargs)
 
+
+class UserListView(ListAPIView):
+    """
+    Users
+
+    Get users list
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.exclude(username=self.request.user.username)

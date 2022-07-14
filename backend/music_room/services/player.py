@@ -65,9 +65,7 @@ class PlayerService:
         next_track = track
         last_track = self.previous_track
 
-        reverse = False
-        if next_track == last_track:
-            reverse = True
+        reverse = next_track == last_track
 
         next_track.order = -1
         if not reverse:
