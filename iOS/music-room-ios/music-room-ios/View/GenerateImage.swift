@@ -9,6 +9,7 @@ import Accelerate
 import CoreMedia
 import Foundation
 import UIKit
+import SwiftUI
 
 extension UIColor {
     public convenience init(
@@ -1320,28 +1321,36 @@ public func drawIcon(
     icon: UIImage,
     iconSize: CGSize,
     iconColor: UIColor,
-    colors: [UIColor]
+    backgroundColors: [UIColor],
+    id: Int?
 ) {
     context.beginPath()
     
     context.fill(CGRect(origin: .zero, size: size))
+    
     context.clip()
     
-    //    let colorIndex: Int
+    let grayscaleColors = backgroundColors.map { $0.cgColor } as NSArray
     
-    //    if peerId.namespace == .max {
-    //    colorIndex = -1
-    //    } else {
-    //        colorIndex = Int(clamping: abs(peerId.id._internalGetInt64Value()))
-    //    }
+    let gradientColors: [NSArray] = [
+        [UIColor(rgb: 0xff516a).cgColor, UIColor(rgb: 0xff885e).cgColor],
+        [UIColor(rgb: 0xffa85c).cgColor, UIColor(rgb: 0xffcd6a).cgColor],
+        [UIColor(rgb: 0x665fff).cgColor, UIColor(rgb: 0x82b1ff).cgColor],
+        [UIColor(rgb: 0x54cb68).cgColor, UIColor(rgb: 0xa0de7e).cgColor],
+        [UIColor(rgb: 0x4acccd).cgColor, UIColor(rgb: 0x00fcfd).cgColor],
+        [UIColor(rgb: 0x2a9ef1).cgColor, UIColor(rgb: 0x72d5fd).cgColor],
+        [UIColor(rgb: 0xd669ed).cgColor, UIColor(rgb: 0xe0a2f3).cgColor],
+    ]
     
-    let colorsArray = colors.map { $0.cgColor } as NSArray
+    let colorIndex: Int
     
-    //    if colorIndex == -1 {
-    //        colorsArray = grayscaleColors
-    //    } else {
-    //        colorsArray = AvatarNode.gradientColors[colorIndex % AvatarNode.gradientColors.count]
-    //    }
+    let albumID = id ?? .max
+    
+    if albumID == .max {
+        colorIndex = -1
+    } else {
+        colorIndex = Int(clamping: abs(albumID))
+    }
     
     var locations: [CGFloat] = [1.0, 0.0]
     
@@ -1350,7 +1359,7 @@ public func drawIcon(
     guard
         let gradient = CGGradient(
             colorsSpace: colorSpace,
-            colors: colorsArray,
+            colors: colorIndex == -1 ? grayscaleColors : gradientColors[colorIndex % gradientColors.count],
             locations: &locations
         )
     else {
@@ -1373,7 +1382,7 @@ public func drawIcon(
     if let cgImage = icon.cgImage {
         context.setBlendMode(.normal)
 
-        context.setFillColor(iconColor.cgColor)
+        context.setFillColor((colorIndex == -1 ? iconColor : .white).cgColor)
         
         context.clip(to: CGRect(
             origin: CGPoint(
@@ -1395,4 +1404,174 @@ public func drawIcon(
             size: iconSize
         ))
     }
+}
+
+public func drawLetters(
+    context: CGContext,
+    size: CGSize,
+    round: Bool = false,
+    letters: [String],
+    foregroundColor: UIColor,
+    backgroundColors: [UIColor],
+    id: Int?
+) {
+    if round {
+        context.beginPath()
+        
+        context.addEllipse(
+            in: CGRect(
+                x: 0.0,
+                y: 0.0,
+                width: size.width,
+                height:
+                    size.height
+            )
+        )
+        
+        context.clip()
+    }
+    
+    let grayscaleColors = backgroundColors.map { $0.cgColor } as NSArray
+    
+    let bootstrapTextColor = UIColor(displayP3Red: 0/255, green: 0/255, blue: 0/255, alpha: 0.5)
+    
+    let bootstrapColors = [
+        (
+            start: UIColor(displayP3Red: 221/255, green: 179/255, blue: 83/255, alpha: 1),
+            end: UIColor(displayP3Red: 228/255, green: 196/255, blue: 109/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 202/255, green: 90/255, blue: 86/255, alpha: 1),
+            end: UIColor(displayP3Red: 209/255, green: 119/255, blue: 117/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 124/255, green: 202/255, blue: 197/255, alpha: 1),
+            end: UIColor(displayP3Red: 136/255, green: 211/255, blue: 208/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 189/255, green: 199/255, blue: 187/255, alpha: 1),
+            end: UIColor(displayP3Red: 202/255, green: 210/255, blue: 103/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 83/255, green: 79/255, blue: 195/255, alpha: 1),
+            end: UIColor(displayP3Red: 118/255, green: 115/255, blue: 206/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 65/255, green: 81/255, blue: 174/255, alpha: 1),
+            end: UIColor(displayP3Red: 103/255, green: 117/255, blue: 190/255, alpha: 1)
+        ),
+        (
+            start: UIColor(displayP3Red: 184/255, green: 78/255, blue: 107/255, alpha: 1),
+            end: UIColor(displayP3Red: 194/255, green: 108/255, blue: 137/255, alpha: 1)
+        ),
+    ]
+    
+    let gradientColors: [NSArray] = bootstrapColors.map {
+        [$0.start.cgColor, $0.end.cgColor]
+    }
+
+    let colorIndex: Int
+    
+    let albumID = id ?? .max
+
+    if albumID == .max {
+        colorIndex = -1
+    } else {
+        colorIndex = Int(clamping: abs(albumID))
+    }
+    
+    var locations: [CGFloat] = [1.0, 0.0]
+    
+    let colorSpace = CGColorSpaceCreateDeviceRGB()
+    
+    let colors = colorIndex == -1 ? grayscaleColors : gradientColors[colorIndex % gradientColors.count]
+    
+    guard
+        let gradient = CGGradient(
+            colorsSpace: colorSpace,
+            colors: colors,
+            locations: &locations
+        )
+    else {
+        return
+    }
+    
+    context.drawLinearGradient(
+        gradient,
+        start: CGPoint(),
+        end: CGPoint(x: 0.0, y: size.height),
+        options: CGGradientDrawingOptions()
+    )
+    
+    context.resetClip()
+    
+    context.setBlendMode(.softLight)
+    
+//    let string = letters.count == 0 ? "" : (letters[0] + (letters.count == 1 ? "" : letters[1]))
+    
+    let string = letters.prefix(10).reduce("", { $0 + $1 })
+    
+    let attributedString = NSAttributedString(
+        string: string,
+        attributes: [
+            NSAttributedString.Key.font: UIFont.systemFont(
+                ofSize: CGFloat(context.height) * 0.16,
+                weight: .heavy
+            ),
+            NSAttributedString.Key.foregroundColor: colorIndex == -1 ? foregroundColor : bootstrapTextColor,
+        ]
+    )
+    
+    let line = CTLineCreateWithAttributedString(attributedString)
+    let lineBounds = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
+    
+    let lineOffset = CGPoint(x: string == "B" ? 1.0 : 0.0, y: 0.0)
+    
+//    let centerLineOrigin = CGPoint(
+//        x: floorToScreenPixels(-lineBounds.origin.x + (size.width - lineBounds.size.width) / 2.0)
+//        + lineOffset.x,
+//        y: floorToScreenPixels(-lineBounds.origin.y + (size.height - lineBounds.size.height) / 2.0)
+//    )
+    
+    let padding = CGSize(width: size.width * 0.125, height: size.height * 0.125)
+    
+    let lineOrigin = CGPoint(
+        x: floorToScreenPixels(0) + padding.width + lineOffset.x,
+        y: floorToScreenPixels(0) + padding.height + lineOffset.y
+    )
+    
+    context.translateBy(x: size.width / 2.0, y: size.height / 2.0)
+    context.scaleBy(x: 1.0, y: -1.0)
+    context.translateBy(x: -size.width / 2.0, y: -size.height / 2.0)
+    
+    let textPosition = context.textPosition
+    context.translateBy(x: lineOrigin.x, y: lineOrigin.y)
+    CTLineDraw(line, context)
+    context.translateBy(x: -lineOrigin.x, y: -lineOrigin.y)
+    context.textPosition = textPosition
+    
+    context.setBlendMode(.normal)
+    
+    let opacityGradientColors: [NSArray] = bootstrapColors.map {
+        [$0.start.withAlphaComponent(0).cgColor, $0.end.cgColor]
+    }
+    
+    let opacityColors = colorIndex == -1 ? grayscaleColors : opacityGradientColors[colorIndex % opacityGradientColors.count]
+    
+    guard
+        let opacityGradient = CGGradient(
+            colorsSpace: colorSpace,
+            colors: opacityColors,
+            locations: &locations
+        )
+    else {
+        return
+    }
+    
+    context.drawLinearGradient(
+        opacityGradient,
+        start: CGPoint(x: size.width, y: 0),
+        end: .zero,
+        options: CGGradientDrawingOptions()
+    )
 }

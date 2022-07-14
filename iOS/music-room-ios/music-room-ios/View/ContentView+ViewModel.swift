@@ -382,10 +382,11 @@ extension ContentView {
                     icon: musicNoteIcon,
                     iconSize: musicNoteIcon.size,
                     iconColor: UIColor(displayP3Red: 0.462, green: 0.458, blue: 0.474, alpha: 1),
-                    colors: [
+                    backgroundColors: [
                         UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
                         UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
-                    ]
+                    ],
+                    id: nil
                 )
             }
         )?

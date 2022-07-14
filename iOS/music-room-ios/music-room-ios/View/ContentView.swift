@@ -78,36 +78,6 @@ struct ContentView: View {
             .resizable()
     }
     
-    // MARK: - Album Cover
-    
-    let albumCover = generateImage(
-        CGSize(width: 1000, height: 1000),
-        rotatedContext: { size, context in
-            
-            context.clear(CGRect(origin: CGPoint(), size: size))
-            
-            let musicNoteIcon = UIImage(systemName: "music.note.list")?
-                .withConfiguration(UIImage.SymbolConfiguration(
-                    pointSize: 1000 * 0.375,
-                    weight: .medium
-                ))
-            ?? UIImage()
-            
-            drawIcon(
-                context: context,
-                size: size,
-                icon: musicNoteIcon,
-                iconSize: musicNoteIcon.size,
-                iconColor: UIColor(displayP3Red: 0.462, green: 0.458, blue: 0.474, alpha: 1),
-                colors: [
-                    UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
-                    UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
-                ]
-            )
-        }
-    )?
-        .withRenderingMode(.alwaysOriginal) ?? UIImage()
-    
     var body: some View {
         
         // MARK: - Main Layout
@@ -507,7 +477,15 @@ struct ContentView: View {
                                             viewModel.subscribeToPlaylist(playlistID: playlistID)
                                         } label: {
                                             HStack(alignment: .center, spacing: 16) {
-                                                Image(uiImage: albumCover)
+                                                Image(uiImage: {
+                                                    switch playlist.accessType {
+                                                    case .private:
+                                                        return playlist.defaultCover
+                                                        
+                                                    case .public:
+                                                        return playlist.cover
+                                                    }
+                                                }())
                                                     .resizable()
                                                     .cornerRadius(4)
                                                     .frame(width: 60, height: 60)
@@ -542,7 +520,15 @@ struct ContentView: View {
                                             viewModel.subscribeToPlaylist(playlistID: playlistID)
                                         } label: {
                                             HStack(alignment: .center, spacing: 16) {
-                                                Image(uiImage: albumCover)
+                                                Image(uiImage: {
+                                                    switch playlist.accessType {
+                                                    case .private:
+                                                        return playlist.defaultCover
+                                                        
+                                                    case .public:
+                                                        return playlist.cover
+                                                    }
+                                                }())
                                                     .resizable()
                                                     .cornerRadius(4)
                                                     .frame(width: 60, height: 60)
