@@ -93,7 +93,7 @@ class Playlist(models.Model, BootstrapMixin):
 
 class PlaylistTrack(models.Model, BootstrapMixin):
     track: Track = models.ForeignKey(Track, models.CASCADE)  #: Track object
-    order: int = models.PositiveIntegerField(default=0)  #: Track order in playlist
+    order: int = models.IntegerField(default=0)  #: Track order in playlist
     playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='tracks')
 
     class Meta:
