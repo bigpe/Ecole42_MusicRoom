@@ -48,7 +48,7 @@ class PlaylistService:
 
     @Decorators.lookup_track
     def add_track(self, track: [int, Track]):
-        self.playlist.tracks.create(track=track, order=-1)
+        self.playlist.tracks.create(track=track, order=self.playlist.tracks.all().count() + 1)
         self.resort()
 
     @Decorators.lookup_track
