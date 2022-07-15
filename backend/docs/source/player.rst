@@ -71,6 +71,17 @@ Play Track
 .. autoclass:: ws.player.PlayerConsumer.PlayTrack
    :inherited-members:
 
+Delay Play Track
+"""""""""""""""""""
+.. autoattribute:: ws.player.EventsList.delay_play_track
+   :noindex:
+
+.. seealso::
+   :obj:`.Examples.delay_play_track_request`
+   :obj:`.Examples.session_changed_response`
+.. autoclass:: ws.player.PlayerConsumer.DelayPlayTrack
+   :inherited-members:
+
 Play Next Track
 """""""""""""""""""
 .. autoattribute:: ws.player.EventsList.play_next_track
@@ -170,6 +181,14 @@ Modify Track
 .. autoclass:: ws.player.signatures.RequestPayloadWrap.StopTrack
    :inherited-members:
 
+Delay Play Track
+""""""""""""""""""""
+
+.. autoclass:: ws.player.signatures.RequestPayloadWrap.DelayPlayTrack
+   :inherited-members:
+.. autoclass:: ws.player.signatures.RequestPayload.DelayPlayTrack
+   :inherited-members:
+
 Create Session
 """""""""""""""""""
 
@@ -213,6 +232,7 @@ Requests
 .. autoattribute:: Examples.create_session_request
 .. autoattribute:: Examples.remove_session_request
 .. autoattribute:: Examples.play_track_request
+.. autoattribute:: Examples.delay_play_track_request
 .. autoattribute:: Examples.play_next_track_request
 .. autoattribute:: Examples.play_previous_track_request
 .. autoattribute:: Examples.shuffle_request

@@ -12,6 +12,11 @@ class RequestPayload:
         track_id: Optional[int] = None  #: Optional, track id for any actions with it
 
     @dataclass
+    class DelayPlayTrack(BasePayload):
+        player_session_id: int  #: Already started player session id
+        track_id: int  #: Track id for push top of queue
+
+    @dataclass
     class CreateSession(BasePayload):
         playlist_id: int  #: Already created playlist id
         shuffle: bool = False  #: If you need create session with shuffle tracks in playlist
@@ -30,6 +35,10 @@ class RequestPayloadWrap:
     @dataclass
     class PlayTrack(BasePayload):
         play_track: Union[RequestPayload.ModifyTrack, dict]  #: Play track signature mock for swift
+
+    @dataclass
+    class DelayPlayTrack(BasePayload):
+        delay_play_track: Union[RequestPayload.DelayPlayTrack, dict]  #: Delay play track signature mock for swift
 
     @dataclass
     class PlayNextTrack(BasePayload):

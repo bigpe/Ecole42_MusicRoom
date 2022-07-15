@@ -123,6 +123,18 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.play_track(payload.track_id if payload.track_id else player_service.current_track)
 
+    class DelayPlayTrack(SessionChanged, BaseEvent):
+        """Delay play track by id (push track to top of queue)"""
+        request_payload_type = RequestPayload.DelayPlayTrack
+        response_payload_type_initiator = ResponsePayload.PlayerSession
+        response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
+
+        @get_player_service
+        @only_for_author
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.delay_play_track(payload.track_id)
+
     class PlayNextTrack(SessionChanged, BaseEvent):
         """Play next track for current player session"""
         request_payload_type = RequestPayload.ModifyTrack
@@ -211,6 +223,7 @@ class EventsList:
     create_session: PlayerConsumer.CreateSession = camel_to_dot(PlayerConsumer.CreateSession.__name__)
     remove_session: PlayerConsumer.RemoveSession = camel_to_dot(PlayerConsumer.RemoveSession.__name__)
     play_track: PlayerConsumer.PlayTrack = camel_to_dot(PlayerConsumer.PlayTrack.__name__)
+    delay_play_track: PlayerConsumer.DelayPlayTrack = camel_to_dot(PlayerConsumer.DelayPlayTrack.__name__)
     play_next_track: PlayerConsumer.PlayNextTrack = camel_to_dot(PlayerConsumer.PlayNextTrack.__name__)
     play_previous_track: PlayerConsumer.PlayPreviousTrack = camel_to_dot(PlayerConsumer.PlayPreviousTrack.__name__)
     shuffle: PlayerConsumer.Shuffle = camel_to_dot(PlayerConsumer.Shuffle.__name__)
@@ -248,6 +261,12 @@ class Examples:
     play_track_request = Action(
         event=str(EventsList.play_track),
         payload=RequestPayload.ModifyTrack(player_session_id=1, track_id=1).to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
+    delay_play_track_request = Action(
+        event=str(EventsList.delay_play_track),
+        payload=RequestPayload.DelayPlayTrack(player_session_id=1, track_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 

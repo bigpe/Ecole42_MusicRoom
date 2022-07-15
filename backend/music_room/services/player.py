@@ -82,6 +82,14 @@ class PlayerService:
         self.resort()
         return track
 
+    @Decorators.lookup_track
+    def delay_play_track(self, track: [int, SessionTrack]) -> SessionTrack:
+        track.order = -1
+        track.save()
+
+        self.resort()
+        return track
+
     @property
     def previous_track(self) -> SessionTrack:
         return self.player_session.track_queue.last()
