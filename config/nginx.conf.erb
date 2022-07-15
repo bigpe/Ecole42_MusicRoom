@@ -36,9 +36,9 @@ http {
 		client_max_body_size 50m;
 
         include templates/base.locations;
-	}
 
-	if ($http_x_forwarded_proto != "https") {
-        return 301 https://$host$request_uri;
-    }
+        if ($http_x_forwarded_proto != "https") {
+            return 301 https://$host$request_uri;
+        }
+	}
 }
