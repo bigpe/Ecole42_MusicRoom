@@ -84,7 +84,9 @@ class PlayerService:
 
     @Decorators.lookup_track
     def delay_play_track(self, track: [int, SessionTrack]) -> SessionTrack:
-        track.order = -1
+        self.current_track.order = -1
+        track.order = 0
+        self.current_track.save()
         track.save()
 
         self.resort()
