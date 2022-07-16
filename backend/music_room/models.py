@@ -1,6 +1,7 @@
 from typing import List, Union
 
 import eyed3 as eyed3
+from tinytag import TinyTag
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -32,7 +33,7 @@ def user_post_save(instance: User, created, **kwargs):
 
 
 def audio_file_validator(file: FieldFile):
-    allowed_extensions = ['mp3', 'flac']
+    allowed_extensions = File.Extensions.names
     file_extension = file.name.split('.')[-1]
     if file_extension not in allowed_extensions:
         raise ValidationError(
@@ -43,21 +44,38 @@ def audio_file_validator(file: FieldFile):
 
 class Track(models.Model):
     name = models.CharField(max_length=150, unique=True)  #: Track name
-    file = models.FileField(upload_to='music', validators=[audio_file_validator])  #: Track file
-    duration = models.FloatField(blank=True, null=True)  #: Track duration in seconds
+
+    # files: File
 
     def __str__(self):
         return self.name
 
 
-@receiver(post_save, sender=Track)
-def track_post_save(instance: Track, created, *args, **kwargs):
-    post_save.disconnect(track_post_save, sender=Track)
+class File(models.Model):
+    class Extensions(models.TextChoices):
+        mp3 = 'mp3'
+        flac = 'flac'
+
+    #: Track file
+    file = models.FileField(upload_to='music', validators=[audio_file_validator])
+    #: Track file extension
+    extension: Extensions = models.CharField(max_length=50, choices=Extensions.choices, blank=True, null=True)
+    #: Track duration in seconds
+    duration = models.FloatField(blank=True, null=True)
+    #: Track instance
+    track = models.ForeignKey(Track, models.CASCADE, related_name='files')
+
+
+@receiver(post_save, sender=File)
+def file_post_save(instance: File, created, *args, **kwargs):
+    post_save.disconnect(file_post_save, sender=File)
     if instance.file:
-        track_file_meta = eyed3.load(instance.file.path)
-        instance.duration = track_file_meta.info.time_secs
+        file_extension = instance.file.name.split('.')[-1]
+        track_file_meta = TinyTag.get(instance.file.path)
+        instance.duration = track_file_meta.duration
+        instance.extension = file_extension
         instance.save()
-    post_save.connect(track_post_save, sender=Track)
+    post_save.connect(file_post_save, sender=File)
 
 
 class Playlist(models.Model):
@@ -168,4 +186,3 @@ def player_session_post_save(instance: PlayerSession, created, **kwargs):
     for i, playlist_track in enumerate(playlist_tracks):
         session_track = SessionTrack.objects.create(track=playlist_track.track, order=i)
         instance.track_queue.add(session_track)
-

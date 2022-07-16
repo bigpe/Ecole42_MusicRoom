@@ -7,10 +7,18 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer as TokenRefreshBaseSerializer, \
     TokenObtainPairSerializer as TokenObtainPairBaseSerializer
 
-from .models import Track, Playlist, PlayerSession, SessionTrack, PlaylistTrack, PlaylistAccess, User
+from .models import Track, Playlist, PlayerSession, SessionTrack, PlaylistTrack, PlaylistAccess, User, File
+
+
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = '__all__'
 
 
 class TrackSerializer(serializers.ModelSerializer):
+    files = FileSerializer(many=True)
+
     class Meta:
         model = Track
         fields = '__all__'

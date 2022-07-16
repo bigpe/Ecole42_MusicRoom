@@ -9,6 +9,6 @@ sphinx-autodoc-typehints
 django-heroku
 drf-yasg
 drf-yasg[validation]
-eyeD3
 djangorestframework-simplejwt
+tinytag
 
