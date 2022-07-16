@@ -12,6 +12,9 @@ struct ProgressSlider: View {
     @Binding
     var trackProgress: ContentView.ViewModel.TrackProgress
     
+    @Binding
+    var isProgressTracking: Bool
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
@@ -38,7 +41,40 @@ struct ProgressSlider: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
-//                        self.percentage = min(max(0, Double(value.location.x / geometry.size.width)), 1)
+                        isProgressTracking = true
+                        
+                        let percentage = min(max(0, Double(value.location.x / geometry.size.width)), 1)
+                        
+                        guard
+                            let total = trackProgress.total
+                        else {
+                            return
+                        }
+                        
+                        let value = total * percentage
+                        
+                        trackProgress = ContentView.ViewModel.TrackProgress(
+                            value: value,
+                            total: total
+                        )
+                    }
+                    .onEnded { value in
+                        isProgressTracking = false
+                        
+                        let percentage = min(max(0, Double(value.location.x / geometry.size.width)), 1)
+                        
+                        guard
+                            let total = trackProgress.total
+                        else {
+                            return
+                        }
+                        
+                        let value = total * percentage
+                        
+                        trackProgress = ContentView.ViewModel.TrackProgress(
+                            value: value,
+                            total: total
+                        )
                     }
             )
         }

@@ -8,6 +8,7 @@
 import SwiftUI
 import PINRemoteImage
 import AVFoundation
+import MediaPlayer
 
 extension ContentView {
     
@@ -420,6 +421,33 @@ extension ContentView {
             }
         }
         
+        @Published
+        var isProgressTracking = false {
+            didSet {
+                guard oldValue, !isProgressTracking else { return }
+                
+                @MainActor
+                func seek() {
+                    guard
+                        let progress = trackProgress.value
+                    else {
+                        return player.play()
+                    }
+                    
+                    let timeScale = CMTimeScale(1)
+                    let time = CMTime(seconds: progress, preferredTimescale: timeScale)
+                    
+                    player.seek(to: time) { [unowned self] (status) in
+                        guard status else { return seek() }
+                        
+                        player.play()
+                    }
+                }
+                
+                seek()
+            }
+        }
+        
         // MARK: - Update Data
         
         func updateData() {
@@ -710,10 +738,17 @@ extension ContentView {
         func backward() async throws {
             guard
                 let playerSessionID = playerSession?.id,
-                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+                let currentTrackID = currentTrack?.id,
+                !queuedTracks.isEmpty
             else {
                 throw .api.custom(errorDescription: "")
             }
+            
+            player.pause()
+            
+            currentTrack = queuedTracks.removeLast()
+            
+            playCurrentTrack()
             
             try await api.playerWebSocket?.send(PlayerMessage(
                 event: .playPreviousTrack,
@@ -727,7 +762,7 @@ extension ContentView {
         func resume() async throws {
             guard
                 let playerSessionID = playerSession?.id,
-                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+                let currentTrackID = currentTrack?.id
             else {
                 throw .api.custom(errorDescription: "")
             }
@@ -914,6 +949,34 @@ extension ContentView {
         
         lazy var player = {
             let player = AVPlayer()
+            
+            MPRemoteCommandCenter.shared().playCommand.addTarget { event in
+                self.playCurrentTrack()
+                
+                return .success
+            }
+            
+            MPRemoteCommandCenter.shared().pauseCommand.addTarget { event in
+                self.pauseCurrentTrack()
+                
+                return .success
+            }
+            
+            MPRemoteCommandCenter.shared().nextTrackCommand.addTarget { event in
+                Task {
+                    try await self.forward()
+                }
+                
+                return .success
+            }
+            
+            MPRemoteCommandCenter.shared().previousTrackCommand.addTarget { event in
+                Task {
+                    try await self.backward()
+                }
+                
+                return .success
+            }
             
             return player
         }()

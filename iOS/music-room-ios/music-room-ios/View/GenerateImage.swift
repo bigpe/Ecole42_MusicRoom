@@ -1466,8 +1466,8 @@ public func drawLetters(
     context: CGContext,
     size: CGSize,
     round: Bool = false,
-    cornerIcon: UIImage,
-    cornerIconSize: CGSize,
+    topCornerIcon: UIImage,
+    bottomCornerIcon: UIImage? = nil,
     letters: [String],
     foregroundColor: UIColor,
     backgroundColors: [UIColor],
@@ -1493,7 +1493,9 @@ public func drawLetters(
     
     let bootstrapTextColor = UIColor(displayP3Red: 0/255, green: 0/255, blue: 0/255, alpha: 0.5)
     
-    let bootstrapColors = [
+    let bootstrapForegroundColor = UIColor(displayP3Red: 0/255, green: 0/255, blue: 0/255, alpha: 0.74)
+    
+    let bootstrapBackgroundColors = [
         (
             start: UIColor(displayP3Red: 221/255, green: 179/255, blue: 83/255, alpha: 1),
             end: UIColor(displayP3Red: 228/255, green: 196/255, blue: 109/255, alpha: 1)
@@ -1524,7 +1526,7 @@ public func drawLetters(
         ),
     ]
     
-    let gradientColors: [NSArray] = bootstrapColors.map {
+    let gradientColors: [NSArray] = bootstrapBackgroundColors.map {
         [$0.start.cgColor, $0.end.cgColor]
     }
 
@@ -1610,9 +1612,43 @@ public func drawLetters(
     
     context.setBlendMode(.normal)
     
-    let opacityGradientColors: [NSArray] = bootstrapColors.map {
-        [$0.start.withAlphaComponent(0).cgColor, $0.end.cgColor]
+    let opacityGradientColors: [NSArray] = bootstrapBackgroundColors.map {
+        if bottomCornerIcon == nil {
+            return [
+                $0.start
+                    .withAlphaComponent(0)
+                    .cgColor,
+                $0.end
+                    .cgColor,
+            ]
+        } else {
+            return [
+                $0.start
+                    .withAlphaComponent(0)
+                    .cgColor,
+                $0.end
+                    .withAlphaComponent(0.8)
+                    .cgColor,
+                $0.end
+                    .cgColor,
+            ]
+        }
     }
+    
+    var opacityLocations: [CGFloat] = {
+        if bottomCornerIcon == nil {
+            return [
+                1.0,
+                0.0,
+            ]
+        } else {
+            return [
+                1.0,
+                0.5,
+                0.0,
+            ]
+        }
+    }()
     
     let opacityColors = colorIndex == -1 ? grayscaleColors : opacityGradientColors[colorIndex % opacityGradientColors.count]
     
@@ -1620,7 +1656,7 @@ public func drawLetters(
         let opacityGradient = CGGradient(
             colorsSpace: colorSpace,
             colors: opacityColors,
-            locations: &locations
+            locations: &opacityLocations
         )
     else {
         return
@@ -1635,7 +1671,7 @@ public func drawLetters(
     
     context.resetClip()
     
-    if let cgImage = cornerIcon.cgImage {
+    if let cgImage = topCornerIcon.cgImage {
         context.setBlendMode(.softLight)
         
         context.setFillColor(UIColor.white.cgColor)
@@ -1643,21 +1679,50 @@ public func drawLetters(
         context.clip(to: CGRect(
             origin: CGPoint(
                 x: floorToScreenPixels(size.width)
-                - floorToScreenPixels(cornerIconSize.width) - (padding.width + lineOffset.x),
+                - floorToScreenPixels(topCornerIcon.size.width) - (padding.width + lineOffset.x),
                 y: floorToScreenPixels(size.height)
-                - floorToScreenPixels(cornerIconSize.height) - (padding.height + lineOffset.y)
+                - floorToScreenPixels(topCornerIcon.size.height) - (padding.height + lineOffset.y)
             ),
-            size: cornerIconSize
+            size: topCornerIcon.size
         ), mask: cgImage)
         
         context.fill(CGRect(
             origin: CGPoint(
                 x: floorToScreenPixels(size.width)
-                - floorToScreenPixels(cornerIconSize.width) - (padding.width + lineOffset.x),
+                - floorToScreenPixels(topCornerIcon.size.width) - (padding.width + lineOffset.x),
                 y: floorToScreenPixels(size.height)
-                - floorToScreenPixels(cornerIconSize.height) - (padding.height + lineOffset.y)
+                - floorToScreenPixels(topCornerIcon.size.height) - (padding.height + lineOffset.y)
             ),
-            size: cornerIconSize
+            size: topCornerIcon.size
+        ))
+    }
+    
+    context.resetClip()
+    
+    if let cgImage = bottomCornerIcon?.cgImage,
+       let iconSize = bottomCornerIcon?.size {
+        let padding = CGSize(width: size.width * 0.125, height: size.height * 0.125)
+        
+        context.setBlendMode(.softLight)
+        
+        context.setFillColor(bootstrapForegroundColor.cgColor)
+        
+        context.clip(to: CGRect(
+            origin: CGPoint(
+                x: floorToScreenPixels(size.width)
+                - floorToScreenPixels(iconSize.width) - floorToScreenPixels(padding.width),
+                y: floorToScreenPixels(padding.height)
+            ),
+            size: iconSize
+        ), mask: cgImage)
+        
+        context.fill(CGRect(
+            origin: CGPoint(
+                x: floorToScreenPixels(size.width)
+                - floorToScreenPixels(iconSize.width) - floorToScreenPixels(padding.width),
+                y: floorToScreenPixels(padding.height)
+            ),
+            size: iconSize
         ))
     }
 }

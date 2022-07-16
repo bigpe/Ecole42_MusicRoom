@@ -12,16 +12,19 @@ import AVFoundation
 extension ContentView.ViewModel {
     func playCurrentTrack() {
         guard
-            let currentTrackFile = self.currentTrack?.file
-                .replacingOccurrences(of: "http://", with: "https://"), // FIXME: Remove
+            let currentTrackFile = self.currentTrack?.file,
             let currentTrackURL = URL(string: currentTrackFile)
         else {
             return
         }
         
+        guard
+            (player.currentItem?.asset as? AVURLAsset)?.url != currentTrackURL
+        else {
+            return player.play()
+        }
+        
         let playerItem = AVPlayerItem(url: currentTrackURL)
-        
-        
         
         do {
             let audioSession = AVAudioSession.sharedInstance()
@@ -62,22 +65,31 @@ extension ContentView.ViewModel {
                 
                 @MainActor
                 func seek() {
+                    guard
+                        let currentSessionTrackProgress = currentSessionTrack?.progress
+                    else {
+                        return player.play()
+                    }
+                    
+                    let progress = NSDecimalNumber(decimal: currentSessionTrackProgress).doubleValue
+                    let timeScale = CMTimeScale(1)
+                    let time = CMTime(seconds: progress, preferredTimescale: timeScale)
+                    
                     player.seek(to: time) { [unowned self] (status) in
-                        print("\n\n\nWas Seeked?")
-                        debugPrint(status)
-                        print("\n\n\n")
-                        
                         guard status else { return seek() }
                         
                         player.play()
                     }
                 }
+                
+                seek()
             }
         } else {
             player.play()
         }
         
-        let total = (self.currentTrack?.duration as NSDecimalNumber?)?.doubleValue
+        let progress = (self.currentSessionTrack?.progress as? NSDecimalNumber)
+        let total = (self.currentTrack?.duration as NSDecimalNumber?)
         
         if let playerProgressTimeObserver = playerProgressTimeObserver {
             player.removeTimeObserver(playerProgressTimeObserver)
@@ -93,7 +105,27 @@ extension ContentView.ViewModel {
         ) { cmTime in
             let value = cmTime.seconds
             
-            self.trackProgress = TrackProgress(value: value, total: total)
+            if !self.isProgressTracking {
+                self.trackProgress = TrackProgress(value: value, total: total?.doubleValue)
+            }
+            
+            if (progress?.intValue ?? 0) >= (total?.intValue ?? 0) || Int(value) >= (total?.intValue ?? 0) {
+                if let playerProgressTimeObserver = self.playerProgressTimeObserver {
+                    self.player.removeTimeObserver(playerProgressTimeObserver)
+                    
+                    self.playerProgressTimeObserver = nil
+                }
+                
+                if let playerSyncTimeObserver = self.playerSyncTimeObserver {
+                    self.player.removeTimeObserver(playerSyncTimeObserver)
+                    
+                    self.playerSyncTimeObserver = nil
+                }
+                
+                Task {
+                    try await self.forward()
+                }
+            }
         }
         
         playerSyncTimeObserver = player.addPeriodicTimeObserver(
@@ -107,6 +139,12 @@ extension ContentView.ViewModel {
             }
             
             let value = cmTime.seconds
+            
+            guard
+                !self.isProgressTracking
+            else {
+                return
+            }
             
             Task {
                 try await self.api.playerWebSocket?.send(
@@ -178,8 +216,8 @@ extension ContentView.ViewModel {
         
         nowPlayingInfoCenter.nowPlayingInfo = nowPlayingInfo
         
-        #if os(OSX)
-        nowPlayingInfoCenter.playbackState = player.rate == 0 ? .paused : .playing
-        #endif
+        if #available(macOS 10, *) {
+            nowPlayingInfoCenter.playbackState = player.rate == 0 ? .paused : .playing
+        }
     }
 }

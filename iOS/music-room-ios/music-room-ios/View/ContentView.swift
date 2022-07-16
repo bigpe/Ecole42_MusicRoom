@@ -193,7 +193,10 @@ struct ContentView: View {
                             .dynamicTypeSize(.xLarge)
                         
                         VStack(spacing: 8) {
-                            ProgressSlider(trackProgress: $viewModel.trackProgress)
+                            ProgressSlider(
+                                trackProgress: $viewModel.trackProgress,
+                                isProgressTracking: $viewModel.isProgressTracking
+                            )
                                 .frame(height: 4)
                                 .accentColor(viewModel.primaryControlsColor)
                             
@@ -477,15 +480,7 @@ struct ContentView: View {
                                             viewModel.subscribeToPlaylist(playlistID: playlistID)
                                         } label: {
                                             HStack(alignment: .center, spacing: 16) {
-                                                Image(uiImage: {
-                                                    switch playlist.accessType {
-                                                    case .private:
-                                                        return playlist.defaultCover
-                                                        
-                                                    case .public:
-                                                        return playlist.cover
-                                                    }
-                                                }())
+                                                Image(uiImage: playlist.cover)
                                                     .resizable()
                                                     .cornerRadius(4)
                                                     .frame(width: 60, height: 60)
@@ -520,15 +515,7 @@ struct ContentView: View {
                                             viewModel.subscribeToPlaylist(playlistID: playlistID)
                                         } label: {
                                             HStack(alignment: .center, spacing: 16) {
-                                                Image(uiImage: {
-                                                    switch playlist.accessType {
-                                                    case .private:
-                                                        return playlist.defaultCover
-                                                        
-                                                    case .public:
-                                                        return playlist.cover
-                                                    }
-                                                }())
+                                                Image(uiImage: playlist.cover)
                                                     .resizable()
                                                     .cornerRadius(4)
                                                     .frame(width: 60, height: 60)

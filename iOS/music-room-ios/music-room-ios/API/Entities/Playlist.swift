@@ -67,46 +67,46 @@ public struct Playlist: Codable, Identifiable {
         case author
     }
     
-    var defaultCover: UIImage {
-        generateImage(
-            CGSize(width: 1000, height: 1000),
-            rotatedContext: { contextSize, context in
-                
-                context.clear(CGRect(origin: CGPoint(), size: contextSize))
-                
-                let musicNoteIcon = UIImage(systemName: "music.note.list")?
-                    .withConfiguration(UIImage.SymbolConfiguration(
-                        pointSize: 1000 * 0.375,
-                        weight: .medium
-                    ))
-                ?? UIImage()
-                
-                let cornerIconPointSize = contextSize.width * 0.175
-                
-                let cornerIcon = UIImage(systemName: "lock.circle.fill")?
-                    .withConfiguration(UIImage.SymbolConfiguration(
-                        pointSize: cornerIconPointSize,
-                        weight: .regular
-                    ))
-                ?? UIImage()
-                
-                drawIcon(
-                    context: context,
-                    size: contextSize,
-                    icon: musicNoteIcon,
-                    iconSize: musicNoteIcon.size,
-                    iconColor: UIColor(displayP3Red: 0.462, green: 0.458, blue: 0.474, alpha: 1),
-                    cornerIcon: cornerIcon,
-                    backgroundColors: [
-                        UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
-                        UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
-                    ],
-                    id: id
-                )
-            }
-        )?
-            .withRenderingMode(.alwaysOriginal) ?? UIImage()
-    }
+//    var defaultCover: UIImage {
+//        generateImage(
+//            CGSize(width: 1000, height: 1000),
+//            rotatedContext: { contextSize, context in
+//
+//                context.clear(CGRect(origin: CGPoint(), size: contextSize))
+//
+//                let musicNoteIcon = UIImage(systemName: "music.note.list")?
+//                    .withConfiguration(UIImage.SymbolConfiguration(
+//                        pointSize: 1000 * 0.375,
+//                        weight: .medium
+//                    ))
+//                ?? UIImage()
+//
+//                let cornerIconPointSize = contextSize.width * 0.175
+//
+//                let cornerIcon = UIImage(systemName: "lock.circle.fill")?
+//                    .withConfiguration(UIImage.SymbolConfiguration(
+//                        pointSize: cornerIconPointSize,
+//                        weight: .regular
+//                    ))
+//                ?? UIImage()
+//
+//                drawIcon(
+//                    context: context,
+//                    size: contextSize,
+//                    icon: musicNoteIcon,
+//                    iconSize: musicNoteIcon.size,
+//                    iconColor: UIColor(displayP3Red: 0.462, green: 0.458, blue: 0.474, alpha: 1),
+//                    cornerIcon: cornerIcon,
+//                    backgroundColors: [
+//                        UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
+//                        UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
+//                    ],
+//                    id: id
+//                )
+//            }
+//        )?
+//            .withRenderingMode(.alwaysOriginal) ?? UIImage()
+//    }
     
     var cover: UIImage {
         generateImage(
@@ -124,12 +124,22 @@ public struct Playlist: Codable, Identifiable {
                     ))
                 ?? UIImage()
                 
+                var lockIcon: UIImage?
+                
+                if accessType == .private {
+                    lockIcon = UIImage(systemName: "lock.circle.fill")?
+                        .withConfiguration(UIImage.SymbolConfiguration(
+                            pointSize: cornerIconPointSize,
+                            weight: .regular
+                        ))
+                }
+                
                 drawLetters(
                     context: context,
                     size: CGSize(width: contextSize.width, height: contextSize.height),
                     round: false,
-                    cornerIcon: musicNoteIcon,
-                    cornerIconSize: CGSize(width: cornerIconPointSize, height: cornerIconPointSize),
+                    topCornerIcon: musicNoteIcon,
+                    bottomCornerIcon: lockIcon,
                     letters: name.map { String($0) },
                     foregroundColor: UIColor(displayP3Red: 0.462, green: 0.458, blue: 0.474, alpha: 1),
                     backgroundColors: [
@@ -142,6 +152,6 @@ public struct Playlist: Codable, Identifiable {
         )?
             .withRenderingMode(.alwaysOriginal)
         
-        ?? defaultCover
+        ?? UIImage()
     }
 }
