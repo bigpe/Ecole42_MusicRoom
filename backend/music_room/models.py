@@ -1,6 +1,5 @@
 from typing import List, Union
 
-import eyed3 as eyed3
 from tinytag import TinyTag
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
