@@ -6,14 +6,15 @@
 //
 
 import Foundation
+import SwiftUI
 import MediaPlayer
 import AVFoundation
 
 extension ContentView.ViewModel {
     func playCurrentTrack() {
         guard
-            let currentTrackFile = self.currentTrack?.file,
-            let currentTrackURL = URL(string: currentTrackFile)
+            let currentTrackFile = self.currentTrack?.mp3File,
+            let currentTrackURL = URL(string: currentTrackFile.file)
         else {
             return
         }
@@ -89,7 +90,7 @@ extension ContentView.ViewModel {
         }
         
         let progress = (self.currentSessionTrack?.progress as? NSDecimalNumber)
-        let total = (self.currentTrack?.duration as NSDecimalNumber?)
+        let total = (self.currentTrack?.mp3File?.duration as NSDecimalNumber?)
         
         if let playerProgressTimeObserver = playerProgressTimeObserver {
             player.removeTimeObserver(playerProgressTimeObserver)
@@ -100,13 +101,15 @@ extension ContentView.ViewModel {
         }
         
         playerProgressTimeObserver = player.addPeriodicTimeObserver(
-            forInterval: CMTime(seconds: 0.0001, preferredTimescale: CMTimeScale(NSEC_PER_SEC)),
+            forInterval: CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)),
             queue: .main
         ) { cmTime in
             let value = cmTime.seconds
             
             if !self.isProgressTracking {
-                self.trackProgress = TrackProgress(value: value, total: total?.doubleValue)
+                DispatchQueue.main.async { [unowned self] in
+                    trackProgress = TrackProgress(value: value, total: total?.doubleValue)
+                }
             }
             
             if (progress?.intValue ?? 0) >= (total?.intValue ?? 0) || Int(value) >= (total?.intValue ?? 0) {
@@ -200,7 +203,7 @@ extension ContentView.ViewModel {
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
         nowPlayingInfo[MPMediaItemPropertyTitle] = currentTrack?.name ?? "Untitled"
         nowPlayingInfo[MPMediaItemPropertyArtist] = "Music Room"
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = NSDecimalNumber(decimal: currentTrack?.duration ?? 0)
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = NSDecimalNumber(decimal: currentTrack?.mp3File?.duration ?? 0)
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime().seconds
         
         if let trackName = currentTrack?.name {

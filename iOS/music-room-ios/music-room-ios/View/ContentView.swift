@@ -199,6 +199,7 @@ struct ContentView: View {
                             )
                                 .frame(height: 4)
                                 .accentColor(viewModel.primaryControlsColor)
+                                .animation(.linear(duration: 1), value: viewModel.trackProgress)
                             
                             HStack {
                                 Text(viewModel.trackProgress.value.time)
@@ -803,7 +804,7 @@ struct ContentView: View {
                             Text("Playlist Name")
                         }
                         .textFieldStyle(.roundedBorder)
-                        .textInputAutocapitalization(.never)
+                        .textInputAutocapitalization(.sentences)
                         .focused($focusedField, equals: .addPlaylistName)
                     }
                     
@@ -1126,7 +1127,7 @@ struct ContentView: View {
                                 Text("Playlist Name")
                             }
                             .textFieldStyle(.roundedBorder)
-                            .textInputAutocapitalization(.never)
+                            .textInputAutocapitalization(.sentences)
                             .focused($focusedField, equals: .playlistName)
                         }
                     }

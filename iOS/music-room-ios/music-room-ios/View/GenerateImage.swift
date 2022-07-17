@@ -1583,7 +1583,7 @@ public func drawLetters(
     )
     
     let line = CTLineCreateWithAttributedString(attributedString)
-    let lineBounds = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
+//    let lineBounds = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
     
     let lineOffset = CGPoint(x: string == "B" ? 1.0 : 0.0, y: 0.0)
     

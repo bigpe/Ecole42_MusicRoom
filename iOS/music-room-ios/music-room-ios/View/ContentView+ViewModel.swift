@@ -593,7 +593,7 @@ extension ContentView {
                             .trackQueue
                             .dropFirst()
                             .map {
-                                track(byID: $0.track) ?? Track(name: "Unknown", file: "", duration: 0)
+                                track(byID: $0.track) ?? Track(name: "Unknown", files: [])
                             } ?? []
                     }()
                     
@@ -644,7 +644,7 @@ extension ContentView {
                 }()
                 
                 let currentSessionTrackProgressValue = currentSessionTrack?.progress
-                let currentTrackDuration = currentTrack?.duration
+                let currentTrackDuration = currentTrack?.mp3File?.duration
                 
                 let progressValue = (currentSessionTrackProgressValue as NSDecimalNumber?)?
                     .doubleValue
