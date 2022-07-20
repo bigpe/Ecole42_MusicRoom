@@ -13,6 +13,7 @@ server {
 
     uwsgi_read_timeout 36000;
     client_max_body_size 50m;
+    proxy_force_ranges on;
 
     include templates/base.locations;
     include templates/static.locations;
