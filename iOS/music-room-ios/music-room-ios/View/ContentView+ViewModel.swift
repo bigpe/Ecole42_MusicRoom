@@ -102,27 +102,6 @@ extension ContentView {
         @Published
         var libraryState = LibraryState.ownPlaylists
         
-        // MARK: - Shuffle State
-        
-        enum ShuffleState {
-            case on, off
-            
-            mutating func toggle() {
-                self = {
-                    switch self {
-                    case .on:
-                        return .off
-                        
-                    case .off:
-                        return .on
-                    }
-                }()
-            }
-        }
-        
-        @Published
-        var shuffleState = ShuffleState.off
-        
         // MARK: - Repeat State
         
         enum RepeatState {
@@ -804,20 +783,12 @@ extension ContentView {
         
         // MARK: - Player WebSocket
         
-        func createSession(playlistID: Int) async throws {
+        func createSession(playlistID: Int, shuffle: Bool) async throws {
             try await api.playerWebSocket?.send(PlayerMessage(
                 event: .createSession,
                 payload: .createSession(
                     playlist_id: playlistID,
-                    shuffle: {
-                        switch shuffleState {
-                        case .off:
-                            return false
-                            
-                        case .on:
-                            return true
-                        }
-                    }()
+                    shuffle: shuffle
                 )
             ))
         }

@@ -332,8 +332,6 @@ struct ContentView: View {
                             
                             HStack(spacing: 8) {
                                 Button {
-                                    viewModel.shuffleState = .on
-                                    
                                     Task {
                                         do {
                                             try await viewModel.shuffle()
@@ -341,36 +339,10 @@ struct ContentView: View {
                                             debugPrint(error)
                                         }
                                     }
-                                    
-                                    viewModel.shuffleState = .off
                                 } label: {
-                                    switch viewModel.shuffleState {
-                                    case .off:
-                                        Image(systemName: "shuffle.circle")
-                                            .font(.system(size: 24, weight: .medium))
-                                            .foregroundColor(viewModel.secondaryControlsColor)
-                                        
-                                    case .on:
-                                        Image(systemName: "shuffle.circle.fill")
-                                            .font(.system(size: 24, weight: .medium))
-                                            .foregroundColor(viewModel.primaryControlsColor)
-                                    }
-                                }
-                                
-                                Button {
-//                                    viewModel.repeatState.toggle()
-                                } label: {
-                                    switch viewModel.repeatState {
-                                    case .off:
-                                        Image(systemName: "repeat.circle")
-                                            .font(.system(size: 24, weight: .medium))
-                                            .foregroundColor(viewModel.secondaryControlsColor)
-                                        
-                                    case .on:
-                                        Image(systemName: "repeat.circle.fill")
-                                            .font(.system(size: 24, weight: .medium))
-                                            .foregroundColor(viewModel.primaryControlsColor)
-                                    }
+                                    Image(systemName: "shuffle")
+                                        .font(.system(size: 24, weight: .medium))
+                                        .foregroundColor(viewModel.secondaryControlsColor)
                                 }
                             }
 
@@ -1243,7 +1215,8 @@ struct ContentView: View {
                                 
                                 do {
                                     try await viewModel.createSession(
-                                        playlistID: playlistID
+                                        playlistID: playlistID,
+                                        shuffle: false
                                     )
                                 } catch {
                                     debugPrint(error)
@@ -1262,13 +1235,33 @@ struct ContentView: View {
                         
                         Spacer()
                         
-                        if playlistSheet.isEditable {
-                            Button {
-                                playlistSheet.isShowingAddMusic = true
-                            } label: {
-                                Label("Add Music", systemImage: "plus.circle.fill")
+                        Button {
+                            Task {
+                                guard
+                                    let playlistID = playlistSheet.selectedPlaylist?.id
+                                else {
+                                    return
+                                }
+                                
+                                do {
+                                    try await viewModel.createSession(
+                                        playlistID: playlistID,
+                                        shuffle: true
+                                    )
+                                } catch {
+                                    debugPrint(error)
+                                }
+                                
+                                api.playlistWebSockets.removeValue(forKey: playlistID)
+                                
+                                playlistSheet.selectedPlaylist = nil
+                                
+                                viewModel.interfaceState = .player
                             }
+                        } label: {
+                            Label("Shuffle", systemImage: "shuffle.circle.fill")
                         }
+                        .tint(.pink)
                     }
                     
                     List(
@@ -1331,12 +1324,24 @@ struct ContentView: View {
                     .listStyle(.plain)
                     
                     if playlistSheet.isEditable {
-                        Button {
-                            playlistSheet.showingDeleteConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash.circle.fill")
+                        HStack {
+                            Button {
+                                playlistSheet.showingDeleteConfirmation = true
+                            } label: {
+                                Label("Delete Playlist", systemImage: "trash.circle.fill")
+                            }
+                            .tint(.pink)
+                            
+                            Spacer()
+                            
+                            Button {
+                                playlistSheet.isShowingAddMusic = true
+                            } label: {
+                                Label("Add Music", systemImage: "plus.circle.fill")
+                            }
+                            .tint(.pink)
                         }
-                        .tint(.pink)
+                        .padding(.bottom, 12)
                     }
 
                 }
