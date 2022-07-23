@@ -13,7 +13,7 @@ import AVFoundation
 extension ContentView.ViewModel {
     func playCurrentTrack() {
         guard
-            let currentTrackFile = self.currentTrack?.mp3File,
+            let currentTrackFile = currentTrackFile,
             let currentTrackURL = URL(string: currentTrackFile.file)
         else {
             return
@@ -42,7 +42,7 @@ extension ContentView.ViewModel {
             debugPrint(error.localizedDescription)
         }
         
-        if let progress = currentSessionTrack?.progress {
+        if let progress = currentSessionTrack?.progress { // FIXME: Remove `false`
             let progress = NSDecimalNumber(decimal: progress).doubleValue
             let timeScale = CMTimeScale(1)
             let time = CMTime(seconds: progress, preferredTimescale: timeScale)
@@ -55,12 +55,16 @@ extension ContentView.ViewModel {
             
             player.automaticallyWaitsToMinimizeStalling = false
             
-            playerSeekableTimeObserver = player.currentItem?.observe(\.status) {
+            playerItemStatusObserver = player.currentItem?.observe(\.status) {
                 [unowned self] (playerItem, _) in
                 
                 guard
                     playerItem.status == .readyToPlay
                 else {
+                    if let error = playerItem.error {
+                        debugPrint(error)
+                    }
+                    
                     return
                 }
                 
@@ -86,11 +90,13 @@ extension ContentView.ViewModel {
                 seek()
             }
         } else {
+            player.replaceCurrentItem(with: playerItem)
+            
             player.play()
         }
         
         let progress = (self.currentSessionTrack?.progress as? NSDecimalNumber)
-        let total = (self.currentTrack?.mp3File?.duration as NSDecimalNumber?)
+        let total = (self.currentTrackFile?.duration as? NSDecimalNumber)
         
         if let playerProgressTimeObserver = playerProgressTimeObserver {
             player.removeTimeObserver(playerProgressTimeObserver)
@@ -105,9 +111,21 @@ extension ContentView.ViewModel {
             queue: .main
         ) { cmTime in
             let value = cmTime.seconds
+            let total = (self.currentTrackFile?.duration as? NSDecimalNumber)
+            
+            let bufferedRanges: [(start: Double, duration: Double)] = self.player.currentItem?.loadedTimeRanges.map { timeRange in
+                let startSeconds = timeRange.timeRangeValue.start.seconds
+                let durationSeconds = timeRange.timeRangeValue.duration.seconds
+                
+                return (start: startSeconds, duration: durationSeconds)
+            } ?? []
+            
+            debugPrint(bufferedRanges)
             
             if !self.isProgressTracking {
                 DispatchQueue.main.async { [unowned self] in
+                    shouldAnimateProgressSlider.toggle()
+                    
                     trackProgress = TrackProgress(value: value, total: total?.doubleValue)
                 }
             }
@@ -164,6 +182,12 @@ extension ContentView.ViewModel {
     }
     
     func pauseCurrentTrack() {
+        Task {
+            try await pauseCurrentTrack()
+        }
+    }
+    
+    func pauseCurrentTrack() async throws {
         player.pause()
         
         guard
@@ -182,17 +206,15 @@ extension ContentView.ViewModel {
             return Int(seconds)
         }()
         
-        Task {
-            try await self.api.playerWebSocket?.send(
-                PlayerMessage(
-                    event: .syncTrack,
-                    payload: .syncTrack(
-                        player_session_id: sessionID,
-                        progress: value
-                    )
+        try await self.api.playerWebSocket?.send(
+            PlayerMessage(
+                event: .syncTrack,
+                payload: .syncTrack(
+                    player_session_id: sessionID,
+                    progress: value
                 )
             )
-        }
+        )
     }
     
     func updateNowPlayingInfo() {
@@ -203,7 +225,7 @@ extension ContentView.ViewModel {
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
         nowPlayingInfo[MPMediaItemPropertyTitle] = currentTrack?.name ?? "Untitled"
         nowPlayingInfo[MPMediaItemPropertyArtist] = "Music Room"
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = NSDecimalNumber(decimal: currentTrack?.mp3File?.duration ?? 0)
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = NSDecimalNumber(decimal: currentTrackFile?.duration ?? 0)
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime().seconds
         
         if let trackName = currentTrack?.name {

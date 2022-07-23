@@ -15,6 +15,9 @@ struct ProgressSlider: View {
     @Binding
     var isProgressTracking: Bool
     
+    @Binding
+    var shouldAnimatePadding: Bool
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
@@ -22,7 +25,7 @@ struct ProgressSlider: View {
                     .foregroundColor(.accentColor.opacity(0.3))
                 
                 Rectangle()
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(isProgressTracking ? .accentColor : .accentColor.opacity(0.75))
                     .frame(
                         width: {
                             guard
@@ -37,42 +40,63 @@ struct ProgressSlider: View {
                         }()
                     )
             }
-            .cornerRadius(2)
+            .frame(height: isProgressTracking ? 8 : 4)
+            .cornerRadius(isProgressTracking ? 4 : 2)
+            .padding(.vertical, isProgressTracking ? 0 : 2)
+            .animation(.easeIn(duration: 0.18), value: shouldAnimatePadding)
             .gesture(
                 DragGesture(minimumDistance: 0)
-                    .onChanged { value in
+                    .onChanged { gesture in
                         isProgressTracking = true
                         
-                        let percentage = min(max(0, Double(value.location.x / geometry.size.width)), 1)
-                        
                         guard
-                            let total = trackProgress.total
+                            let value = trackProgress.value,
+                            let total = trackProgress.total,
+                            total != 0
                         else {
                             return
                         }
                         
-                        let value = total * percentage
+                        let trackProgressPercentage = value / total
+                        let translationPercentage = gesture.translation.width / geometry.size.width
+                        
+                        let percentage = max(
+                            0,
+                            min(
+                                1,
+                                trackProgressPercentage + translationPercentage
+                            )
+                        )
                         
                         trackProgress = ContentView.ViewModel.TrackProgress(
-                            value: value,
+                            value: total * percentage,
                             total: total
                         )
                     }
-                    .onEnded { value in
+                    .onEnded { gesture in
                         isProgressTracking = false
                         
-                        let percentage = min(max(0, Double(value.location.x / geometry.size.width)), 1)
-                        
                         guard
-                            let total = trackProgress.total
+                            let value = trackProgress.value,
+                            let total = trackProgress.total,
+                            total != 0
                         else {
                             return
                         }
                         
-                        let value = total * percentage
+                        let trackProgressPercentage = value / total
+                        let translationPercentage = gesture.translation.width / geometry.size.width
+                        
+                        let percentage = max(
+                            0,
+                            min(
+                                1,
+                                trackProgressPercentage + translationPercentage
+                            )
+                        )
                         
                         trackProgress = ContentView.ViewModel.TrackProgress(
-                            value: value,
+                            value: total * percentage,
                             total: total
                         )
                     }

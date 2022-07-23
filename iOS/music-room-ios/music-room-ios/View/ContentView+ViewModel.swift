@@ -53,6 +53,44 @@ extension ContentView {
         @Published
         var playerState = PlayerState.paused
         
+        // MARK: - Player Quality
+        
+        enum PlayerQuality: String {
+            case standard = "STANDARD"
+            
+            case highFidelity = "HIGH_FIDELITY"
+            
+            static var key: String {
+                "PlayerQuality"
+            }
+        }
+        
+        @Published
+        var playerQuality: PlayerQuality = {
+            guard
+                let savedPlayerQualityRawValue = UserDefaults.standard
+                    .object(forKey: PlayerQuality.key) as? String,
+                let savedPlayerQuality = PlayerQuality(rawValue: savedPlayerQualityRawValue)
+            else {
+                return .highFidelity
+            }
+            
+            return savedPlayerQuality
+        }() {
+            didSet {
+                UserDefaults.standard
+                    .set(
+                        playerQuality.rawValue,
+                        forKey: PlayerQuality.key
+                    )
+                
+                Task {
+                    try await pause()
+                    try await resume()
+                }
+            }
+        }
+        
         // MARK: - Library State
         
         enum LibraryState {
@@ -422,8 +460,13 @@ extension ContentView {
         }
         
         @Published
+        var shouldAnimateProgressSlider = false
+        
+        @Published
         var isProgressTracking = false {
             didSet {
+                shouldAnimateProgressPadding.toggle()
+                
                 guard oldValue, !isProgressTracking else { return }
                 
                 @MainActor
@@ -438,7 +481,7 @@ extension ContentView {
                     let time = CMTime(seconds: progress, preferredTimescale: timeScale)
                     
                     player.seek(to: time) { [unowned self] (status) in
-                        guard status else { return seek() }
+                        guard status else { return /* seek() */ } // FIXME
                         
                         player.play()
                     }
@@ -447,6 +490,9 @@ extension ContentView {
                 seek()
             }
         }
+        
+        @Published
+        var shouldAnimateProgressPadding = false
         
         // MARK: - Update Data
         
@@ -644,7 +690,7 @@ extension ContentView {
                 }()
                 
                 let currentSessionTrackProgressValue = currentSessionTrack?.progress
-                let currentTrackDuration = currentTrack?.mp3File?.duration
+                let currentTrackDuration = currentTrackFile?.duration
                 
                 let progressValue = (currentSessionTrackProgressValue as NSDecimalNumber?)?
                     .doubleValue
@@ -687,6 +733,22 @@ extension ContentView {
         
         @Published
         var currentTrack: Track?
+        
+        var currentTrackFile: File? {
+            guard
+                let currentTrack = currentTrack
+            else {
+                return nil
+            }
+            
+            switch playerQuality {
+            case .standard:
+                return currentTrack.mp3File
+                
+            case .highFidelity:
+                return currentTrack.flacFile
+            }
+        }
         
         var queuedTracks = [Track]()
         
@@ -733,7 +795,7 @@ extension ContentView {
         
         var playerProgressTimeObserver: Any?
         var playerSyncTimeObserver: Any?
-        var playerSeekableTimeObserver: Any?
+        var playerItemStatusObserver: Any?
         
         func backward() async throws {
             guard
@@ -786,7 +848,7 @@ extension ContentView {
                 throw .api.custom(errorDescription: "")
             }
             
-            pauseCurrentTrack()
+            try await pauseCurrentTrack()
             
             try await api.playerWebSocket?.send(PlayerMessage(
                 event: .pauseTrack,

@@ -30,8 +30,8 @@
 		C34EB88B2880CF1000D7389D /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB88A2880CF1000D7389D /* User.swift */; };
 		C34EB88D2883573A00D7389D /* TargetClosure.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB88C2883573A00D7389D /* TargetClosure.swift */; };
 		C34EB88F2883F4EA00D7389D /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB88E2883F4EA00D7389D /* File.swift */; };
-		C34EB8912883F65400D7389D /* Track+FLAC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB8902883F65400D7389D /* Track+FLAC.swift */; };
-		C34EB8932883F69200D7389D /* Track+MP3.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB8922883F69100D7389D /* Track+MP3.swift */; };
+		C34EB8912883F65400D7389D /* Track+FLACFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB8902883F65400D7389D /* Track+FLACFile.swift */; };
+		C34EB8932883F69200D7389D /* Track+MP3File.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34EB8922883F69100D7389D /* Track+MP3File.swift */; };
 		C3535C3D286A2321007EA197 /* ContentView+ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C3C286A2321007EA197 /* ContentView+ViewModel.swift */; };
 		C3535C3F286A3025007EA197 /* ContentView+MusicKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C3E286A3025007EA197 /* ContentView+MusicKit.swift */; };
 		C3535C47286A386F007EA197 /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3535C46286A386F007EA197 /* API.swift */; };
@@ -84,8 +84,8 @@
 		C34EB88A2880CF1000D7389D /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		C34EB88C2883573A00D7389D /* TargetClosure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetClosure.swift; sourceTree = "<group>"; };
 		C34EB88E2883F4EA00D7389D /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
-		C34EB8902883F65400D7389D /* Track+FLAC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Track+FLAC.swift"; sourceTree = "<group>"; };
-		C34EB8922883F69100D7389D /* Track+MP3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Track+MP3.swift"; sourceTree = "<group>"; };
+		C34EB8902883F65400D7389D /* Track+FLACFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Track+FLACFile.swift"; sourceTree = "<group>"; };
+		C34EB8922883F69100D7389D /* Track+MP3File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Track+MP3File.swift"; sourceTree = "<group>"; };
 		C3535C3C286A2321007EA197 /* ContentView+ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ViewModel.swift"; sourceTree = "<group>"; };
 		C3535C3E286A3025007EA197 /* ContentView+MusicKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+MusicKit.swift"; sourceTree = "<group>"; };
 		C3535C46286A386F007EA197 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
@@ -151,8 +151,8 @@
 				C33B7C1E285F8349000399BA /* PlaylistTrack.swift */,
 				C33B7C20285F844C000399BA /* Playlist.swift */,
 				C33B7C24285F85E6000399BA /* Track.swift */,
-				C34EB8902883F65400D7389D /* Track+FLAC.swift */,
-				C34EB8922883F69100D7389D /* Track+MP3.swift */,
+				C34EB8902883F65400D7389D /* Track+FLACFile.swift */,
+				C34EB8922883F69100D7389D /* Track+MP3File.swift */,
 				C34EB88E2883F4EA00D7389D /* File.swift */,
 				C34EB88A2880CF1000D7389D /* User.swift */,
 				C3D7159628726D6300B0625A /* TokenObtainPairModel.swift */,
@@ -355,7 +355,7 @@
 				C3D7159F2872C37000B0625A /* Time.swift in Sources */,
 				C3615017287CE91A009906E9 /* PlaylistsMessage.swift in Sources */,
 				C33B7C1B285F7E68000399BA /* SessionTrack.swift in Sources */,
-				C34EB8912883F65400D7389D /* Track+FLAC.swift in Sources */,
+				C34EB8912883F65400D7389D /* Track+FLACFile.swift in Sources */,
 				C33B7C21285F844C000399BA /* Playlist.swift in Sources */,
 				C34EB88B2880CF1000D7389D /* User.swift in Sources */,
 				C3535C49286A38CE007EA197 /* API+Error.swift in Sources */,
@@ -373,7 +373,7 @@
 				C34EB88728806FDE00D7389D /* IndexedCollection.swift in Sources */,
 				C3D7159D28728AD600B0625A /* DiskCacheService.swift in Sources */,
 				C34EB88528805E7000D7389D /* TokenResponseModel.swift in Sources */,
-				C34EB8932883F69200D7389D /* Track+MP3.swift in Sources */,
+				C34EB8932883F69200D7389D /* Track+MP3File.swift in Sources */,
 				C3D7159728726D6300B0625A /* TokenObtainPairModel.swift in Sources */,
 				C3615013287CE832009906E9 /* PlaylistsEventsList.swift in Sources */,
 				C33B7C27285F87D6000399BA /* PlaylistMessage.swift in Sources */,
@@ -523,6 +523,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -554,6 +555,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

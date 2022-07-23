@@ -187,19 +187,68 @@ struct ContentView: View {
                         )
                     
                     VStack(alignment: .leading, spacing: 48) {
-                        Text(viewModel.currentTrack?.name ?? viewModel.placeholderTitle)
-                            .foregroundColor(viewModel.primaryControlsColor)
-                            .font(.headline)
-                            .dynamicTypeSize(.xLarge)
+                        HStack {
+                            Text(viewModel.currentTrack?.name ?? viewModel.placeholderTitle)
+                                .foregroundColor(viewModel.primaryControlsColor)
+                                .font(.headline)
+                                .dynamicTypeSize(.xLarge)
+                            
+                            Spacer()
+                            
+                            Button {
+                                switch viewModel.playerQuality {
+                                case .standard:
+                                    viewModel.playerQuality = .highFidelity
+                                    
+                                case .highFidelity:
+                                    viewModel.playerQuality = .standard
+                                }
+                            } label: {
+                                switch viewModel.playerQuality {
+                                case .standard:
+                                    Text("HiFi")
+                                        .foregroundColor(viewModel.primaryControlsColor)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .dynamicTypeSize(.large)
+                                    
+                                case .highFidelity:
+                                    Text("HiFi")
+                                        .foregroundColor(viewModel.primaryControlsColor)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .dynamicTypeSize(.large)
+                                        .background(
+                                            viewModel.secondaryControlsColor,
+                                            in: RoundedRectangle(cornerRadius: 2)
+                                                .inset(by: -5)
+                                        )
+                                        .mask(alignment: .center) {
+                                            RoundedRectangle(cornerRadius: 2)
+                                                .inset(by: -5)
+                                                .overlay(alignment: .center) {
+                                                    Text("HiFi")
+                                                        .foregroundColor(viewModel.primaryControlsColor)
+                                                        .font(.subheadline)
+                                                        .fontWeight(.semibold)
+                                                        .dynamicTypeSize(.large)
+                                                        .blendMode(.destinationOut)
+                                                }
+                                        }
+                                }
+                            }
+
+                        }
                         
                         VStack(spacing: 8) {
                             ProgressSlider(
                                 trackProgress: $viewModel.trackProgress,
-                                isProgressTracking: $viewModel.isProgressTracking
+                                isProgressTracking: $viewModel.isProgressTracking,
+                                shouldAnimatePadding: $viewModel.shouldAnimateProgressPadding
                             )
-                                .frame(height: 4)
+                                .frame(height: 8)
                                 .accentColor(viewModel.primaryControlsColor)
-                                .animation(.linear(duration: 1), value: viewModel.trackProgress)
+                                .animation(.linear(duration: 1), value: viewModel.shouldAnimateProgressSlider)
                             
                             HStack {
                                 Text(viewModel.trackProgress.value.time)
