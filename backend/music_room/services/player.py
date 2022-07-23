@@ -108,8 +108,11 @@ class PlayerService:
             return self.current_track
 
     def shuffle(self):
-        tracks = list(self.player_session.playlist.tracks.exclude(track=self.current_track.track).all())
-        self.player_session.track_queue.exclude(track_queue__order=self.current_track.order).all().delete()
+        if self.current_track:
+            tracks = list(self.player_session.playlist.tracks.exclude(track=self.current_track.track).all())
+            self.player_session.track_queue.exclude(track_queue__order=self.current_track.order).all().delete()
+        else:
+            tracks = list(self.player_session.playlist.tracks.all())
         for i in range(len(tracks)):
             random_track = random.choice(tracks)
             session_track = SessionTrack.objects.create(
