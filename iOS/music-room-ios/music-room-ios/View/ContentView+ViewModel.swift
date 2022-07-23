@@ -84,9 +84,11 @@ extension ContentView {
                         forKey: PlayerQuality.key
                     )
                 
-                Task {
-                    try await pause()
-                    try await resume()
+                if playerState == .playing {
+                    Task {
+                        try await pause()
+                        try await resume()
+                    }
                 }
             }
         }
@@ -217,6 +219,8 @@ extension ContentView {
         let primaryControlsColor = Color.primary
         
         let secondaryControlsColor = Color.primary.opacity(0.55)
+        
+        let tertiaryControlsColor = Color.primary.opacity(0.3)
         
         let gradient = (
             backgroundColor: Color(red: 0.2, green: 0.2, blue: 0.2),
@@ -474,7 +478,11 @@ extension ContentView {
                     guard
                         let progress = trackProgress.value
                     else {
-                        return player.play()
+                        if playerState == .playing {
+                            player.play()
+                        }
+                        
+                        return
                     }
                     
                     let timeScale = CMTimeScale(1)
@@ -483,13 +491,18 @@ extension ContentView {
                     player.seek(to: time) { [unowned self] (status) in
                         guard status else { return /* seek() */ } // FIXME
                         
-                        player.play()
+                        if playerState == .playing {
+                            player.play()
+                        }
                     }
                 }
                 
                 seek()
             }
         }
+        
+        @Published
+        var initialProgressValue: Double?
         
         @Published
         var shouldAnimateProgressPadding = false
@@ -639,7 +652,10 @@ extension ContentView {
                             .trackQueue
                             .dropFirst()
                             .map {
-                                track(byID: $0.track) ?? Track(name: "Unknown", files: [])
+                                (
+                                    sessionTrackID: $0.id,
+                                    track: track(byID: $0.track) ?? Track(name: "Unknown", files: [])
+                                )
                             } ?? []
                     }()
                     
@@ -750,7 +766,7 @@ extension ContentView {
             }
         }
         
-        var queuedTracks = [Track]()
+        var queuedTracks = [(sessionTrackID: Int?, track: Track)]()
         
         // MARK: - Actions
         
@@ -800,7 +816,7 @@ extension ContentView {
         func backward() async throws {
             guard
                 let playerSessionID = playerSession?.id,
-                let currentTrackID = currentTrack?.id,
+                let currentSessionTrackID = currentSessionTrack?.id, // TODO: Check CurrentTrack or SessionTrack
                 !queuedTracks.isEmpty
             else {
                 throw .api.custom(errorDescription: "")
@@ -808,7 +824,7 @@ extension ContentView {
             
             player.pause()
             
-            currentTrack = queuedTracks.removeLast()
+            currentTrack = queuedTracks.removeLast().track
             
             playCurrentTrack()
             
@@ -816,7 +832,7 @@ extension ContentView {
                 event: .playPreviousTrack,
                 payload: .playPreviousTrack(
                     player_session_id: playerSessionID,
-                    track_id: currentTrackID
+                    track_id: currentSessionTrackID
                 )
             ))
         }
@@ -824,7 +840,7 @@ extension ContentView {
         func resume() async throws {
             guard
                 let playerSessionID = playerSession?.id,
-                let currentTrackID = currentTrack?.id
+                let currentSessionTrackID = currentSessionTrack?.id // TODO: Check CurrentTrack or SessionTrack
             else {
                 throw .api.custom(errorDescription: "")
             }
@@ -835,7 +851,7 @@ extension ContentView {
                 event: .resumeTrack,
                 payload: .resumeTrack(
                     player_session_id: playerSessionID,
-                    track_id: currentTrackID
+                    track_id: currentSessionTrackID
                 )
             ))
         }
@@ -843,7 +859,7 @@ extension ContentView {
         func pause() async throws {
             guard
                 let playerSessionID = playerSession?.id,
-                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+                let currentSessionTrackID = currentSessionTrack?.id // TODO: Check CurrentTrack or SessionTrack
             else {
                 throw .api.custom(errorDescription: "")
             }
@@ -854,7 +870,7 @@ extension ContentView {
                 event: .pauseTrack,
                 payload: .pauseTrack(
                     player_session_id: playerSessionID,
-                    track_id: currentTrackID
+                    track_id: currentSessionTrackID
                 )
             ))
         }
@@ -862,7 +878,7 @@ extension ContentView {
         func forward() async throws {
             guard
                 let playerSessionID = playerSession?.id,
-                let currentTrackID = currentTrack?.id, // TODO: Check CurrentTrack or SessionTrack
+                let currentSessionTrackID = currentSessionTrack?.id, // TODO: Check CurrentTrack or SessionTrack
                 !queuedTracks.isEmpty
             else {
                 throw .api.custom(errorDescription: "")
@@ -870,7 +886,7 @@ extension ContentView {
             
             player.pause()
             
-            currentTrack = queuedTracks.removeFirst()
+            currentTrack = queuedTracks.removeFirst().track
             
             playCurrentTrack()
             
@@ -878,12 +894,12 @@ extension ContentView {
                 event: .playNextTrack,
                 payload: .playNextTrack(
                     player_session_id: playerSessionID,
-                    track_id: currentTrackID
+                    track_id: currentSessionTrackID
                 )
             ))
         }
         
-        func playTrack(trackID: Int) async throws {
+        func playTrack(sessionTrackID: Int) async throws {
             guard
                 let playerSessionID = playerSession?.id
             else {
@@ -894,7 +910,23 @@ extension ContentView {
                 event: .playTrack,
                 payload: .playTrack(
                     player_session_id: playerSessionID,
-                    track_id: trackID
+                    track_id: sessionTrackID
+                )
+            ))
+        }
+        
+        func delayPlayTrack(sessionTrackID: Int) async throws {
+            guard
+                let playerSessionID = playerSession?.id
+            else {
+                throw .api.custom(errorDescription: "")
+            }
+            
+            try await api.playerWebSocket?.send(PlayerMessage(
+                event: .delayPlayTrack,
+                payload: .delayPlayTrack(
+                    player_session_id: playerSessionID,
+                    track_id: sessionTrackID
                 )
             ))
         }
@@ -902,18 +934,22 @@ extension ContentView {
         func shuffle() async throws {
             guard
                 let playerSessionID = playerSession?.id,
-                let currentTrackID = currentTrack?.id // TODO: Check CurrentTrack or SessionTrack
+                let currentSessionTrackID = currentSessionTrack?.id // TODO: Check CurrentTrack or SessionTrack
             else {
                 throw .api.custom(errorDescription: "")
             }
             
-            try await api.playerWebSocket?.send(PlayerMessage(
-                event: .shuffle,
-                payload: .shuffle(
-                    player_session_id: playerSessionID,
-                    track_id: currentTrackID
-                )
-            ))
+            do {
+                try await api.playerWebSocket?.send(PlayerMessage(
+                    event: .shuffle,
+                    payload: .shuffle(
+                        player_session_id: playerSessionID,
+                        track_id: currentSessionTrackID
+                    )
+                ))
+            } catch {
+                debugPrint(error)
+            }
         }
         
         func subscribeToPlayer() {
@@ -1013,13 +1049,25 @@ extension ContentView {
             let player = AVPlayer()
             
             MPRemoteCommandCenter.shared().playCommand.addTarget { event in
-                self.playCurrentTrack()
+                Task {
+                    do {
+                        try await self.resume()
+                    } catch {
+                        self.playCurrentTrack()
+                    }
+                }
                 
                 return .success
             }
             
             MPRemoteCommandCenter.shared().pauseCommand.addTarget { event in
-                self.pauseCurrentTrack()
+                Task {
+                    do {
+                        try await self.pause()
+                    } catch {
+                        try await self.pauseCurrentTrack()
+                    }
+                }
                 
                 return .success
             }

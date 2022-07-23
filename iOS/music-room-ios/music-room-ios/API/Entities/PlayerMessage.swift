@@ -20,6 +20,8 @@ public struct PlayerMessage: Codable {
         
         case playTrack(player_session_id: Int, track_id: Int)
         
+        case delayPlayTrack(player_session_id: Int, track_id: Int)
+        
         case playNextTrack(player_session_id: Int, track_id: Int?)
         
         case playPreviousTrack(player_session_id: Int, track_id: Int?)

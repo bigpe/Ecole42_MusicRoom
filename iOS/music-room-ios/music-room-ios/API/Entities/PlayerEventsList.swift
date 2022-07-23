@@ -23,6 +23,8 @@ public enum PlayerEventsList: String, Codable {
     
     case playTrack = "play.track"
     
+    case delayPlayTrack = "delay.play.track"
+    
     case playNextTrack = "play.next.track"
     
     case playPreviousTrack = "play.previous.track"

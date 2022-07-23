@@ -320,14 +320,6 @@ public class API {
     }
     
     public func playerSessionRequest() async throws -> PlayerSession {
-        let dataTask: DataTask<PlayerSession> = session.request(
-            try playerSessionURL,
-            method: .get
-        ).serializingAPI()
-        
-        debugPrint(await dataTask.response)
-        
-        return
         try await session.request(
             try playerSessionURL,
             method: .get

@@ -13,7 +13,10 @@ struct ProgressSlider: View {
     var trackProgress: ContentView.ViewModel.TrackProgress
     
     @Binding
-    var isProgressTracking: Bool
+    var isTracking: Bool
+    
+    @Binding
+    var initialValue: Double?
     
     @Binding
     var shouldAnimatePadding: Bool
@@ -25,7 +28,7 @@ struct ProgressSlider: View {
                     .foregroundColor(.accentColor.opacity(0.3))
                 
                 Rectangle()
-                    .foregroundColor(isProgressTracking ? .accentColor : .accentColor.opacity(0.75))
+                    .foregroundColor(isTracking ? .accentColor : .accentColor.opacity(0.75))
                     .frame(
                         width: {
                             guard
@@ -40,17 +43,20 @@ struct ProgressSlider: View {
                         }()
                     )
             }
-            .frame(height: isProgressTracking ? 8 : 4)
-            .cornerRadius(isProgressTracking ? 4 : 2)
-            .padding(.vertical, isProgressTracking ? 0 : 2)
+            .frame(height: isTracking ? 8 : 4)
+            .cornerRadius(isTracking ? 4 : 2)
+            .padding(.vertical, isTracking ? 0 : 2)
             .animation(.easeIn(duration: 0.18), value: shouldAnimatePadding)
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
-                        isProgressTracking = true
+                        if !isTracking {
+                            isTracking = true
+                            initialValue = trackProgress.value
+                        }
                         
                         guard
-                            let value = trackProgress.value,
+                            let value = initialValue,
                             let total = trackProgress.total,
                             total != 0
                         else {
@@ -59,6 +65,9 @@ struct ProgressSlider: View {
                         
                         let trackProgressPercentage = value / total
                         let translationPercentage = gesture.translation.width / geometry.size.width
+                        
+                        debugPrint(value, total, gesture.translation.width, geometry.size.width)
+                        print("\n\n")
                         
                         let percentage = max(
                             0,
@@ -74,10 +83,11 @@ struct ProgressSlider: View {
                         )
                     }
                     .onEnded { gesture in
-                        isProgressTracking = false
+                        isTracking = false
+                        initialValue = nil
                         
                         guard
-                            let value = trackProgress.value,
+                            let value = initialValue,
                             let total = trackProgress.total,
                             total != 0
                         else {

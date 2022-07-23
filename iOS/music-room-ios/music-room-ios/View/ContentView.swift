@@ -125,29 +125,31 @@ struct ContentView: View {
                 // MARK: - Player Layout
                     
                 case .player:
-                    GeometryReader { geometry in
-                        cachedArtworkImage(
-                            viewModel.currentTrack?.name,
-                            geometry: geometry,
-                            isMainArtwork: true
-                        )
+                    HStack(alignment: .bottom) {
+                        GeometryReader { geometry in
+                            cachedArtworkImage(
+                                viewModel.currentTrack?.name,
+                                geometry: geometry,
+                                isMainArtwork: true
+                            )
                             .resizable()
                             .aspectRatio(1, contentMode: .fit)
                             .cornerRadius(8)
-                            .shadow(color: Color(white: 0, opacity: 0.3), radius: 4, x: 0, y: 4)
+                            .shadow(color: Color(white: 0, opacity: 0.3), radius: 8, x: 0, y: 8)
+                        }
                     }
-                    .scaleEffect(
-                        { () -> CGFloat in
-                            switch viewModel.playerState {
-                            case .paused:
-                                return 0.8
-                                
-                            case .playing:
-                                return 1
-                            }
-                        }(),
-                        anchor: .center
-                    )
+                        .scaleEffect(
+                            { () -> CGFloat in
+                                switch viewModel.playerState {
+                                case .paused:
+                                    return 0.8
+                                    
+                                case .playing:
+                                    return 1
+                                }
+                            }(),
+                            anchor: .center
+                        )
                         .transition(
                             .scale(
                                 scale: viewModel.artworkScale,
@@ -186,12 +188,21 @@ struct ContentView: View {
                             value: viewModel.animatingPlayerState
                         )
                     
-                    VStack(alignment: .leading, spacing: 48) {
+                    VStack(alignment: .leading, spacing: 32) {
                         HStack {
-                            Text(viewModel.currentTrack?.name ?? viewModel.placeholderTitle)
-                                .foregroundColor(viewModel.primaryControlsColor)
-                                .font(.headline)
-                                .dynamicTypeSize(.xLarge)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(viewModel.currentTrack?.meta.title ?? viewModel.placeholderTitle)
+                                    .foregroundColor(viewModel.primaryControlsColor)
+                                    .font(.title2)
+                                    .fontWeight(.medium)
+                                
+                                if let artist = viewModel.currentTrack?.meta.artist {
+                                    Text(artist)
+                                        .foregroundColor(viewModel.secondaryControlsColor)
+                                        .font(.title2)
+                                        .fontWeight(.regular)
+                                }
+                            }
                             
                             Spacer()
                             
@@ -207,19 +218,26 @@ struct ContentView: View {
                                 switch viewModel.playerQuality {
                                 case .standard:
                                     Text("HiFi")
-                                        .foregroundColor(viewModel.primaryControlsColor)
-                                        .font(.subheadline)
+                                        .foregroundColor(viewModel.tertiaryControlsColor)
+                                        .font(.system(.subheadline, design: .rounded))
                                         .fontWeight(.semibold)
                                         .dynamicTypeSize(.large)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 2)
+                                                .inset(by: -5)
+                                                .strokeBorder(lineWidth: 1.5)
+                                                .foregroundColor(viewModel.tertiaryControlsColor)
+                                        )
+                                        .padding(5)
                                     
                                 case .highFidelity:
                                     Text("HiFi")
                                         .foregroundColor(viewModel.primaryControlsColor)
-                                        .font(.subheadline)
+                                        .font(.system(.subheadline, design: .rounded))
                                         .fontWeight(.semibold)
                                         .dynamicTypeSize(.large)
                                         .background(
-                                            viewModel.secondaryControlsColor,
+                                            viewModel.primaryControlsColor,
                                             in: RoundedRectangle(cornerRadius: 2)
                                                 .inset(by: -5)
                                         )
@@ -229,12 +247,13 @@ struct ContentView: View {
                                                 .overlay(alignment: .center) {
                                                     Text("HiFi")
                                                         .foregroundColor(viewModel.primaryControlsColor)
-                                                        .font(.subheadline)
+                                                        .font(.system(.subheadline, design: .rounded))
                                                         .fontWeight(.semibold)
                                                         .dynamicTypeSize(.large)
                                                         .blendMode(.destinationOut)
                                                 }
                                         }
+                                        .padding(5)
                                 }
                             }
 
@@ -243,12 +262,16 @@ struct ContentView: View {
                         VStack(spacing: 8) {
                             ProgressSlider(
                                 trackProgress: $viewModel.trackProgress,
-                                isProgressTracking: $viewModel.isProgressTracking,
+                                isTracking: $viewModel.isProgressTracking,
+                                initialValue: $viewModel.initialProgressValue,
                                 shouldAnimatePadding: $viewModel.shouldAnimateProgressPadding
                             )
                                 .frame(height: 8)
                                 .accentColor(viewModel.primaryControlsColor)
-                                .animation(.linear(duration: 1), value: viewModel.shouldAnimateProgressSlider)
+                                .animation(
+                                    .linear(duration: 1),
+                                    value: viewModel.shouldAnimateProgressSlider
+                                )
                             
                             HStack {
                                 Text(viewModel.trackProgress.value.time)
@@ -356,29 +379,56 @@ struct ContentView: View {
                         
                         ScrollView(showsIndicators: false) {
                             VStack(alignment: .leading, spacing: 12) {
-                                ForEach(viewModel.queuedTracks) { track in
-                                    HStack(alignment: .center, spacing: 14) {
-                                        cachedArtworkImage(track.name)
-                                            .cornerRadius(4)
-                                            .frame(
-                                                width: viewModel.playlistQueueArtworkWidth,
-                                                height: viewModel.playlistQueueArtworkWidth
+                                ForEach(viewModel.queuedTracks, id: \.1) {
+                                    (sessionTrackID, track) in
+                                    
+                                    Button {
+                                        guard
+                                            let sessionTrackID = sessionTrackID
+                                        else {
+                                            return
+                                        }
+                                        
+                                        Task {
+                                            try await viewModel.playTrack(
+                                                sessionTrackID: sessionTrackID
                                             )
-                                        
-                                        Text(track.name)
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(viewModel.primaryControlsColor)
-                                            .padding(.vertical, 12)
-                                        
-                                        Spacer()
-                                        
-                                        Button {
+                                        }
+                                    } label: {
+                                        HStack(alignment: .center, spacing: 14) {
+                                            cachedArtworkImage(track.name)
+                                                .cornerRadius(4)
+                                                .frame(
+                                                    width: viewModel.playlistQueueArtworkWidth,
+                                                    height: viewModel.playlistQueueArtworkWidth
+                                                )
                                             
-                                        } label: {
-                                            Image(systemName: "text.insert")
+                                            Text(track.name)
+                                                .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(viewModel.primaryControlsColor)
+                                                .padding(.vertical, 12)
+                                            
+                                            Spacer()
+                                            
+                                            Button {
+                                                guard
+                                                    let sessionTrackID = sessionTrackID
+                                                else {
+                                                    return
+                                                }
+                                                
+                                                Task {
+                                                    try await viewModel.delayPlayTrack(
+                                                        sessionTrackID: sessionTrackID
+                                                    )
+                                                }
+                                            } label: {
+                                                Image(systemName: "text.insert")
+                                                    .foregroundColor(viewModel.primaryControlsColor)
+                                            }
                                         }
                                     }
+
                                 }
                             }
                             .padding(.top, 8)
@@ -598,7 +648,7 @@ struct ContentView: View {
                                                     return
                                                 }
                                                 
-                                                try await viewModel.playTrack(trackID: trackID)
+                                                try await viewModel.playTrack(sessionTrackID: trackID)
                                                 
                                                 viewModel.interfaceState = .player
                                             }
@@ -1319,98 +1369,99 @@ struct ContentView: View {
                     }
                     
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        Button {
-                            if !playlistSheet.isEditing {
-                                playlistSheet.isEditing = true
-                            } else {
-                                let playlistName = playlistSheet.nameText
-                                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                                
-                                let accessType = playlistSheet.accessType
-                                
-                                guard
-                                    playlistName != playlistSheet.selectedPlaylist?.name ||
-                                        accessType != playlistSheet.selectedPlaylist?.accessType
-                                else {
-                                    playlistSheet.isEditing = false
+                        if playlistSheet.isEditable {
+                            Button {
+                                if !playlistSheet.isEditing {
+                                    playlistSheet.isEditing = true
+                                } else {
+                                    let playlistName = playlistSheet.nameText
+                                        .trimmingCharacters(in: .whitespacesAndNewlines)
                                     
-                                    return
-                                }
-                                
-                                guard
-                                    !playlistName.isEmpty,
-                                    !addPlaylistSheet.isLoading,
-                                    let playlistID = playlistSheet.selectedPlaylist?.id,
-                                    let playlistsWebSocket = api.playlistsWebSocket
-                                else {
-                                    return
-                                }
-                                
-                                playlistSheet.isLoading = true
-                                
-                                Task {
-                                    do {
-                                        playlistSheet.cancellable = viewModel.$ownPlaylists.sink {
-                                            guard
-                                                let playlist = $0.first(where: {
-                                                    $0.id == playlistID
-                                                })
-                                            else {
-                                                return
+                                    let accessType = playlistSheet.accessType
+                                    
+                                    guard
+                                        playlistName != playlistSheet.selectedPlaylist?.name ||
+                                            accessType != playlistSheet.selectedPlaylist?.accessType
+                                    else {
+                                        playlistSheet.isEditing = false
+                                        
+                                        return
+                                    }
+                                    
+                                    guard
+                                        !playlistName.isEmpty,
+                                        !addPlaylistSheet.isLoading,
+                                        let playlistID = playlistSheet.selectedPlaylist?.id,
+                                        let playlistsWebSocket = api.playlistsWebSocket
+                                    else {
+                                        return
+                                    }
+                                    
+                                    playlistSheet.isLoading = true
+                                    
+                                    Task {
+                                        do {
+                                            playlistSheet.cancellable = viewModel.$ownPlaylists.sink {
+                                                guard
+                                                    let playlist = $0.first(where: {
+                                                        $0.id == playlistID
+                                                    })
+                                                else {
+                                                    return
+                                                }
+                                                
+                                                playlistSheet.cancellable = nil
+                                                
+                                                playlistSheet.selectedPlaylist = playlist
                                             }
                                             
-                                            playlistSheet.cancellable = nil
-                                            
-                                            playlistSheet.selectedPlaylist = playlist
-                                        }
-                                        
-                                        do {
-                                            try await playlistsWebSocket.send(
-                                                PlaylistsMessage(
-                                                    event: .changePlaylist,
-                                                    payload: .changePlaylist(
-                                                        playlist_id: playlistID,
-                                                        playlist_name: playlistName,
-                                                        playlist_access_type: accessType
+                                            do {
+                                                try await playlistsWebSocket.send(
+                                                    PlaylistsMessage(
+                                                        event: .changePlaylist,
+                                                        payload: .changePlaylist(
+                                                            playlist_id: playlistID,
+                                                            playlist_name: playlistName,
+                                                            playlist_access_type: accessType
+                                                        )
                                                     )
                                                 )
-                                            )
+                                            } catch {
+                                                debugPrint(error)
+                                            }
+                                            
+                                            do {
+                                                try await viewModel.updatePlaylists()
+                                                try await viewModel.updateOwnPlaylists()
+                                            }
+                                            
+                                            await MainActor.run {
+                                                playlistSheet.isEditing = false
+                                                playlistSheet.isLoading = false
+                                            }
                                         } catch {
-                                            debugPrint(error)
-                                        }
-                                        
-                                        do {
-                                            try await viewModel.updatePlaylists()
-                                            try await viewModel.updateOwnPlaylists()
-                                        }
-                                        
-                                        await MainActor.run {
-                                            playlistSheet.isEditing = false
-                                            playlistSheet.isLoading = false
-                                        }
-                                    } catch {
-                                        await MainActor.run {
-                                            playlistSheet.isEditing = false
-                                            playlistSheet.isLoading = false
+                                            await MainActor.run {
+                                                playlistSheet.isEditing = false
+                                                playlistSheet.isLoading = false
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        } label: {
-                            if !playlistSheet.isLoading {
-                                if !playlistSheet.isEditing {
-                                    Text("Edit")
-                                        .fontWeight(.semibold)
+                            } label: {
+                                if !playlistSheet.isLoading {
+                                    if !playlistSheet.isEditing {
+                                        Text("Edit")
+                                            .fontWeight(.semibold)
+                                    } else {
+                                        Text("Done")
+                                            .fontWeight(.semibold)
+                                    }
                                 } else {
-                                    Text("Done")
-                                        .fontWeight(.semibold)
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
                                 }
-                            } else {
-                                ProgressView()
-                                    .progressViewStyle(.circular)
                             }
                         }
-                        
                     }
                 }
                 .confirmationDialog(

@@ -96,7 +96,6 @@ extension ContentView.ViewModel {
         }
         
         let progress = (self.currentSessionTrack?.progress as? NSDecimalNumber)
-        let total = (self.currentTrackFile?.duration as? NSDecimalNumber)
         
         if let playerProgressTimeObserver = playerProgressTimeObserver {
             player.removeTimeObserver(playerProgressTimeObserver)
@@ -223,8 +222,8 @@ extension ContentView.ViewModel {
         nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue
         nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = false
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
-        nowPlayingInfo[MPMediaItemPropertyTitle] = currentTrack?.name ?? "Untitled"
-        nowPlayingInfo[MPMediaItemPropertyArtist] = "Music Room"
+        nowPlayingInfo[MPMediaItemPropertyTitle] = currentTrack?.meta.title ?? "Untitled"
+        nowPlayingInfo[MPMediaItemPropertyArtist] = currentTrack?.meta.artist ?? "Unknown"
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = NSDecimalNumber(decimal: currentTrackFile?.duration ?? 0)
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime().seconds
         
