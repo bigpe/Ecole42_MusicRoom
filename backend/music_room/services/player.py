@@ -110,7 +110,7 @@ class PlayerService:
     def shuffle(self):
         if self.current_track:
             tracks = list(self.player_session.playlist.tracks.exclude(track=self.current_track.track).all())
-            self.player_session.track_queue.exclude(track_queue__order=self.current_track.order).all().delete()
+            self.player_session.track_queue.exclude(order=self.current_track.order).all().delete()
         else:
             tracks = list(self.player_session.playlist.tracks.all())
         for i in range(len(tracks)):
