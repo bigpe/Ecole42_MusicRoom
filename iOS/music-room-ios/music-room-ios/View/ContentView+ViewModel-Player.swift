@@ -119,8 +119,6 @@ extension ContentView.ViewModel {
                 return (start: startSeconds, duration: durationSeconds)
             } ?? []
             
-            debugPrint(bufferedRanges)
-            
             if !self.isProgressTracking {
                 DispatchQueue.main.async { [unowned self] in
                     shouldAnimateProgressSlider.toggle()

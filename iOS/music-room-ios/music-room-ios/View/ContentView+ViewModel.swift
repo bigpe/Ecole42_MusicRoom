@@ -473,31 +473,33 @@ extension ContentView {
                 
                 guard oldValue, !isProgressTracking else { return }
                 
-                @MainActor
-                func seek() {
-                    guard
-                        let progress = trackProgress.value
-                    else {
-                        if playerState == .playing {
-                            player.play()
-                        }
-                        
-                        return
-                    }
-                    
-                    let timeScale = CMTimeScale(1)
-                    let time = CMTime(seconds: progress, preferredTimescale: timeScale)
-                    
-                    player.seek(to: time) { [unowned self] (status) in
-                        guard status else { return /* seek() */ } // FIXME
-                        
-                        if playerState == .playing {
-                            player.play()
-                        }
-                    }
+                seek()
+            }
+        }
+        
+        // MARK: - Seek
+        
+        @MainActor
+        func seek() {
+            guard
+                let progress = trackProgress.value
+            else {
+                if playerState == .playing {
+                    player.play()
                 }
                 
-                seek()
+                return
+            }
+            
+            let timeScale = CMTimeScale(1)
+            let time = CMTime(seconds: progress, preferredTimescale: timeScale)
+            
+            player.seek(to: time) { [unowned self] (status) in
+                guard status else { return /* seek() */ } // FIXME
+                
+                if playerState == .playing {
+                    player.play()
+                }
             }
         }
         
@@ -736,8 +738,19 @@ extension ContentView {
                     
                     playerState = .paused
                     
+                    pauseCurrentTrack()
+                    
                 case .playing:
                     animatingPlayerState.toggle()
+                    
+                    if oldValue?.track != currentSessionTrack.track {
+                        pauseCurrentTrack()
+                        playCurrentTrack()
+                    }
+                    
+                    if playerState != .playing {
+                        playCurrentTrack()
+                    }
                     
                     playerState = .playing
                     
@@ -1084,6 +1097,24 @@ extension ContentView {
                 Task {
                     try await self.backward()
                 }
+                
+                return .success
+            }
+            
+            MPRemoteCommandCenter.shared().changePlaybackPositionCommand.isEnabled = true
+            
+            MPRemoteCommandCenter.shared().changePlaybackPositionCommand.addTarget { event in
+                guard
+                    let changePlaybackPositionEvent = event as? MPChangePlaybackPositionCommandEvent
+                else {
+                    return .commandFailed
+                }
+                
+                let time = changePlaybackPositionEvent.positionTime
+                
+                self.trackProgress = TrackProgress(value: time, total: self.trackProgress.total)
+                
+                self.seek()
                 
                 return .success
             }

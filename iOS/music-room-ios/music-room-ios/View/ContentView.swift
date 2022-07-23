@@ -189,7 +189,7 @@ struct ContentView: View {
                         )
                     
                     VStack(alignment: .leading, spacing: 32) {
-                        HStack {
+                        HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(viewModel.currentTrack?.meta.title ?? viewModel.placeholderTitle)
                                     .foregroundColor(viewModel.primaryControlsColor)
@@ -256,7 +256,6 @@ struct ContentView: View {
                                         .padding(5)
                                 }
                             }
-
                         }
                         
                         VStack(spacing: 8) {
