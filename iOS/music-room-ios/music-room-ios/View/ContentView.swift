@@ -133,21 +133,13 @@ struct ContentView: View {
                                 isMainArtwork: true
                             )
                             .resizable()
-                            .aspectRatio(1, contentMode: .fit)
+                            .aspectRatio(1, contentMode: .fill)
                             .cornerRadius(8)
                             .shadow(color: Color(white: 0, opacity: 0.3), radius: 8, x: 0, y: 8)
                         }
                     }
                         .scaleEffect(
-                            { () -> CGFloat in
-                                switch viewModel.playerState {
-                                case .paused:
-                                    return 0.8
-                                    
-                                case .playing:
-                                    return 1
-                                }
-                            }(),
+                            viewModel.playerScale,
                             anchor: .center
                         )
                         .transition(

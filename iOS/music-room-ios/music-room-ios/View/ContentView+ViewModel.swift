@@ -383,6 +383,16 @@ extension ContentView {
             changeColor(by: cachedImage)
         }
         
+        var playerScale: CGFloat {
+            switch playerState {
+            case .paused:
+                return 0.8
+                
+            case .playing:
+                return 1
+            }
+        }
+        
         var artworkScale: CGFloat {
             guard
                 let playerArtworkWidth = playerArtworkWidth
@@ -392,10 +402,10 @@ extension ContentView {
             
             switch interfaceState {
             case .player, .library:
-                return playlistArtworkWidth / playerArtworkWidth
+                return playlistArtworkWidth / (playerArtworkWidth * playerScale)
                 
             case .playlist:
-                return playerArtworkWidth / playlistArtworkWidth
+                return (playerArtworkWidth * playerScale) / playlistArtworkWidth
             }
         }
         
