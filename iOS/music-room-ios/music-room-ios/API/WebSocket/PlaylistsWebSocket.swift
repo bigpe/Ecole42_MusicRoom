@@ -11,7 +11,9 @@ public class PlaylistsWebSocket {
     
     private weak var api: API!
     
-    public var isSubscribed = false
+    public var isSubscribed: Bool {
+        receiveBlock != nil
+    }
     
     private let webSocketTask: URLSessionWebSocketTask
     
@@ -31,41 +33,64 @@ public class PlaylistsWebSocket {
     
     // MARK: - Receive Message
     
-    public func receive() async throws -> PlaylistsMessage {
-        let message = try await webSocketTask.receive()
-        
-        guard
-            case let .string(rawValue) = message,
-            let data = rawValue.data(using: .utf8)
-        else {
-            throw .api.custom(errorDescription: "Playlist WebSocket")
+    private var receiveUUID: UUID?
+    
+    private var receiveBlock: ((PlaylistsMessage) -> Void)? {
+        didSet {
+            guard
+                receiveBlock != nil
+            else {
+                return
+            }
+            
+            let uuid = UUID()
+            
+            receiveUUID = uuid
+            
+            receive(uuid)
         }
-        
-        do {
-            let playlistsMessage = try API.Decoder().decode(PlaylistsMessage.self, from: data)
+    }
+    
+    public func receive(_ uuid: UUID) {
+        Task {
+            guard
+                uuid == receiveUUID,
+                let receiveBlock = receiveBlock
+            else {
+                return
+            }
             
-            return playlistsMessage
-        } catch {
+            defer {
+                receive(uuid)
+            }
             
-            print(rawValue, "\n\n")
-            print(error)
+            let message = try await webSocketTask.receive()
             
-            throw error
+            guard
+                case let .string(rawValue) = message,
+                let data = rawValue.data(using: .utf8)
+            else {
+                throw .api.custom(errorDescription: "Playlists WebSocket")
+            }
+            
+            do {
+                let playlistsMessage = try API.Decoder().decode(PlaylistsMessage.self, from: data)
+                
+                receiveBlock(playlistsMessage)
+            } catch {
+                
+                print(rawValue, "\n\n")
+                print(error)
+                
+                throw error
+            }
         }
     }
     
     // MARK: - Events
     
     public func onReceive(_ block: @escaping (PlaylistsMessage) -> Void) {
-        isSubscribed = true
-        
-        Task {
-            defer {
-                onReceive(block)
-            }
-            
-            block(try await receive())
-        }
+        receiveBlock = block
     }
     
     // MARK: - Init with API

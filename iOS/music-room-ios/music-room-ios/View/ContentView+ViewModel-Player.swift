@@ -42,7 +42,7 @@ extension ContentView.ViewModel {
             debugPrint(error.localizedDescription)
         }
         
-        if let progress = currentSessionTrack?.progress { // FIXME: Remove `false`
+        if let progress = currentSessionTrack?.progress {
             let progress = NSDecimalNumber(decimal: progress).doubleValue
             let timeScale = CMTimeScale(1)
             let time = CMTime(seconds: progress, preferredTimescale: timeScale)
@@ -107,73 +107,80 @@ extension ContentView.ViewModel {
         
         playerProgressTimeObserver = player.addPeriodicTimeObserver(
             forInterval: CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)),
-            queue: .main
-        ) { cmTime in
+            queue: playerQueue
+        ) { [weak self] (cmTime) in
+            guard
+                let self = self
+            else {
+                return
+            }
+            
+            self.playerObserveCounter += 1
+            
             let value = cmTime.seconds
             let total = (self.currentTrackFile?.duration as? NSDecimalNumber)
-            
+
             let bufferedRanges: [(start: Double, duration: Double)] = self.player.currentItem?.loadedTimeRanges.map { timeRange in
                 let startSeconds = timeRange.timeRangeValue.start.seconds
                 let durationSeconds = timeRange.timeRangeValue.duration.seconds
-                
+
                 return (start: startSeconds, duration: durationSeconds)
             } ?? []
-            
+
             if !self.isProgressTracking {
-                DispatchQueue.main.async { [unowned self] in
-                    shouldAnimateProgressSlider.toggle()
-                    
-                    trackProgress = TrackProgress(value: value, total: total?.doubleValue)
+                DispatchQueue.main.async { [weak self] in
+                    self?.shouldAnimateProgressSlider.toggle()
+
+                    self?.trackProgress = TrackProgress(value: value, total: total?.doubleValue)
                 }
             }
-            
+
             if (progress?.intValue ?? 0) >= (total?.intValue ?? 0) || Int(value) >= (total?.intValue ?? 0) {
                 if let playerProgressTimeObserver = self.playerProgressTimeObserver {
                     self.player.removeTimeObserver(playerProgressTimeObserver)
-                    
+
                     self.playerProgressTimeObserver = nil
                 }
-                
+
                 if let playerSyncTimeObserver = self.playerSyncTimeObserver {
                     self.player.removeTimeObserver(playerSyncTimeObserver)
-                    
+
                     self.playerSyncTimeObserver = nil
                 }
-                
+
                 Task {
                     try await self.forward()
                 }
             }
-        }
-        
-        playerSyncTimeObserver = player.addPeriodicTimeObserver(
-            forInterval: CMTime(seconds: 5, preferredTimescale: CMTimeScale(NSEC_PER_SEC)),
-            queue: .global(qos: .background)
-        ) { cmTime in
-            guard
-                let sessionID = self.playerSession?.id
-            else {
-                return
-            }
             
-            let value = cmTime.seconds
-            
-            guard
-                !self.isProgressTracking
-            else {
-                return
-            }
-            
-            Task {
-                try await self.api.playerWebSocket?.send(
-                    PlayerMessage(
-                        event: .syncTrack,
-                        payload: .syncTrack(
-                            player_session_id: sessionID,
-                            progress: Int(value)
+            if self.playerObserveCounter >= 5 {
+                self.playerObserveCounter = 0
+                
+                guard
+                    let sessionID = self.playerSession?.id
+                else {
+                    return
+                }
+                
+                let value = cmTime.seconds
+                
+                guard
+                    !self.isProgressTracking
+                else {
+                    return
+                }
+                
+                Task {
+                    try await self.api.playerWebSocket?.send(
+                        PlayerMessage(
+                            event: .syncTrack,
+                            payload: .syncTrack(
+                                player_session_id: sessionID,
+                                progress: Int(value)
+                            )
                         )
                     )
-                )
+                }
             }
         }
     }
@@ -241,5 +248,13 @@ extension ContentView.ViewModel {
         if #available(macOS 10, *) {
             nowPlayingInfoCenter.playbackState = player.rate == 0 ? .paused : .playing
         }
+    }
+    
+    func updateNowPlayingElapsedPlaybackTime(_ time: Double?) {
+        let nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
+        
+        let kElapsedPlaybackTime = MPNowPlayingInfoPropertyElapsedPlaybackTime
+        
+        nowPlayingInfoCenter.nowPlayingInfo?[kElapsedPlaybackTime] = time
     }
 }

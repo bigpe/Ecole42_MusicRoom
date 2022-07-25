@@ -11,7 +11,9 @@ public class PlayerWebSocket {
     
     private weak var api: API!
     
-    public var isSubscribed = false
+    public var isSubscribed: Bool {
+        receiveBlock != nil
+    }
     
     private let webSocketTask: URLSessionWebSocketTask
     
@@ -31,41 +33,64 @@ public class PlayerWebSocket {
     
     // MARK: - Receive Message
     
-    public func receive() async throws -> PlayerMessage {
-        let message = try await webSocketTask.receive()
-        
-        guard
-            case let .string(rawValue) = message,
-            let data = rawValue.data(using: .utf8)
-        else {
-            throw .api.custom(errorDescription: "Player WebSocket")
+    private var receiveUUID: UUID?
+    
+    private var receiveBlock: ((PlayerMessage) -> Void)? {
+        didSet {
+            guard
+                receiveBlock != nil
+            else {
+                return
+            }
+            
+            let uuid = UUID()
+            
+            receiveUUID = uuid
+            
+            receive(uuid)
         }
-        
-        do {
-            let playerMessage = try API.Decoder().decode(PlayerMessage.self, from: data)
+    }
+    
+    public func receive(_ uuid: UUID) {
+        Task {
+            guard
+                uuid == receiveUUID,
+                let receiveBlock = receiveBlock
+            else {
+                return
+            }
             
-            return playerMessage
-        } catch {
+            defer {
+                receive(uuid)
+            }
             
-            print(rawValue, "\n\n")
-            print(error)
+            let message = try await webSocketTask.receive()
             
-            throw error
+            guard
+                case let .string(rawValue) = message,
+                let data = rawValue.data(using: .utf8)
+            else {
+                throw .api.custom(errorDescription: "Player WebSocket")
+            }
+            
+            do {
+                let playerMessage = try API.Decoder().decode(PlayerMessage.self, from: data)
+                
+                receiveBlock(playerMessage)
+            } catch {
+                
+                print(rawValue, "\n\n")
+                print(error)
+                
+                throw error
+            }
         }
     }
     
     // MARK: - Events
     
     public func onReceive(_ block: @escaping (PlayerMessage) -> Void) {
-        isSubscribed = true
-        
-        Task {
-            defer {
-                onReceive(block)
-            }
-            
-            block(try await receive())
-        }
+        receiveBlock = block
     }
     
     // MARK: - Init with API

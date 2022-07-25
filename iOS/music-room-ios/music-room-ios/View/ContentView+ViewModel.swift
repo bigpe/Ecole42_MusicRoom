@@ -15,6 +15,20 @@ extension ContentView {
     @MainActor
     class ViewModel: ObservableObject {
         
+        // MARK: - Player Queue
+        
+        let playerQueue = DispatchQueue(
+            label: "PlayerQueue",
+            qos: .userInteractive,
+            attributes: [],
+            autoreleaseFrequency: .inherit,
+            target: .global(qos: .userInteractive)
+        )
+        
+        // MARK: - Player Observe Counter
+        
+        var playerObserveCounter = 0
+        
         // MARK: - API
         
         weak var api: API!
@@ -437,7 +451,7 @@ extension ContentView {
         var trackProgress = TrackProgress(value: nil, total: nil) {
             didSet {
                 if Int(trackProgress.value ?? 0) != Int(oldValue.value ?? 0) {
-                    updateNowPlayingInfo()
+                    updateNowPlayingElapsedPlaybackTime(trackProgress.value)
                 }
             }
         }
@@ -609,6 +623,22 @@ extension ContentView {
             
             do {
                 let tracks = try await api.trackRequest()
+                    .map { track in
+                        Track(
+                            id: track.id,
+                            name: track.name,
+                            files: track.files.map { file in
+                                File(
+                                    id: file.id,
+                                    file: file.file
+                                        .replacingOccurrences(of: "http://", with: "https://"),
+                                    extension: file.extension,
+                                    duration: file.duration,
+                                    track: file.track
+                                )
+                            }
+                        )
+                    }
                 
                 self.tracks = tracks
                 
