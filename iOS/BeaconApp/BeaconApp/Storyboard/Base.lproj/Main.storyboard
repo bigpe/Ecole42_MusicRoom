@@ -34,7 +34,7 @@
                                 </subviews>
                             </stackView>
                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillProportionally" alignment="center" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="k3f-cU-9Bk">
-                                <rect key="frame" x="70.5" y="470" width="179.5" height="17"/>
+                                <rect key="frame" x="70.5" y="460" width="179.5" height="17"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bluetooth status: " textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Y3H-mC-LUY">
                                         <rect key="frame" x="0.0" y="0.0" width="114" height="17"/>
@@ -89,7 +89,7 @@
                                 </subviews>
                             </stackView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aUa-CG-h9O">
-                                <rect key="frame" x="30" y="507" width="260" height="31"/>
+                                <rect key="frame" x="30" y="497" width="260" height="31"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Button"/>
                                 <connections>
@@ -102,21 +102,40 @@
                                     <constraint firstAttribute="height" constant="20" id="LcR-lS-Fj3"/>
                                 </constraints>
                             </imageView>
+                            <stackView opaque="NO" contentMode="scaleToFill" distribution="fillProportionally" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="rfK-XS-7ig">
+                                <rect key="frame" x="45" y="547" width="230.5" height="11"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="UUID:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hf7-de-ypp">
+                                        <rect key="frame" x="0.0" y="0.0" width="23.5" height="11"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="8"/>
+                                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="F34A1A1F-500F-48FB-AFAA-9584D641D7B1" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lWu-yT-P9J">
+                                        <rect key="frame" x="31.5" y="0.0" width="199" height="11"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="9"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemGray6Color"/>
                         <constraints>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="rfK-XS-7ig" secondAttribute="bottom" constant="10" id="08u-l3-1V5"/>
                             <constraint firstItem="hxf-a5-Y0p" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="2Zk-1m-mCY"/>
                             <constraint firstItem="9d6-gS-sn6" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="D68-Lu-jTY"/>
                             <constraint firstItem="k3f-cU-9Bk" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="FgP-r1-xbp"/>
                             <constraint firstItem="hxf-a5-Y0p" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="I0b-oS-CJF"/>
                             <constraint firstItem="hxf-a5-Y0p" firstAttribute="top" secondItem="bx1-eA-dBZ" secondAttribute="bottom" constant="15" id="Kwa-0P-0rI"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="9d6-gS-sn6" secondAttribute="trailing" constant="30" id="RB2-OJ-znq"/>
+                            <constraint firstItem="rfK-XS-7ig" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Ufk-WH-MOH"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="aUa-CG-h9O" secondAttribute="trailing" constant="30" id="Vri-7D-xjo"/>
                             <constraint firstItem="bx1-eA-dBZ" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="30" id="Wnu-a1-d1B"/>
                             <constraint firstItem="aUa-CG-h9O" firstAttribute="top" secondItem="k3f-cU-9Bk" secondAttribute="bottom" constant="20" id="Z07-Lz-spI"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="hxf-a5-Y0p" secondAttribute="trailing" constant="30" id="bIC-HX-G43"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="aUa-CG-h9O" secondAttribute="bottom" constant="30" id="eCV-RI-dwG"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="aUa-CG-h9O" secondAttribute="bottom" constant="40" id="eCV-RI-dwG"/>
                             <constraint firstItem="9d6-gS-sn6" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" multiplier="1.05" id="eNI-GE-Npb"/>
                             <constraint firstItem="aUa-CG-h9O" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="fly-Wp-7IQ"/>
                             <constraint firstItem="aUa-CG-h9O" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="30" id="oAO-is-fGV"/>

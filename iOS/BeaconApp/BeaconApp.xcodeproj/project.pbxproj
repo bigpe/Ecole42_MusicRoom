@@ -56,15 +56,47 @@
 		3A5BE41028632DAB008FBDFD /* BeaconApp */ = {
 			isa = PBXGroup;
 			children = (
-				3A5BE41128632DAB008FBDFD /* AppDelegate.swift */,
-				3A5BE41728632DAC008FBDFD /* Main.storyboard */,
-				3A5BE41C28632DAE008FBDFD /* LaunchScreen.storyboard */,
-				3A5BE41328632DAB008FBDFD /* SceneDelegate.swift */,
-				3A5BE41528632DAB008FBDFD /* MainViewController.swift */,
-				3A5BE41A28632DAE008FBDFD /* Assets.xcassets */,
-				3A5BE41F28632DAE008FBDFD /* Info.plist */,
+				3AE338D32898056300796615 /* App */,
+				3AE338D42898056B00796615 /* Storyboard */,
+				3AE338D5289805E500796615 /* Controllers */,
+				3AE338D6289805F000796615 /* Assets */,
 			);
 			path = BeaconApp;
+			sourceTree = "<group>";
+		};
+		3AE338D32898056300796615 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				3A5BE41128632DAB008FBDFD /* AppDelegate.swift */,
+				3A5BE41328632DAB008FBDFD /* SceneDelegate.swift */,
+				3A5BE41F28632DAE008FBDFD /* Info.plist */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		3AE338D42898056B00796615 /* Storyboard */ = {
+			isa = PBXGroup;
+			children = (
+				3A5BE41728632DAC008FBDFD /* Main.storyboard */,
+				3A5BE41C28632DAE008FBDFD /* LaunchScreen.storyboard */,
+			);
+			path = Storyboard;
+			sourceTree = "<group>";
+		};
+		3AE338D5289805E500796615 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				3A5BE41528632DAB008FBDFD /* MainViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		3AE338D6289805F000796615 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				3A5BE41A28632DAE008FBDFD /* Assets.xcassets */,
+			);
+			path = Assets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -289,13 +321,15 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = QX89BX85GD;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = BeaconApp/Info.plist;
+				INFOPLIST_FILE = BeaconApp/App/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Need permission to broadcasting beacon";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -305,7 +339,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -318,13 +352,15 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = QX89BX85GD;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = BeaconApp/Info.plist;
+				INFOPLIST_FILE = BeaconApp/App/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Need permission to broadcasting beacon";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -334,7 +370,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

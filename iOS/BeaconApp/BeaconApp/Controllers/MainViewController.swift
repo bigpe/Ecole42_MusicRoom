@@ -103,6 +103,12 @@ extension MainViewController: UITextViewDelegate {
 		view.endEditing(true)
 	}
 	
+	func textFieldDidEndEditing(_ textField: UITextField) {
+		if textField.text == "" {
+			textField.text = "1"
+		}
+	}
+	
 	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
 		if textField == majorTF {
 			minorTF.becomeFirstResponder()
@@ -135,7 +141,6 @@ extension MainViewController {
 			switchButton.setTitle("Stop", for: .normal)
 			majorTF.isEnabled = false
 			minorTF.isEnabled = false
-			
 		} else {
 			statusImage.tintColor = .systemGray5
 			switchButton.configuration = .getDefaultConf()
