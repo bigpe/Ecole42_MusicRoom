@@ -11,7 +11,7 @@ python3 manage.py migrate
 python3 audio_export.py
 
 mkdir -p media
-cp -a music_room/music media
+cp -a music_room/music media/music/
 
 if [ "$LOAD_DUMPS" = "1" ]; then \
     ./load_dumps
