@@ -11,4 +11,4 @@ drf-yasg
 drf-yasg[validation]
 djangorestframework-simplejwt
 tinytag
-
+pydub

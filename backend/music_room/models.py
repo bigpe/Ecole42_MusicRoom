@@ -1,12 +1,14 @@
+import os
 from typing import List, Union
 
 from tinytag import TinyTag
+from pydub import AudioSegment
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.fields.files import FieldFile
 from django.db.models.manager import Manager
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from bootstrap.utils import BootstrapMixin
@@ -32,6 +34,7 @@ def user_post_save(instance: User, created, **kwargs):
 
 
 def audio_file_validator(file: FieldFile):
+    # allowed_extensions = File.Extensions.names
     allowed_extensions = File.Extensions.names
     file_extension = file.name.split('.')[-1]
     if file_extension not in allowed_extensions:
@@ -56,13 +59,21 @@ class File(models.Model):
         flac = 'flac'
 
     #: Track file
-    file = models.FileField(upload_to='music', validators=[audio_file_validator])
+    file = models.FileField(
+        upload_to='music',
+        validators=[audio_file_validator],
+        help_text=f'Send highest quality file, lowest will be make automatically<br>'
+                  f'Allowed:<br> {"<br>".join(Extensions.names)}'
+    )
     #: Track file extension
     extension: Extensions = models.CharField(max_length=50, choices=Extensions.choices, blank=True, null=True)
     #: Track duration in seconds
     duration = models.FloatField(blank=True, null=True)
     #: Track instance
     track = models.ForeignKey(Track, models.CASCADE, related_name='files')
+
+    def __str__(self):
+        return f'{self.track.name} - {self.extension}'
 
 
 @receiver(post_save, sender=File)
@@ -74,7 +85,22 @@ def file_post_save(instance: File, created, *args, **kwargs):
         instance.duration = track_file_meta.duration
         instance.extension = file_extension
         instance.save()
+        mp3_path = instance.file.path.replace('.flac', '.mp3')
+        mp3_name = instance.file.name.replace('.flac', '.mp3')
+        flac_audio = AudioSegment.from_file(instance.file.path, file_extension)
+        flac_audio.export(mp3_path, format='mp3')
+        File.objects.create(
+            track=instance.track,
+            duration=instance.duration,
+            extension=File.Extensions.mp3,
+            file=mp3_name
+        )
     post_save.connect(file_post_save, sender=File)
+
+
+@receiver(post_delete, sender=File)
+def file_post_delete(instance: File, *args, **kwargs):
+    os.unlink(instance.file.path)
 
 
 class Playlist(models.Model):
@@ -104,8 +130,12 @@ class Playlist(models.Model):
     access_type: AccessTypes = models.CharField(max_length=50, choices=AccessTypesChoice, default=AccessTypes.public)
     #: Playlist`s author
     author: User = models.ForeignKey(User, models.CASCADE, related_name='playlists')
+
     # access_users: PlaylistAccess
     # tracks: PlaylistTrack
+
+    def __str__(self):
+        return f"{self.author}'s playlist"
 
 
 class PlaylistTrack(models.Model):
