@@ -1,1 +1,92 @@
-[{"model": "music_room.file", "pk": 1, "fields": {"file": "music/Adele-Skyfall.flac", "extension": "flac", "duration": 286.48, "track": 1}}, {"model": "music_room.file", "pk": 2, "fields": {"file": "music/Adele-Skyfall.mp3", "extension": "mp3", "duration": 286.48, "track": 1}}, {"model": "music_room.file", "pk": 5, "fields": {"file": "music/BlasterJaxx-Echo.flac", "extension": "flac", "duration": 335.62988662131517, "track": 3}}, {"model": "music_room.file", "pk": 6, "fields": {"file": "music/BlasterJaxx-Echo.mp3", "extension": "mp3", "duration": 335.62988662131517, "track": 3}}, {"model": "music_room.file", "pk": 7, "fields": {"file": "music/Curbi-Too_Much.flac", "extension": "flac", "duration": 182.53907029478458, "track": 4}}, {"model": "music_room.file", "pk": 8, "fields": {"file": "music/Curbi-Too_Much.mp3", "extension": "mp3", "duration": 182.53907029478458, "track": 4}}, {"model": "music_room.file", "pk": 9, "fields": {"file": "music/Don_Diablo-The_Rhythm.flac", "extension": "flac", "duration": 187.5, "track": 5}}, {"model": "music_room.file", "pk": 10, "fields": {"file": "music/Don_Diablo-The_Rhythm.mp3", "extension": "mp3", "duration": 187.5, "track": 5}}, {"model": "music_room.file", "pk": 11, "fields": {"file": "music/Dustycloud-Bold.flac", "extension": "flac", "duration": 286.4617006802721, "track": 6}}, {"model": "music_room.file", "pk": 12, "fields": {"file": "music/Dustycloud-Bold.mp3", "extension": "mp3", "duration": 286.4617006802721, "track": 6}}, {"model": "music_room.file", "pk": 13, "fields": {"file": "music/Faithless-Insomnia.flac", "extension": "flac", "duration": 521.9733333333334, "track": 7}}, {"model": "music_room.file", "pk": 14, "fields": {"file": "music/Faithless-Insomnia.mp3", "extension": "mp3", "duration": 521.9733333333334, "track": 7}}, {"model": "music_room.file", "pk": 15, "fields": {"file": "music/Gesaffelstein-Ignio.flac", "extension": "flac", "duration": 123.41333333333333, "track": 8}}, {"model": "music_room.file", "pk": 16, "fields": {"file": "music/Gesaffelstein-Ignio.mp3", "extension": "mp3", "duration": 123.41333333333333, "track": 8}}, {"model": "music_room.file", "pk": 17, "fields": {"file": "music/Gorillaz-DARE.flac", "extension": "flac", "duration": 244.99975056689343, "track": 9}}, {"model": "music_room.file", "pk": 18, "fields": {"file": "music/Gorillaz-DARE.mp3", "extension": "mp3", "duration": 244.99975056689343, "track": 9}}, {"model": "music_room.file", "pk": 19, "fields": {"file": "music/Gaullin-Moonlight.flac", "extension": "flac", "duration": 173.06666666666666, "track": 10}}, {"model": "music_room.file", "pk": 20, "fields": {"file": "music/Gaullin-Moonlight.mp3", "extension": "mp3", "duration": 173.06666666666666, "track": 10}}]
+[
+  {
+    "model": "music_room.file",
+    "pk": 1,
+    "fields": {
+      "file": "music/Adele-Skyfall.flac",
+      "extension": "flac",
+      "duration": 286.48,
+      "track": 1
+    }
+  },
+  {
+    "model": "music_room.file",
+    "pk": 5,
+    "fields": {
+      "file": "music/BlasterJaxx-Echo.flac",
+      "extension": "flac",
+      "duration": 335.62988662131517,
+      "track": 3
+    }
+  },
+  {
+    "model": "music_room.file",
+    "pk": 7,
+    "fields": {
+      "file": "music/Curbi-Too_Much.flac",
+      "extension": "flac",
+      "duration": 182.53907029478458,
+      "track": 4
+    }
+  },
+  {
+    "model": "music_room.file",
+    "pk": 9,
+    "fields": {
+      "file": "music/Don_Diablo-The_Rhythm.flac",
+      "extension": "flac",
+      "duration": 187.5,
+      "track": 5
+    }
+  },
+  {
+    "model": "music_room.file",
+    "pk": 11,
+    "fields": {
+      "file": "music/Dustycloud-Bold.flac",
+      "extension": "flac",
+      "duration": 286.4617006802721,
+      "track": 6
+    }
+  },
+  {
+    "model": "music_room.file",
+    "pk": 13,
+    "fields": {
+      "file": "music/Faithless-Insomnia.flac",
+      "extension": "flac",
+      "duration": 521.9733333333334,
+      "track": 7
+    }
+  },
+  {
+    "model": "music_room.file",
+    "pk": 15,
+    "fields": {
+      "file": "music/Gesaffelstein-Ignio.flac",
+      "extension": "flac",
+      "duration": 123.41333333333333,
+      "track": 8
+    }
+  },
+  {
+    "model": "music_room.file",
+    "pk": 17,
+    "fields": {
+      "file": "music/Gorillaz-DARE.flac",
+      "extension": "flac",
+      "duration": 244.99975056689343,
+      "track": 9
+    }
+  },
+  {
+    "model": "music_room.file",
+    "pk": 19,
+    "fields": {
+      "file": "music/Gaullin-Moonlight.flac",
+      "extension": "flac",
+      "duration": 173.06666666666666,
+      "track": 10
+    }
+  }
+]

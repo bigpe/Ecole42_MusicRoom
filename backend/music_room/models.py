@@ -95,6 +95,7 @@ def file_post_save(instance: File, created, *args, **kwargs):
             extension=File.Extensions.mp3,
             file=mp3_name
         )
+        print('+', mp3_name, 'Exported')
     post_save.connect(file_post_save, sender=File)
 
 
