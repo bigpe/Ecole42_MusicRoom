@@ -7,3 +7,4 @@ if __name__ == '__main__':
     for file in files:
         flac_audio = AudioSegment.from_file(file, 'flac')
         flac_audio.export(file.replace('.flac', '.mp3'), format='mp3')
+        print('+', file, 'Exported')
