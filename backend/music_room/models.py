@@ -88,6 +88,7 @@ def file_post_save(instance: File, created, *args, **kwargs):
         mp3_path = instance.file.path.replace('.flac', '.mp3')
         mp3_name = instance.file.name.replace('.flac', '.mp3')
         _, export_not_exist = File.objects.get_or_create(
+            id=instance.id + 1,
             track=instance.track,
             duration=instance.duration,
             extension=File.Extensions.mp3,
