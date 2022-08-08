@@ -87,21 +87,25 @@ def file_post_save(instance: File, created, *args, **kwargs):
         instance.save()
         mp3_path = instance.file.path.replace('.flac', '.mp3')
         mp3_name = instance.file.name.replace('.flac', '.mp3')
-        flac_audio = AudioSegment.from_file(instance.file.path, file_extension)
-        flac_audio.export(mp3_path, format='mp3')
-        File.objects.create(
+        _, export_not_exist = File.objects.get_or_create(
             track=instance.track,
             duration=instance.duration,
             extension=File.Extensions.mp3,
             file=mp3_name
         )
+        if export_not_exist:
+            flac_audio = AudioSegment.from_file(instance.file.path, file_extension)
+            flac_audio.export(mp3_path, format='mp3')
         print('+', mp3_name, 'Exported')
     post_save.connect(file_post_save, sender=File)
 
 
 @receiver(post_delete, sender=File)
 def file_post_delete(instance: File, *args, **kwargs):
-    os.unlink(instance.file.path)
+    try:
+        os.unlink(instance.file.path)
+    except FileNotFoundError:
+        ...
 
 
 class Playlist(models.Model):
