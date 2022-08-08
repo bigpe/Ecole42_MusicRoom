@@ -95,11 +95,8 @@ def file_post_save(instance: File, created, *args, **kwargs):
             file=mp3_name
         )
         if export_not_exist:
-            try:
-                flac_audio = AudioSegment.from_file(instance.file.path, file_extension)
-                flac_audio.export(mp3_path, format='mp3')
-            except Exception:
-                ...
+            flac_audio = AudioSegment.from_file(instance.file.path, file_extension)
+            flac_audio.export(mp3_path, format='mp3')
         print('+', mp3_name, 'Exported')
     post_save.connect(file_post_save, sender=File)
 

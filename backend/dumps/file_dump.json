@@ -51,32 +51,12 @@
   },
   {
     "model": "music_room.file",
-    "pk": 12,
-    "fields": {
-      "file": "music/Faithless-Insomnia.flac",
-      "extension": "flac",
-      "duration": 521.9733333333334,
-      "track": 7
-    }
-  },
-  {
-    "model": "music_room.file",
     "pk": 14,
     "fields": {
       "file": "music/Gesaffelstein-Ignio.flac",
       "extension": "flac",
       "duration": 123.41333333333333,
       "track": 8
-    }
-  },
-  {
-    "model": "music_room.file",
-    "pk": 16,
-    "fields": {
-      "file": "music/Gorillaz-DARE.flac",
-      "extension": "flac",
-      "duration": 244.99975056689343,
-      "track": 9
     }
   },
   {
