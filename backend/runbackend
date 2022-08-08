@@ -8,8 +8,6 @@ python3 manage.py makemigrations
 
 python3 manage.py migrate
 
-python3 audio_export.py
-
 mkdir -p media
 cp -a music_room/music media
 
