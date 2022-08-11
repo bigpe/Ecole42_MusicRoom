@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import os
+from io import FileIO
 from typing import List, Union
 
 from tinytag import TinyTag
@@ -15,8 +18,8 @@ from bootstrap.utils import BootstrapMixin
 
 
 class User(AbstractUser, BootstrapMixin):
-    ...
-    # playlists: PlaylistChanged
+    #: Playlists
+    playlists: Union[Playlist, Manager]
 
 
 @receiver(post_save, sender=User)
@@ -34,8 +37,8 @@ def user_post_save(instance: User, created, **kwargs):
 
 
 def audio_file_validator(file: FieldFile):
-    # allowed_extensions = File.Extensions.names
-    allowed_extensions = File.Extensions.names
+    # allowed_extensions = TrackFile.Extensions.names
+    allowed_extensions = TrackFile.Extensions.names
     file_extension = file.name.split('.')[-1]
     if file_extension not in allowed_extensions:
         raise ValidationError(
@@ -45,21 +48,23 @@ def audio_file_validator(file: FieldFile):
 
 
 class Track(models.Model):
-    name = models.CharField(max_length=150, unique=True)  #: Track name
+    name: str = models.CharField(max_length=150, unique=True)  #: Track name
 
-    # files: File
+    #: Files
+    files: Union[TrackFile, Manager]
 
     def __str__(self):
         return self.name
 
 
-class File(models.Model):
+class TrackFile(models.Model):
     class Extensions(models.TextChoices):
+        """Allowed extensions"""
         mp3 = 'mp3'
         flac = 'flac'
 
     #: Track file
-    file = models.FileField(
+    file: FileIO[bytes] = models.FileField(
         upload_to='music',
         validators=[audio_file_validator],
         help_text=f'Send highest quality file, lowest will be make automatically<br>'
@@ -68,17 +73,17 @@ class File(models.Model):
     #: Track file extension
     extension: Extensions = models.CharField(max_length=50, choices=Extensions.choices, blank=True, null=True)
     #: Track duration in seconds
-    duration = models.FloatField(blank=True, null=True)
+    duration: float = models.FloatField(blank=True, null=True)
     #: Track instance
-    track = models.ForeignKey(Track, models.CASCADE, related_name='files')
+    track: Track = models.ForeignKey(Track, models.CASCADE, related_name='files')
 
     def __str__(self):
         return f'{self.track.name} - {self.extension}'
 
 
-@receiver(post_save, sender=File)
-def file_post_save(instance: File, created, *args, **kwargs):
-    post_save.disconnect(file_post_save, sender=File)
+@receiver(post_save, sender=TrackFile)
+def file_post_save(instance: TrackFile, created, *args, **kwargs):
+    post_save.disconnect(file_post_save, sender=TrackFile)
     if instance.file:
         file_extension = instance.file.name.split('.')[-1]
         track_file_meta = TinyTag.get(instance.file.path)
@@ -87,22 +92,22 @@ def file_post_save(instance: File, created, *args, **kwargs):
         instance.save()
         mp3_path = instance.file.path.replace('.flac', '.mp3')
         mp3_name = instance.file.name.replace('.flac', '.mp3')
-        _, export_not_exist = File.objects.get_or_create(
+        _, export_not_exist = TrackFile.objects.get_or_create(
             id=instance.id + 1,
             track=instance.track,
             duration=instance.duration,
-            extension=File.Extensions.mp3,
+            extension=TrackFile.Extensions.mp3,
             file=mp3_name
         )
         if export_not_exist:
             flac_audio = AudioSegment.from_file(instance.file.path, file_extension)
             flac_audio.export(mp3_path, format='mp3')
         print('+', mp3_name, 'Exported')
-    post_save.connect(file_post_save, sender=File)
+    post_save.connect(file_post_save, sender=TrackFile)
 
 
-@receiver(post_delete, sender=File)
-def file_post_delete(instance: File, *args, **kwargs):
+@receiver(post_delete, sender=TrackFile)
+def file_post_delete(instance: TrackFile, *args, **kwargs):
     try:
         os.unlink(instance.file.path)
     except FileNotFoundError:
@@ -136,9 +141,10 @@ class Playlist(models.Model):
     access_type: AccessTypes = models.CharField(max_length=50, choices=AccessTypesChoice, default=AccessTypes.public)
     #: Playlist`s author
     author: User = models.ForeignKey(User, models.CASCADE, related_name='playlists')
-
-    # access_users: PlaylistAccess
-    # tracks: PlaylistTrack
+    #: Users accessed to this playlist
+    access_users: Union[PlaylistAccess, Manager]
+    #: Tracks in this playlist
+    tracks: Union[PlaylistTrack, Manager]
 
     def __str__(self):
         return f"{self.author}'s playlist"
@@ -154,8 +160,10 @@ class PlaylistTrack(models.Model):
 
 
 class PlaylistAccess(models.Model):
-    user = models.ForeignKey(User, models.CASCADE)
-    playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='access_users')
+    #: User who access to playlist
+    user: User = models.ForeignKey(User, models.CASCADE)
+    #: Playlist instance
+    playlist: Playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='access_users')
 
 
 class SessionTrack(models.Model):
@@ -179,7 +187,7 @@ class SessionTrack(models.Model):
     #: Votes count for next play
     votes_count: int = models.PositiveIntegerField(default=0)
     #: Track time progress from duration
-    progress = models.FloatField(default=0)
+    progress: float = models.FloatField(default=0)
     #: Tracks order in queue
     order: int = models.IntegerField(default=0)
 

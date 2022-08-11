@@ -1,3 +1,8 @@
+Swagger
+==================
+.. important::
+   `API Documentation </api/>`_
+
 How it works
 =========================================
 

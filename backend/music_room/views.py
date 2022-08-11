@@ -4,7 +4,6 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .models import Track, Playlist, PlayerSession
@@ -49,10 +48,9 @@ class PlaylistOwnListView(ListAPIView):
     """
     queryset = Playlist.objects.filter(access_type=Playlist.AccessTypes.public).all()
     serializer_class = PlaylistSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return self.queryset.all()
         return Playlist.objects.filter(author=self.request.user)
 
 
