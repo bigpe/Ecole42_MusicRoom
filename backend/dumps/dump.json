@@ -215,15 +215,5 @@
       "duration": 521.9733333333334,
       "track": 6
     }
-  },
-  {
-    "model": "music_room.playlist",
-    "pk": 1,
-    "fields": {
-      "name": "Favourites",
-      "type": "default",
-      "access_type": "private",
-      "author": 1
-    }
   }
 ]
