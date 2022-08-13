@@ -12,3 +12,5 @@ drf-yasg[validation]
 djangorestframework-simplejwt
 tinytag
 pydub
+django-storages
+boto3
