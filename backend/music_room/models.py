@@ -15,11 +15,10 @@ from django.db.models.manager import Manager
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from bootstrap.utils import BootstrapMixin
 from django_app.settings import MEDIA_ROOT
 
 
-class User(AbstractUser, BootstrapMixin):
+class User(AbstractUser):
     #: Playlists
     playlists: Union[Playlist, Manager]
 
@@ -103,7 +102,10 @@ def file_post_save(instance: TrackFile, created, *args, **kwargs):
         cloud_backend = hasattr(instance.file, 'url')
         if cloud_backend:
             file_path = str(MEDIA_ROOT / instance.file.name)
-            open(file_path, 'wb').write(default_storage.open(instance.file.name).read())
+            try:
+                open(file_path, 'wb').write(default_storage.open(instance.file.name).read())
+            except FileNotFoundError:
+                return
         else:
             file_path = instance.file.path
         track_file_meta = TinyTag.get(file_path)
