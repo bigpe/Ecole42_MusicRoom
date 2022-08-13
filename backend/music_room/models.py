@@ -4,6 +4,7 @@ import os
 from io import FileIO
 from typing import List, Union
 
+from django.core.files.storage import default_storage
 from tinytag import TinyTag
 from pydub import AudioSegment
 from django.contrib.auth.models import AbstractUser
@@ -15,6 +16,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from bootstrap.utils import BootstrapMixin
+from django_app.settings import MEDIA_ROOT
 
 
 class User(AbstractUser, BootstrapMixin):
@@ -47,11 +49,23 @@ def audio_file_validator(file: FieldFile):
         )
 
 
-class Track(models.Model):
-    name: str = models.CharField(max_length=150, unique=True)  #: Track name
+class Artist(models.Model):
+    #: Artist name
+    name = models.CharField(max_length=100)
+    #: Artis tracks
+    tracks: Union[Track, Manager]
 
-    #: Files
+    def __str__(self):
+        return self.name
+
+
+class Track(models.Model):
+    #: Track name
+    name: str = models.CharField(max_length=150, unique=True)
+    #: Track Files
     files: Union[TrackFile, Manager]
+    #: Track artist
+    artist: Artist = models.ForeignKey(Artist, models.CASCADE, related_name='tracks')
 
     def __str__(self):
         return self.name
@@ -64,7 +78,7 @@ class TrackFile(models.Model):
         flac = 'flac'
 
     #: Track file
-    file: FileIO[bytes] = models.FileField(
+    file: Union[FileIO[bytes], FieldFile] = models.FileField(
         upload_to='music',
         validators=[audio_file_validator],
         help_text=f'Send highest quality file, lowest will be make automatically<br>'
@@ -86,11 +100,17 @@ def file_post_save(instance: TrackFile, created, *args, **kwargs):
     post_save.disconnect(file_post_save, sender=TrackFile)
     if instance.file:
         file_extension = instance.file.name.split('.')[-1]
-        track_file_meta = TinyTag.get(instance.file.path)
+        cloud_backend = hasattr(instance.file, 'url')
+        if cloud_backend:
+            file_path = str(MEDIA_ROOT / instance.file.name)
+            open(file_path, 'wb').write(default_storage.open(instance.file.name).read())
+        else:
+            file_path = instance.file.path
+        track_file_meta = TinyTag.get(file_path)
         instance.duration = track_file_meta.duration
         instance.extension = file_extension
         instance.save()
-        mp3_path = instance.file.path.replace('.flac', '.mp3')
+        mp3_path = file_path.replace('.flac', '.mp3')
         mp3_name = instance.file.name.replace('.flac', '.mp3')
         _, export_not_exist = TrackFile.objects.get_or_create(
             id=instance.id + 1,
@@ -100,16 +120,18 @@ def file_post_save(instance: TrackFile, created, *args, **kwargs):
             file=mp3_name
         )
         if export_not_exist:
-            flac_audio = AudioSegment.from_file(instance.file.path, file_extension)
+            flac_audio = AudioSegment.from_file(file_path, file_extension)
             flac_audio.export(mp3_path, format='mp3')
         print('+', mp3_name, 'Exported')
+        if cloud_backend:
+            os.unlink(file_path)
     post_save.connect(file_post_save, sender=TrackFile)
 
 
 @receiver(post_delete, sender=TrackFile)
 def file_post_delete(instance: TrackFile, *args, **kwargs):
     try:
-        os.unlink(instance.file.path)
+        instance.file.delete()
     except FileNotFoundError:
         ...
 

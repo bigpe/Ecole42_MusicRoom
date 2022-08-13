@@ -8,11 +8,17 @@ ____________________
    :members: playlists
    :undoc-members:
 
+Artist
+____________________
+.. py:currentmodule:: music_room.models
+.. autoclass:: Artist
+   :members: name, tracks
+
 Track
 ____________________
 .. py:currentmodule:: music_room.models
 .. autoclass:: Track
-   :members: name, files
+   :members: name, files, artist
 
 Track File
 ____________________

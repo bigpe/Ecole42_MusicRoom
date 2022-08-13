@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -172,3 +173,12 @@ SIMPLE_JWT = {
 }
 
 DOCS_ROOT = BASE_DIR / 'docs' / 'build' / 'html'
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+AWS_STORAGE_BUCKET_NAME = 'music-room'
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_REGION_NAME = 'eu-west-3'
+AWS_S3_CUSTOM_DOMAIN = 'd2t1nodd9p0v4c.cloudfront.net'
+AWS_S3_ACCESS_KEY_ID = os.getenv('AWS_S3_ACCESS_KEY_ID')
+AWS_S3_SECRET_ACCESS_KEY = os.getenv('AWS_S3_SECRET_ACCESS_KEY')

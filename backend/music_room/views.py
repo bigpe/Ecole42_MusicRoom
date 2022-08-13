@@ -6,9 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Track, Playlist, PlayerSession
+from .models import Track, Playlist, PlayerSession, Artist
 from .serializers import TrackSerializer, PlaylistSerializer, PlayerSessionSerializer, UserSerializer, \
-    TokenObtainPairSerializer, TokenRefreshSerializer, TokenResponseSerializer
+    TokenObtainPairSerializer, TokenRefreshSerializer, TokenResponseSerializer, ArtistSerializer
 
 User = get_user_model()
 
@@ -113,3 +113,23 @@ class UserListView(ListAPIView):
 
     def get_queryset(self):
         return User.objects.exclude(username=self.request.user.username)
+
+
+class ArtistListView(ListAPIView):
+    """
+    Artists
+
+    Get artists list
+    """
+    queryset = Artist.objects.all()
+    serializer_class = ArtistSerializer
+
+
+class ArtistRetrieveView(RetrieveAPIView):
+    """
+    Artist
+
+    Get artist's information
+    """
+    queryset = Artist.objects.all()
+    serializer_class = ArtistSerializer

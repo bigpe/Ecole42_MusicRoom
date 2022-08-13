@@ -1,10 +1,7 @@
 from django.contrib import admin
-from .models import SessionTrack, PlayerSession, Playlist, PlaylistAccess, Track, User, TrackFile, PlaylistTrack
+from .models import Playlist, PlaylistAccess, Track, User, TrackFile, PlaylistTrack, Artist
 
-admin.site.register(SessionTrack)
-admin.site.register(PlayerSession)
 admin.site.register(User)
-admin.site.register(TrackFile)
 
 
 class PlaylistAccessInline(admin.StackedInline):
@@ -17,9 +14,14 @@ class PlaylistTrackInline(admin.StackedInline):
     extra = 0
 
 
+class TrackInline(admin.StackedInline):
+    model = Track
+    extra = 0
+
+
 class FileInline(admin.StackedInline):
     model = TrackFile
-    extra = 0
+    extra = 1
     max_num = 1
     readonly_fields = ['duration', 'extension']
 
@@ -39,6 +41,17 @@ class PlaylistAdmin(admin.ModelAdmin):
         return [access_users for access_users in instance.access_users.all()]
 
 
+@admin.register(Artist)
+class ArtistAdmin(admin.ModelAdmin):
+    list_display = ['name', 'tracks']
+    inlines = [TrackInline]
+
+    @admin.display
+    def tracks(self, instance: Artist):
+        return [track for track in instance.tracks.all()]
+
+
 @admin.register(Track)
 class TrackAdmin(admin.ModelAdmin):
+    list_display = ['name', 'artist']
     inlines = [FileInline]
