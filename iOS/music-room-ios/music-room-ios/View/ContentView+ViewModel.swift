@@ -915,16 +915,28 @@ extension ContentView {
         }
         
         @Published
-        var isAuthFailureToastShowing = false
+        var isSignInToastShowing = false
         
         @Published
-        var authFailureToastSubtitle: String?
+        var signInToastType: AlertToast.AlertType = .error(.red)
         
         @Published
-        var isAuthSuccessToastShowing = false
+        var signInToastTitle: String?
         
         @Published
-        var authSuccessToastSubtitle: String?
+        var signInToastSubtitle: String?
+        
+        @Published
+        var isToastShowing = false
+        
+        @Published
+        var toastType: AlertToast.AlertType = .complete(.green)
+        
+        @Published
+        var toastTitle: String?
+        
+        @Published
+        var toastSubtitle: String?
         
         func auth(_ username: String, _ password: String) async throws {
             if case .failure(let error) = try await api.authRequest(
@@ -933,9 +945,11 @@ extension ContentView {
                     password: password
                 )
             ) {
-                authFailureToastSubtitle = error.username?.first ?? error.password?.first
+                signInToastType = .error(.red)
+                signInToastTitle = "Oops..."
+                signInToastSubtitle = error.username?.first ?? error.password?.first
                 
-                isAuthFailureToastShowing = true
+                isSignInToastShowing = true
                 
                 let greetings: String = {
                     let hour = Calendar.current.component(.hour, from: Date())
@@ -960,12 +974,14 @@ extension ContentView {
                     }
                 }()
                 
-                authSuccessToastSubtitle = "\(greetings), \(username)"
+                toastType = .complete(.green)
+                toastTitle = "Signed In"
+                toastSubtitle = "\(greetings), \(username)"
                 
                 throw error
             }
             
-            isAuthSuccessToastShowing = true
+            isToastShowing = true
             
             updateData()
         }

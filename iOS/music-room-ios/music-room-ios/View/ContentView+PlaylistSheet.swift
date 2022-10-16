@@ -56,6 +56,9 @@ extension ContentView {
         // MARK: - Delete
         
         @Published
+        var isDeleteLoading = false
+        
+        @Published
         var showingDeleteConfirmation = false
         
         // MARK: - Selected Playlist

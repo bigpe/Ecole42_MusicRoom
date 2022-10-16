@@ -1063,6 +1063,13 @@ struct ContentView: View {
                                                     
                                                     addPlaylistSheet.reset()
                                                 }
+                                                
+                                                await MainActor.run {
+                                                    viewModel.toastType = .systemImage("plus", Color.pink)
+                                                    viewModel.toastTitle = "Playlist Added"
+                                                    viewModel.toastSubtitle = playlistName
+                                                    viewModel.isToastShowing = true
+                                                }
                                             }
                                         }
                                     }
@@ -1081,7 +1088,12 @@ struct ContentView: View {
                                         addPlaylistSheet.isLoading = false
                                     }
                                     
-                                    debugPrint(error)
+                                    await MainActor.run {
+                                        viewModel.toastType = .error(Color.red)
+                                        viewModel.toastTitle = "Oops..."
+                                        viewModel.toastSubtitle = error.localizedDescription
+                                        viewModel.isToastShowing = true
+                                    }
                                 }
                             }
                         } label: {
@@ -1270,14 +1282,28 @@ struct ContentView: View {
                                         shuffle: false
                                     )
                                 } catch {
-                                    debugPrint(error)
+                                    await MainActor.run {
+                                        viewModel.toastType = .error(Color.red)
+                                        viewModel.toastTitle = "Oops..."
+                                        viewModel.toastSubtitle = error.localizedDescription
+                                        viewModel.isToastShowing = true
+                                    }
                                 }
                                 
                                 api.playlistWebSockets.removeValue(forKey: playlistID)
                                 
+                                let playlistName = playlistSheet.selectedPlaylist?.name
+                                
                                 playlistSheet.selectedPlaylist = nil
                                 
                                 viewModel.interfaceState = .player
+                                
+                                await MainActor.run {
+                                    viewModel.toastType = .systemImage("play.circle", Color.pink)
+                                    viewModel.toastTitle = playlistName
+                                    viewModel.toastSubtitle = "Now Playing"
+                                    viewModel.isToastShowing = true
+                                }
                             }
                         } label: {
                             Label("Play Now", systemImage: "play.circle.fill")
@@ -1300,14 +1326,29 @@ struct ContentView: View {
                                         shuffle: true
                                     )
                                 } catch {
-                                    debugPrint(error)
+                                    
+                                    await MainActor.run {
+                                        viewModel.toastType = .error(Color.red)
+                                        viewModel.toastTitle = "Oops..."
+                                        viewModel.toastSubtitle = error.localizedDescription
+                                        viewModel.isToastShowing = true
+                                    }
                                 }
                                 
                                 api.playlistWebSockets.removeValue(forKey: playlistID)
                                 
+                                let playlistName = playlistSheet.selectedPlaylist?.name
+                                
                                 playlistSheet.selectedPlaylist = nil
                                 
                                 viewModel.interfaceState = .player
+                                
+                                await MainActor.run {
+                                    viewModel.toastType = .systemImage("shuffle.circle", Color.pink)
+                                    viewModel.toastTitle = playlistName
+                                    viewModel.toastSubtitle = "Shuffle"
+                                    viewModel.isToastShowing = true
+                                }
                             }
                         } label: {
                             Label("Shuffle", systemImage: "shuffle.circle.fill")
@@ -1385,7 +1426,12 @@ struct ContentView: View {
                             Button {
                                 playlistSheet.showingDeleteConfirmation = true
                             } label: {
-                                Label("Delete Playlist", systemImage: "trash.circle.fill")
+                                if !playlistSheet.isDeleteLoading {
+                                    Label("Delete Playlist", systemImage: "trash.circle.fill")
+                                } else {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                }
                             }
                             .tint(.pink)
                             
@@ -1487,14 +1533,29 @@ struct ContentView: View {
                                                         )
                                                     )
                                                 )
+                                                
+                                                await MainActor.run {
+                                                    playlistSheet.isShowing = false
+                                                    
+                                                    viewModel.toastType = .complete(Color.pink)
+                                                    viewModel.toastTitle = "Playlist Saved"
+                                                    viewModel.toastSubtitle = playlistName
+                                                    viewModel.isToastShowing = true
+                                                }
                                             } catch {
-                                                debugPrint(error)
+                                                
+                                                await MainActor.run {
+                                                    viewModel.toastType = .error(Color.red)
+                                                    viewModel.toastTitle = "Oops..."
+                                                    viewModel.toastSubtitle = error.localizedDescription
+                                                    viewModel.isToastShowing = true
+                                                }
                                             }
                                             
-                                            do {
-                                                try await viewModel.updatePlaylists()
-                                                try await viewModel.updateOwnPlaylists()
-                                            }
+//                                            do {
+//                                                try await viewModel.updatePlaylists()
+//                                                try await viewModel.updateOwnPlaylists()
+//                                            }
                                             
                                             await MainActor.run {
                                                 playlistSheet.isEditing = false
@@ -1542,6 +1603,10 @@ struct ContentView: View {
                                 return
                             }
                             
+                            await MainActor.run {
+                                playlistSheet.isDeleteLoading = true
+                            }
+                            
                             do {
                                 try await playlistWebSocket.send(
                                     PlaylistsMessage(
@@ -1553,8 +1618,24 @@ struct ContentView: View {
                                         )
                                     )
                                 )
+                                
+                                await MainActor.run {
+                                    playlistSheet.isDeleteLoading = false
+                                    
+                                    viewModel.toastType = .systemImage("trash.circle", Color.pink)
+                                    viewModel.toastTitle = "Playlist Deleted"
+                                    viewModel.toastSubtitle = playlistSheet.selectedPlaylist?.name
+                                    viewModel.isToastShowing = true
+                                }
                             } catch {
-                                debugPrint(error)
+                                await MainActor.run {
+                                    playlistSheet.isDeleteLoading = false
+                                    
+                                    viewModel.toastType = .error(Color.red)
+                                    viewModel.toastTitle = "Oops..."
+                                    viewModel.toastSubtitle = error.localizedDescription
+                                    viewModel.isToastShowing = true
+                                }
                             }
                             
                             playlistSheet.showingDeleteConfirmation = false
@@ -1759,6 +1840,13 @@ struct ContentView: View {
                     await MainActor.run {
                         authSheet.isShowing = true
                     }
+                    
+                    await MainActor.run {
+                        viewModel.signInToastType = .complete(Color.pink)
+                        viewModel.signInToastTitle = "Signed Out"
+                        viewModel.signInToastSubtitle = "Bye"
+                        viewModel.isSignInToastShowing = true
+                    }
                 }
             } label: {
                 Text("Yes")
@@ -1848,32 +1936,32 @@ struct ContentView: View {
             .padding(.horizontal, 16)
             .interactiveDismissDisabled()
             .toast(
-                isPresenting: $viewModel.isAuthFailureToastShowing,
+                isPresenting: $viewModel.isSignInToastShowing,
                 duration: 3,
                 tapToDismiss: true,
                 offsetY: 32,
                 alert: {
                     AlertToast(
                         displayMode: .hud,
-                        type: .error(.red),
-                        title: "Oops...",
-                        subTitle: viewModel.authFailureToastSubtitle,
+                        type: viewModel.signInToastType,
+                        title: viewModel.signInToastTitle,
+                        subTitle: viewModel.signInToastSubtitle,
                         style: nil
                     )
                 }
             )
         })
         .toast(
-            isPresenting: $viewModel.isAuthSuccessToastShowing,
+            isPresenting: $viewModel.isToastShowing,
             duration: 3,
             tapToDismiss: true,
             offsetY: 0,
             alert: {
                 AlertToast(
                     displayMode: .hud,
-                    type: .complete(.green),
-                    title: "Signed In",
-                    subTitle: viewModel.authSuccessToastSubtitle,
+                    type: viewModel.toastType,
+                    title: viewModel.toastTitle,
+                    subTitle: viewModel.toastSubtitle,
                     style: nil
                 )
             }
