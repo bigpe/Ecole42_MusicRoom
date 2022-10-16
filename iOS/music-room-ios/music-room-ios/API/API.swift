@@ -91,7 +91,7 @@ public class API {
     // MARK: - Base URL
     
     public var baseURL: URL? {
-        URL(string: "https://music-room-test.herokuapp.com/")
+        URL(string: "https://api.musicroom.tech/")
     }
     
     public init() {
@@ -119,23 +119,28 @@ public class API {
     
     public func authRequest(
         _ parameters: TokenObtainPairModel
-    ) async throws -> APICredential {
-        let apiCredential = APICredential(
-            token:
-                try await AF.request(
-                    try authURL,
-                    method: .post,
-                    parameters: parameters,
-                    encoder: .apiJSON
-                )
-                .validate()
-                .serializingAPI()
-                .value
+    ) async throws -> Result<APICredential, TokenRequestError> {
+        let result: Result<TokenResponseModel, TokenRequestError> = try await AF.request(
+            try authURL,
+            method: .post,
+            parameters: parameters,
+            encoder: .apiJSON
         )
+        .validate()
+        .serializingAPI()
+        .valueOrError()
         
-        keychainCredential = apiCredential
-        
-        return apiCredential
+        switch result {
+        case .success(let token):
+            let apiCredential = APICredential(token: token)
+            
+            keychainCredential = apiCredential
+            
+            return .success(apiCredential)
+            
+        case .failure(let error):
+            return .failure(error)
+        }
     }
     
     // MARK: - Refresh
@@ -230,6 +235,58 @@ public class API {
     public func ownPlaylistRequest() async throws -> [Playlist] {
         try await session.request(
             try ownPlaylistURL,
+            method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
+    }
+    
+    // MARK: - Artist
+    
+    var artistURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "api/artist/",
+                        relativeTo: baseURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func artistsRequest() async throws -> [Artist] {
+        try await session.request(
+            try artistURL,
+            method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
+    }
+    
+    // MARK: - Artist With ID
+    
+    var artistWithIDURL: (Int) throws -> URL {
+        { [unowned self] (artistID) throws -> URL in
+            guard
+                let url =
+                    URL(
+                        string: "\(artistID)/",
+                        relativeTo: try artistURL
+                    )
+            else { throw .api.invalidURL }
+
+            return url
+        }
+    }
+    
+    public func artistRequest(artistID: Int) async throws -> Artist {
+        try await session.request(
+            try artistWithIDURL(artistID),
             method: .get
         )
         .validate()

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AlertToast
 import PINRemoteImage
 import AVFoundation
 import MediaPlayer
@@ -533,6 +534,12 @@ extension ContentView {
             
             Task {
                 do {
+                    do {
+                        try await updateArtists()
+                    } catch {
+                        debugPrint(error)
+                    }
+                    
                     try await updateTracks()
                 } catch {
                     debugPrint(error)
@@ -617,6 +624,33 @@ extension ContentView {
             try await DiskCacheService.updateEntity(playlists, name: "All")
         }
         
+        // MARK: - Artists
+        
+        @Published
+        var artists = [Artist]()
+        
+        func artist(byID artistID: Int) -> Artist? {
+            artists.first(where: { $0.id == artistID })
+        }
+        
+        func updateArtists() async throws {
+            Task {
+                artists = try await DiskCacheService.entity(name: "All")
+            }
+            
+            do {
+                let artists = try await api.artistsRequest()
+                
+                self.artists = artists
+                
+                try await DiskCacheService.updateEntity(artists, name: "All")
+            } catch {
+                debugPrint(error)
+                
+                try await DiskCacheService.updateEntity([Artist]?.none, name: "All")
+            }
+        }
+        
         // MARK: - Tracks
         
         @Published
@@ -633,22 +667,6 @@ extension ContentView {
             
             do {
                 let tracks = try await api.trackRequest()
-                    .map { track in
-                        Track(
-                            id: track.id,
-                            name: track.name,
-                            files: track.files.map { file in
-                                File(
-                                    id: file.id,
-                                    file: file.file
-                                        .replacingOccurrences(of: "http://", with: "https://"),
-                                    extension: file.extension,
-                                    duration: file.duration,
-                                    track: file.track
-                                )
-                            }
-                        )
-                    }
                 
                 self.tracks = tracks
                 
@@ -666,18 +684,61 @@ extension ContentView {
         var playerSession: PlayerSession? {
             didSet {
                 withAnimation {
-                    currentSessionTrack = playerSession?.trackQueue.first
+                    currentPlayerContent = { () -> PlayerContent? in
+                        guard
+                            let playerSession,
+                            let sessionTrack = playerSession.trackQueue.first,
+                            let track = track(byID: sessionTrack.track),
+                            let trackID = track.id,
+                            let artist = artist(byID: track.artist),
+                            let playerSessionID = playerSession.id,
+                            let sessionTrackID = sessionTrack.id
+                        else {
+                            return nil
+                        }
+                        
+                        return .track(
+                            id: trackID,
+                            title: track.name,
+                            artist: artist.name,
+                            flacFile: track.flacFile,
+                            mp3File: track.mp3File,
+                            progress: sessionTrack.progress ?? 0,
+                            playerSessionID: playerSessionID,
+                            sessionTrackID: sessionTrackID,
+                            sessionTrackState: sessionTrack.state
+                        )
+                    }()
                     
-                    queuedTracks = {
-                        playerSession?
+                    queuedPlayerContent = {
+                        guard let playerSession else { return [] }
+                        
+                        return playerSession
                             .trackQueue
                             .dropFirst()
-                            .map {
-                                (
-                                    sessionTrackID: $0.id,
-                                    track: track(byID: $0.track) ?? Track(name: "Unknown", files: [])
+                            .compactMap { (sessionTrack) -> PlayerContent? in
+                                guard
+                                    let track = track(byID: sessionTrack.track),
+                                    let trackID = track.id,
+                                    let artist = artist(byID: track.artist),
+                                    let playerSessionID = playerSession.id,
+                                    let sessionTrackID = sessionTrack.id
+                                else {
+                                    return nil
+                                }
+                                
+                                return .track(
+                                    id: trackID,
+                                    title: track.name,
+                                    artist: artist.name,
+                                    flacFile: track.flacFile,
+                                    mp3File: track.mp3File,
+                                    progress: sessionTrack.progress ?? 0,
+                                    playerSessionID: playerSessionID,
+                                    sessionTrackID: sessionTrackID,
+                                    sessionTrackState: sessionTrack.state
                                 )
-                            } ?? []
+                            }
                     }()
                     
                     switch playerSession?.mode {
@@ -713,26 +774,37 @@ extension ContentView {
             }
         }
         
+        var currentTrackFile: File? {
+            guard
+                let currentPlayerContent
+            else {
+                return nil
+            }
+            
+            switch playerQuality {
+            case .standard:
+                return currentPlayerContent.mp3File
+                
+            case .highFidelity:
+                return currentPlayerContent.flacFile
+            }
+        }
+        
+        var queuedTracks = [(sessionTrackID: Int?, track: Track)]()
+        
         @Published
-        var currentSessionTrack: SessionTrack? {
+        var currentPlayerContent: PlayerContent? {
             didSet {
-                currentTrack = {
-                    guard
-                        let currentTrackID = currentSessionTrack?.track
-                    else {
-                        return nil
-                    }
-                    
-                    return track(byID: currentTrackID)
-                }()
+                guard
+                    let currentPlayerContent
+                else {
+                    return
+                }
                 
-                let currentSessionTrackProgressValue = currentSessionTrack?.progress
-                let currentTrackDuration = currentTrackFile?.duration
-                
-                let progressValue = (currentSessionTrackProgressValue as NSDecimalNumber?)?
+                let progressValue = (currentPlayerContent.progress as NSDecimalNumber?)?
                     .doubleValue
                 
-                let progressTotal = (currentTrackDuration as NSDecimalNumber?)?
+                let progressTotal = (currentTrackFile?.duration as NSDecimalNumber?)?
                     .doubleValue
                 
                 let trackProgress = TrackProgress(
@@ -740,17 +812,11 @@ extension ContentView {
                     total: progressTotal
                 )
                 
-                if oldValue?.id != currentSessionTrack?.id {
+                if oldValue?.sessionTrackID != currentPlayerContent.sessionTrackID {
                     self.trackProgress = trackProgress
                 }
                 
-                guard
-                    let currentSessionTrack = currentSessionTrack
-                else {
-                    return
-                }
-                
-                switch currentSessionTrack.state {
+                switch currentPlayerContent.sessionTrackState {
                     
                 case .paused, .stopped:
                     animatingPlayerState.toggle()
@@ -762,7 +828,7 @@ extension ContentView {
                 case .playing:
                     animatingPlayerState.toggle()
                     
-                    if oldValue?.track != currentSessionTrack.track {
+                    if oldValue?.id != currentPlayerContent.id {
                         pauseCurrentTrack()
                         playCurrentTrack()
                     }
@@ -779,26 +845,7 @@ extension ContentView {
             }
         }
         
-        @Published
-        var currentTrack: Track?
-        
-        var currentTrackFile: File? {
-            guard
-                let currentTrack = currentTrack
-            else {
-                return nil
-            }
-            
-            switch playerQuality {
-            case .standard:
-                return currentTrack.mp3File
-                
-            case .highFidelity:
-                return currentTrack.flacFile
-            }
-        }
-        
-        var queuedTracks = [(sessionTrackID: Int?, track: Track)]()
+        var queuedPlayerContent = [PlayerContent]()
         
         // MARK: - Actions
         
@@ -806,13 +853,58 @@ extension ContentView {
             api.isAuthorized
         }
         
+        @Published
+        var isAuthFailureToastShowing = false
+        
+        @Published
+        var authFailureToastSubtitle: String?
+        
+        @Published
+        var isAuthSuccessToastShowing = false
+        
+        @Published
+        var authSuccessToastSubtitle: String?
+        
         func auth(_ username: String, _ password: String) async throws {
-            _ = try await api.authRequest(
+            if case .failure(let error) = try await api.authRequest(
                 TokenObtainPairModel(
                     username: username,
                     password: password
                 )
-            )
+            ) {
+                authFailureToastSubtitle = error.username?.first ?? error.password?.first
+                
+                isAuthFailureToastShowing = true
+                
+                let greetings: String = {
+                    let hour = Calendar.current.component(.hour, from: Date())
+                      
+                      let NEW_DAY = 0
+                      let NOON = 12
+                      let SUNSET = 18
+                      let MIDNIGHT = 24
+                      
+                      var greetingText = "Hello" // Default greeting text
+                      switch hour {
+                      case NEW_DAY..<NOON:
+                          greetingText = "Good Morning"
+                      case NOON..<SUNSET:
+                          greetingText = "Good Afternoon"
+                      case SUNSET..<MIDNIGHT:
+                          greetingText = "Good Evening"
+                      default:
+                          _ = "Hello"
+                      }
+                      
+                      return greetingText
+                }()
+                
+                authSuccessToastSubtitle = "\(greetings), \(username)"
+                
+                throw error
+            }
+            
+            isAuthSuccessToastShowing = true
             
             updateData()
         }
@@ -839,16 +931,16 @@ extension ContentView {
         
         func backward() async throws {
             guard
-                let playerSessionID = playerSession?.id,
-                let currentSessionTrackID = currentSessionTrack?.id, // TODO: Check CurrentTrack or SessionTrack
-                !queuedTracks.isEmpty
+                let playerSessionID = currentPlayerContent?.playerSessionID,
+                let currentSessionTrackID = currentPlayerContent?.sessionTrackID,
+                !queuedPlayerContent.isEmpty
             else {
                 throw .api.custom(errorDescription: "")
             }
             
             player.pause()
             
-            currentTrack = queuedTracks.removeLast().track
+            currentPlayerContent = queuedPlayerContent.removeLast()
             
             playCurrentTrack()
             
@@ -863,8 +955,8 @@ extension ContentView {
         
         func resume() async throws {
             guard
-                let playerSessionID = playerSession?.id,
-                let currentSessionTrackID = currentSessionTrack?.id // TODO: Check CurrentTrack or SessionTrack
+                let playerSessionID = currentPlayerContent?.playerSessionID,
+                let currentSessionTrackID = currentPlayerContent?.sessionTrackID
             else {
                 throw .api.custom(errorDescription: "")
             }
@@ -882,8 +974,8 @@ extension ContentView {
         
         func pause() async throws {
             guard
-                let playerSessionID = playerSession?.id,
-                let currentSessionTrackID = currentSessionTrack?.id // TODO: Check CurrentTrack or SessionTrack
+                let playerSessionID = currentPlayerContent?.playerSessionID,
+                let currentSessionTrackID = currentPlayerContent?.sessionTrackID
             else {
                 throw .api.custom(errorDescription: "")
             }
@@ -901,16 +993,16 @@ extension ContentView {
         
         func forward() async throws {
             guard
-                let playerSessionID = playerSession?.id,
-                let currentSessionTrackID = currentSessionTrack?.id, // TODO: Check CurrentTrack or SessionTrack
-                !queuedTracks.isEmpty
+                let playerSessionID = currentPlayerContent?.playerSessionID,
+                let currentSessionTrackID = currentPlayerContent?.sessionTrackID,
+                !queuedPlayerContent.isEmpty
             else {
                 throw .api.custom(errorDescription: "")
             }
             
             player.pause()
             
-            currentTrack = queuedTracks.removeFirst().track
+            currentPlayerContent = queuedPlayerContent.removeFirst()
             
             playCurrentTrack()
             
@@ -957,8 +1049,8 @@ extension ContentView {
         
         func shuffle() async throws {
             guard
-                let playerSessionID = playerSession?.id,
-                let currentSessionTrackID = currentSessionTrack?.id // TODO: Check CurrentTrack or SessionTrack
+                let playerSessionID = currentPlayerContent?.playerSessionID,
+                let currentSessionTrackID = currentPlayerContent?.sessionTrackID
             else {
                 throw .api.custom(errorDescription: "")
             }

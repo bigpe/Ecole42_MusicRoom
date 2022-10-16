@@ -42,7 +42,7 @@ extension ContentView.ViewModel {
             debugPrint(error.localizedDescription)
         }
         
-        if let progress = currentSessionTrack?.progress {
+        if let progress = currentPlayerContent?.progress {
             let progress = NSDecimalNumber(decimal: progress).doubleValue
             let timeScale = CMTimeScale(1)
             let time = CMTime(seconds: progress, preferredTimescale: timeScale)
@@ -71,7 +71,7 @@ extension ContentView.ViewModel {
                 @MainActor
                 func seek() {
                     guard
-                        let currentSessionTrackProgress = currentSessionTrack?.progress
+                        let currentSessionTrackProgress = currentPlayerContent?.progress
                     else {
                         return player.play()
                     }
@@ -95,7 +95,7 @@ extension ContentView.ViewModel {
             player.play()
         }
         
-        let progress = (self.currentSessionTrack?.progress as? NSDecimalNumber)
+        let progress = (self.currentPlayerContent?.progress as? NSDecimalNumber)
         
         if let playerProgressTimeObserver = playerProgressTimeObserver {
             player.removeTimeObserver(playerProgressTimeObserver)
@@ -227,12 +227,12 @@ extension ContentView.ViewModel {
         nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue
         nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = false
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
-        nowPlayingInfo[MPMediaItemPropertyTitle] = currentTrack?.meta.title ?? "Untitled"
-        nowPlayingInfo[MPMediaItemPropertyArtist] = currentTrack?.meta.artist ?? "Unknown"
+        nowPlayingInfo[MPMediaItemPropertyTitle] = currentPlayerContent?.title ?? "Untitled"
+        nowPlayingInfo[MPMediaItemPropertyArtist] = currentPlayerContent?.artist ?? "Unknown"
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = NSDecimalNumber(decimal: currentTrackFile?.duration ?? 0)
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime().seconds
         
-        if let trackName = currentTrack?.name {
+        if let trackName = currentPlayerContent?.name {
             nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(
                 boundsSize: CGSize(width: 1000, height: 1000),
                 requestHandler: { boundsSize in

@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  music-room-ios
-//
-//  Created by Nikita Arutyunov on 17.07.2022.
-//
-
 import Foundation
 
 public struct File: Codable, Identifiable, Hashable {
