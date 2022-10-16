@@ -133,7 +133,7 @@ struct ContentView: View {
 //                                    Spacer()
                                     
                                     cachedArtworkImage(
-                                        viewModel.currentPlayerContent?.title,
+                                        viewModel.currentPlayerContent?.name,
                                         geometry: geometry,
                                         isMainArtwork: true
                                     )
@@ -293,18 +293,28 @@ struct ContentView: View {
                 case .playlist:
                     
                     HStack(alignment: .center, spacing: 16) {
-                        cachedArtworkImage(viewModel.currentPlayerContent?.name, isMainArtwork: true)
+                        cachedArtworkImage(
+                            viewModel.currentPlayerContent?.name,
+                            isMainArtwork: true
+                        )
                             .resizable()
                             .cornerRadius(4)
                             .frame(
                                 width: viewModel.playlistArtworkWidth,
                                 height: viewModel.playlistArtworkWidth
                             )
-                        // FIXME: Title & Artist
-                        Text(viewModel.currentPlayerContent?.name ?? viewModel.placeholderTitle)
-                            .font(.system(size: 18, weight: .semibold))
-                            .multilineTextAlignment(.leading)
-                            .foregroundColor(viewModel.primaryControlsColor)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(viewModel.currentPlayerContent?.title ?? viewModel.placeholderTitle)
+                                .foregroundColor(viewModel.primaryControlsColor)
+                                .font(.system(size: 18, weight: .semibold))
+                            
+                            if let artist = viewModel.currentPlayerContent?.artist {
+                                Text(artist)
+                                    .foregroundColor(viewModel.secondaryControlsColor)
+                                    .font(.system(size: 16, weight: .regular))
+                            }
+                        }
                         
                         Spacer()
                     }
@@ -349,12 +359,14 @@ struct ContentView: View {
                         
                         ScrollView(showsIndicators: false) {
                             VStack(alignment: .leading, spacing: 12) {
-                                ForEach(viewModel.queuedTracks, id: \.1) {
-                                    (sessionTrackID, track) in
+                                ForEach(
+                                    viewModel.queuedPlayerContent
+                                ) {
+                                    track in
                                     
                                     Button {
                                         guard
-                                            let sessionTrackID = sessionTrackID
+                                            let sessionTrackID = track.sessionTrackID
                                         else {
                                             return
                                         }
@@ -373,16 +385,23 @@ struct ContentView: View {
                                                     height: viewModel.playlistQueueArtworkWidth
                                                 )
                                             
-                                            Text(track.name)
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(viewModel.primaryControlsColor)
-                                                .padding(.vertical, 12)
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(track.title ?? viewModel.defaultTitle)
+                                                    .foregroundColor(viewModel.primaryControlsColor)
+                                                    .font(.system(size: 16, weight: .medium))
+                                                
+                                                if let artist = track.artist {
+                                                    Text(artist)
+                                                        .foregroundColor(viewModel.secondaryControlsColor)
+                                                        .font(.system(size: 14, weight: .regular))
+                                                }
+                                            }
                                             
                                             Spacer()
                                             
                                             Button {
                                                 guard
-                                                    let sessionTrackID = sessionTrackID
+                                                    let sessionTrackID = track.sessionTrackID
                                                 else {
                                                     return
                                                 }
@@ -608,17 +627,17 @@ struct ContentView: View {
                             case .tracks:
                                 VStack(alignment: .leading, spacing: 12) {
                                     ForEach(
-                                        viewModel.tracks
+                                        viewModel.tracksPlayerContent
                                     ) { track in
                                         Button {
                                             Task {
                                                 guard
-                                                    let trackID = track.id
+                                                    let sessionTrackID = track.sessionTrackID
                                                 else {
                                                     return
                                                 }
                                                 
-                                                try await viewModel.playTrack(sessionTrackID: trackID)
+                                                try await viewModel.playTrack(sessionTrackID: sessionTrackID)
                                                 
                                                 viewModel.interfaceState = .player
                                             }
@@ -629,11 +648,17 @@ struct ContentView: View {
                                                     .cornerRadius(4)
                                                     .frame(width: 60, height: 60)
                                                 
-                                                Text(track.name)
-                                                    .font(.system(size: 18, weight: .medium))
-                                                    .multilineTextAlignment(.leading)
-                                                    .foregroundColor(viewModel.primaryControlsColor)
-                                                    .padding(.vertical, 12)
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text(track.title ?? viewModel.defaultTitle)
+                                                        .foregroundColor(viewModel.primaryControlsColor)
+                                                        .font(.system(size: 18, weight: .medium))
+                                                    
+                                                    if let artist = track.artist {
+                                                        Text(artist)
+                                                            .foregroundColor(viewModel.secondaryControlsColor)
+                                                            .font(.system(size: 16, weight: .regular))
+                                                    }
+                                                }
                                                 
                                                 Spacer()
                                             }
@@ -897,11 +922,17 @@ struct ContentView: View {
                                 .frame(width: 60, height: 60)
                                 .padding(.leading, -16)
                             
-                            Text(track.name)
-                                .font(.system(size: 18, weight: .medium))
-                                .multilineTextAlignment(.leading)
-                                .foregroundColor(viewModel.primaryControlsColor)
-                                .padding(.vertical, 12)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(track.name ?? viewModel.defaultTitle)
+                                    .foregroundColor(viewModel.primaryControlsColor)
+                                    .font(.system(size: 18, weight: .medium))
+                                
+//                                if let artist = track.artist {
+//                                    Text(artist)
+//                                        .foregroundColor(viewModel.secondaryControlsColor)
+//                                        .font(.system(size: 16, weight: .regular))
+//                                }
+                            }
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
@@ -1099,7 +1130,7 @@ struct ContentView: View {
                 
                 NavigationView {
                     List(
-                        viewModel.tracks
+                        viewModel.tracksPlayerContent
                     ) { track in
                         Button {
                             if addPlaylistSheet.selectedAddMusicTracks.contains(track.id) {
@@ -1117,11 +1148,17 @@ struct ContentView: View {
                                         .cornerRadius(4)
                                         .frame(width: 60, height: 60)
                                     
-                                    Text(track.name)
-                                        .font(.system(size: 18, weight: .medium))
-                                        .multilineTextAlignment(.leading)
-                                        .foregroundColor(viewModel.primaryControlsColor)
-                                        .padding(.vertical, 12)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(track.title ?? viewModel.defaultTitle)
+                                            .foregroundColor(viewModel.primaryControlsColor)
+                                            .font(.system(size: 18, weight: .medium))
+                                        
+                                        if let artist = track.artist {
+                                            Text(artist)
+                                                .foregroundColor(viewModel.secondaryControlsColor)
+                                                .font(.system(size: 16, weight: .regular))
+                                        }
+                                    }
                                     
                                     Spacer()
                                 }
@@ -1273,11 +1310,17 @@ struct ContentView: View {
                                 .frame(width: 60, height: 60)
                                 .padding(.leading, -16)
                             
-                            Text(track.name)
-                                .font(.system(size: 18, weight: .medium))
-                                .multilineTextAlignment(.leading)
-                                .foregroundColor(viewModel.primaryControlsColor)
-                                .padding(.vertical, 12)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(track.name ?? viewModel.defaultTitle)
+                                    .foregroundColor(viewModel.primaryControlsColor)
+                                    .font(.system(size: 18, weight: .medium))
+                                
+//                                if let artist = track.artist {
+//                                    Text(artist)
+//                                        .foregroundColor(viewModel.secondaryControlsColor)
+//                                        .font(.system(size: 16, weight: .regular))
+//                                }
+                            }
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             if playlistSheet.isEditable {
@@ -1560,7 +1603,7 @@ struct ContentView: View {
                 
                 NavigationView {
                     List(
-                        viewModel.tracks
+                        viewModel.tracksPlayerContent
                     ) { track in
                         Button {
                             if playlistSheet.selectedAddMusicTracks.contains(track.id) {
@@ -1578,11 +1621,17 @@ struct ContentView: View {
                                         .cornerRadius(4)
                                         .frame(width: 60, height: 60)
                                     
-                                    Text(track.name)
-                                        .font(.system(size: 18, weight: .medium))
-                                        .multilineTextAlignment(.leading)
-                                        .foregroundColor(viewModel.primaryControlsColor)
-                                        .padding(.vertical, 12)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(track.title ?? viewModel.defaultTitle)
+                                            .foregroundColor(viewModel.primaryControlsColor)
+                                            .font(.system(size: 18, weight: .medium))
+                                        
+                                        if let artist = track.artist {
+                                            Text(artist)
+                                                .foregroundColor(viewModel.secondaryControlsColor)
+                                                .font(.system(size: 16, weight: .regular))
+                                        }
+                                    }
                                     
                                     Spacer()
                                 }

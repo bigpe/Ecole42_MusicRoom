@@ -227,8 +227,8 @@ extension ContentView.ViewModel {
         nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue
         nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = false
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
-        nowPlayingInfo[MPMediaItemPropertyTitle] = currentPlayerContent?.title ?? "Untitled"
-        nowPlayingInfo[MPMediaItemPropertyArtist] = currentPlayerContent?.artist ?? "Unknown"
+        nowPlayingInfo[MPMediaItemPropertyTitle] = currentPlayerContent?.title ?? defaultTitle
+        nowPlayingInfo[MPMediaItemPropertyArtist] = currentPlayerContent?.artist
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = NSDecimalNumber(decimal: currentTrackFile?.duration ?? 0)
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime().seconds
         

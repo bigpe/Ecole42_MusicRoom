@@ -210,6 +210,8 @@ extension ContentView {
         
         var placeholderTitle = "Not Playing"
         
+        var defaultTitle = "Untitled"
+        
         let primaryControlsColor = Color.primary
         
         let secondaryControlsColor = Color.primary.opacity(0.55)
@@ -654,7 +656,33 @@ extension ContentView {
         // MARK: - Tracks
         
         @Published
-        var tracks = [Track]()
+        var tracks = [Track]() {
+            didSet {
+                tracksPlayerContent = tracks.compactMap { track in
+                    guard
+                        let trackID = track.id,
+                        let artist = artist(byID: track.artist)?.name
+                    else {
+                        return nil
+                    }
+                    
+                    return .track(
+                        id: trackID,
+                        title: track.name,
+                        artist: artist,
+                        flacFile: track.flacFile,
+                        mp3File: track.mp3File,
+                        progress: nil,
+                        playerSessionID: nil,
+                        sessionTrackID: nil,
+                        sessionTrackState: nil
+                    )
+                }
+            }
+        }
+        
+        @Published
+        var tracksPlayerContent = [PlayerContent]()
         
         func track(byID trackID: Int) -> Track? {
             tracks.first(where: { $0.id == trackID })

@@ -2,16 +2,16 @@ import Foundation
 import SwiftUI
 
 extension ContentView.ViewModel {
-    enum PlayerContent {
+    enum PlayerContent: Identifiable {
         case track(
             id: Int,
             title: String,
             artist: String,
             flacFile: File?,
             mp3File: File?,
-            progress: Decimal,
-            playerSessionID: Int,
-            sessionTrackID: Int,
+            progress: Decimal?,
+            playerSessionID: Int?,
+            sessionTrackID: Int?,
             sessionTrackState: SessionTrack.State?
         )
         
