@@ -537,6 +537,12 @@ extension ContentView {
             Task {
                 do {
                     do {
+                        try await updateUsers()
+                    } catch {
+                        debugPrint(error)
+                    }
+                    
+                    do {
                         try await updateArtists()
                     } catch {
                         debugPrint(error)
@@ -624,6 +630,33 @@ extension ContentView {
             self.playlists = playlists
             
             try await DiskCacheService.updateEntity(playlists, name: "All")
+        }
+        
+        // MARK: - Users
+        
+        @Published
+        var users = [User]()
+        
+        func user(byID userID: Int) -> User? {
+            users.first(where: { $0.id == userID })
+        }
+        
+        func updateUsers() async throws {
+            Task {
+                users = try await DiskCacheService.entity(name: "All")
+            }
+            
+            do {
+                let users = try await api.usersRequest()
+                
+                self.users = users
+                
+                try await DiskCacheService.updateEntity(users, name: "All")
+            } catch {
+                debugPrint(error)
+                
+                try await DiskCacheService.updateEntity([User]?.none, name: "All")
+            }
         }
         
         // MARK: - Artists
@@ -907,24 +940,24 @@ extension ContentView {
                 let greetings: String = {
                     let hour = Calendar.current.component(.hour, from: Date())
                       
-                      let NEW_DAY = 0
-                      let NOON = 12
-                      let SUNSET = 18
-                      let MIDNIGHT = 24
-                      
-                      var greetingText = "Hello" // Default greeting text
-                      switch hour {
-                      case NEW_DAY..<NOON:
-                          greetingText = "Good Morning"
-                      case NOON..<SUNSET:
-                          greetingText = "Good Afternoon"
-                      case SUNSET..<MIDNIGHT:
-                          greetingText = "Good Evening"
-                      default:
-                          _ = "Hello"
-                      }
-                      
-                      return greetingText
+                    let newDay = 0
+                    let noon = 12
+                    let sunset = 18
+                    let midnight = 24
+                    
+                    switch hour {
+                    case newDay..<noon:
+                        return "Good Morning"
+                        
+                    case noon..<sunset:
+                        return "Good Afternoon"
+                        
+                    case sunset..<midnight:
+                        return "Good Evening"
+                        
+                    default:
+                        return "Hello"
+                    }
                 }()
                 
                 authSuccessToastSubtitle = "\(greetings), \(username)"

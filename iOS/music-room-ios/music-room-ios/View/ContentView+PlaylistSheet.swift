@@ -23,7 +23,7 @@ extension ContentView {
         var accessType = Playlist.AccessType.private
         
         @Published
-        var tracks = [Track]()
+        var playerContent = [ViewModel.PlayerContent]()
         
         // MARK: - States
         
@@ -69,7 +69,7 @@ extension ContentView {
                         accessType = selectedPlaylist.accessType
                     }
                     
-                    tracks = selectedPlaylist.tracks
+                    playerContent = selectedPlaylist.tracks
                         .sorted(by: { leftValue, rightValue in
                             guard
                                 let leftOrder = leftValue.order,
@@ -81,7 +81,7 @@ extension ContentView {
                             return leftOrder < rightOrder
                         })
                         .compactMap { playlistTrack in
-                            viewModel.tracks.first(where: { $0.id == playlistTrack.track })
+                            viewModel.tracksPlayerContent.first(where: { $0.id == playlistTrack.track })
                         }
                     
                     isShowing = true
@@ -93,7 +93,7 @@ extension ContentView {
                     nameText = ""
                     accessType = .private
                     
-                    tracks = []
+                    playerContent = []
                     
                     isShowing = false
                     isLoading = false

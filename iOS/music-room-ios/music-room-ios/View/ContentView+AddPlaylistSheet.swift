@@ -32,7 +32,7 @@ extension ContentView {
         var accessType = Playlist.AccessType.private
         
         @Published
-        var selectedTracks = [Track]()
+        var selectedPlayerContent = [ViewModel.PlayerContent]()
         
         // MARK: - Add Music
         
@@ -50,7 +50,7 @@ extension ContentView {
             nameText = ""
             accessType = .private
             isLoading = false
-            selectedTracks = []
+            selectedPlayerContent = []
         }
     }
 }

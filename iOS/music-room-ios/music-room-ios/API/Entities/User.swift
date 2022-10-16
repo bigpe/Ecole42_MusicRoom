@@ -12,12 +12,12 @@ public struct User: Codable, Identifiable, Hashable {
     
     public let username: String
     
-    public let password: String
+    public let password: String?
     
     public init(
         id: Int? = nil,
         username: String,
-        password: String
+        password: String?
     ) {
         self.id = id
         self.username = username
