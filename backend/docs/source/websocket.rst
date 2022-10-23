@@ -14,5 +14,6 @@ Websockets
 
    player
    playlist
+   event
 
 

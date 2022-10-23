@@ -141,14 +141,14 @@ class EventsList:
         EventRetrieveConsumer.PlaylistChanged.__name__)
     add_track: EventRetrieveConsumer.AddTrack = camel_to_dot(EventRetrieveConsumer.AddTrack.__name__)
     remove_track: EventRetrieveConsumer.RemoveTrack = camel_to_dot(EventRetrieveConsumer.RemoveTrack.__name__)
-    invite_to_playlist: EventRetrieveConsumer.InviteToEvent = camel_to_dot(
+    invite_to_event: EventRetrieveConsumer.InviteToEvent = camel_to_dot(
         EventRetrieveConsumer.InviteToEvent.__name__)
-    revoke_from_playlist: EventRetrieveConsumer.RevokeFromEvent = camel_to_dot(
+    revoke_from_event: EventRetrieveConsumer.RevokeFromEvent = camel_to_dot(
         EventRetrieveConsumer.RevokeFromEvent.__name__)
 
 
 class Examples:
-    change_event_request = Action(
+    event_change_event_request = Action(
         event=str(EventsList.change_event),
         payload=ResponsePayload.EventChanged(
             event=EventListSerializer(None).data,
@@ -156,7 +156,7 @@ class Examples:
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 
-    playlist_changed_response = Action(
+    event_playlist_changed_response = Action(
         event=str(EventsList.playlist_changed),
         payload=ResponsePayload.PlaylistChanged(
             playlist=PlaylistSerializer(None).data,
@@ -164,26 +164,26 @@ class Examples:
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 
-    add_track_request = Action(
+    event_add_track_request = Action(
         event=str(EventsList.add_track),
         payload=RequestPayload.ModifyPlaylistTracks(track_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 
-    remove_track_request = Action(
+    event_remove_track_request = Action(
         event=str(EventsList.remove_track),
         payload=RequestPayload.ModifyPlaylistTracks(track_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 
-    invite_to_event_request = Action(
-        event=str(EventsList.invite_to_playlist),
+    event_invite_to_event_request = Action(
+        event=str(EventsList.invite_to_event),
         payload=RequestPayload.ModifyEventAccess(user_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 
-    revoke_from_event_request = Action(
-        event=str(EventsList.revoke_from_playlist),
+    event_revoke_from_event_request = Action(
+        event=str(EventsList.revoke_from_event),
         payload=RequestPayload.ModifyEventAccess(user_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
