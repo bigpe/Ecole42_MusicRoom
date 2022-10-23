@@ -78,6 +78,16 @@ Revoke from Event
 .. autoclass:: ws.event.EventRetrieveConsumer.RevokeFromEvent
    :inherited-members:
 
+Change User Access Mode
+"""""""""""""""""""""""""
+.. autoattribute:: ws.event.EventsList.change_user_access_mode
+   :noindex:
+
+.. seealso::
+   :obj:`.Examples.event_change_user_access_mode_request`
+.. autoclass:: ws.event.EventRetrieveConsumer.ChangeUserAccessMode
+   :inherited-members:
+
 Whats data send to socket?
 ++++++++++++++++++++++++++++
 
