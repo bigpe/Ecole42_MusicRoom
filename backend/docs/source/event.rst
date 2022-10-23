@@ -93,6 +93,36 @@ Modify Playlist Tracks
    :inherited-members:
    :noindex:
 
+Modify Event
+""""""""""""""""""""""""""
+
+.. autoclass:: ws.event.signatures.RequestPayload.ModifyEvent
+   :inherited-members:
+.. autoclass:: ws.event.signatures.RequestPayloadWrap.ChangeEvent
+   :inherited-members:
+   :noindex:
+
+Modify Event Access
+""""""""""""""""""""""""""
+
+.. autoclass:: ws.event.signatures.RequestPayload.ModifyEventAccess
+   :inherited-members:
+.. autoclass:: ws.event.signatures.RequestPayloadWrap.InviteToEvent
+   :inherited-members:
+   :noindex:
+.. autoclass:: ws.event.signatures.RequestPayloadWrap.RevokeFromEvent
+   :inherited-members:
+   :noindex:
+
+Modify Accessed Users
+""""""""""""""""""""""""""
+
+.. autoclass:: ws.event.signatures.RequestPayload.ModifyUserAccessMode
+   :inherited-members:
+.. autoclass:: ws.event.signatures.RequestPayloadWrap.ChangeUserAccessMode
+   :inherited-members:
+   :noindex:
+
 Whats data receive from socket?
 +++++++++++++++++++++++++++++++++
 
@@ -116,6 +146,7 @@ Requests
 .. autoattribute:: Examples.event_remove_track_request
 .. autoattribute:: Examples.event_invite_to_event_request
 .. autoattribute:: Examples.event_revoke_from_event_request
+.. autoattribute:: Examples.event_change_user_access_mode_request
 
 Response
 """"""""""""""""""""

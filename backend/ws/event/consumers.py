@@ -7,7 +7,7 @@ from .decorators import get_event_from_path, only_for_accessed, get_playlist, ge
 from .signatures import RequestPayload, ResponsePayload, RequestPayloadWrap
 from ws.base import TargetsEnum, Message, ActionSystem, Action, camel_to_dot
 from ..base import BaseEvent
-from music_room.models import Playlist as PlaylistModel, Track, Event
+from music_room.models import Playlist as PlaylistModel, Track, Event, EventAccess
 
 
 class EventRetrieveConsumer(BaseConsumer):
@@ -145,6 +145,8 @@ class EventsList:
         EventRetrieveConsumer.InviteToEvent.__name__)
     revoke_from_event: EventRetrieveConsumer.RevokeFromEvent = camel_to_dot(
         EventRetrieveConsumer.RevokeFromEvent.__name__)
+    change_user_access_mode: EventRetrieveConsumer.ChangeUserAccessMode = camel_to_dot(
+        EventRetrieveConsumer.ChangeUserAccessMode.__name__)
 
 
 class Examples:
@@ -185,5 +187,11 @@ class Examples:
     event_revoke_from_event_request = Action(
         event=str(EventsList.revoke_from_event),
         payload=RequestPayload.ModifyEventAccess(user_id=1).to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
+    event_change_user_access_mode_request = Action(
+        event=str(EventsList.change_user_access_mode),
+        payload=RequestPayload.ModifyUserAccessMode(user_id=1, access_mode=EventAccess.AccessMode.moderator).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
