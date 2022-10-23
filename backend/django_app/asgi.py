@@ -23,6 +23,8 @@ from .middleware import TokenAuthMiddleware
 
 from ws.player import PlayerConsumer
 from ws.playlist import PlaylistsConsumer, PlaylistRetrieveConsumer
+from ws.event import EventRetrieveConsumer
+
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
@@ -30,5 +32,6 @@ application = ProtocolTypeRouter({
         re_path(r'^ws/player/', PlayerConsumer.as_asgi()),
         re_path(r'^ws/playlist/(?P<playlist_id>\d+)/', PlaylistRetrieveConsumer.as_asgi()),
         re_path(r'^ws/playlist/', PlaylistsConsumer.as_asgi()),
+        re_path(r'^ws/event/(?P<event_id>\d+)/', EventRetrieveConsumer.as_asgi()),
     ])),
 })

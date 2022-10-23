@@ -47,7 +47,7 @@ ____________________
 Playlist
 ____________________
 .. autoclass:: Playlist
-   :members: name, access_type, AccessTypes, type, Types, author, access_users, tracks
+   :members: name, access_type, AccessTypes, type, Types, author, playlist_access_users, tracks
    :undoc-members:
 
 Playlist Access

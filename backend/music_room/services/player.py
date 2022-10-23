@@ -41,6 +41,9 @@ class PlayerService:
     def vote(track: SessionTrack, user: User):
         track.votes.remove(user) if user in track.votes.all() else track.votes.add(user)
         track.votes_count = track.votes.all().count()
+        # If only one vote, is not affect the queue
+        if track.votes_count == 1:
+            track.votes_count = 0
         track.save()
 
     def play_next(self) -> SessionTrack:
@@ -57,6 +60,13 @@ class PlayerService:
         for track in self.player_session.track_queue.filter(progress__gt=0).all():
             track: SessionTrack
             track.progress = 0
+            track.save()
+
+    def reset_tracks_votes(self):
+        for track in self.player_session.track_queue.all():
+            track: SessionTrack
+            track.votes.clear()
+            track.votes_count = 0
             track.save()
 
     @Decorators.lookup_track
@@ -79,6 +89,7 @@ class PlayerService:
         track.save()
 
         self.reset_tracks_progress()
+        self.reset_tracks_votes()
         self.resort()
         return track
 
@@ -98,7 +109,7 @@ class PlayerService:
 
     @property
     def current_track(self) -> SessionTrack:
-        return self.player_session.track_queue.order_by('order').first()
+        return self.player_session.track_queue.first()
 
     @property
     def next_track(self) -> SessionTrack:

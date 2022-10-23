@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 
 from django.conf import settings
@@ -7,7 +8,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer as TokenRefreshBaseSerializer, \
     TokenObtainPairSerializer as TokenObtainPairBaseSerializer
 
-from .models import Track, Playlist, PlayerSession, SessionTrack, PlaylistTrack, PlaylistAccess, User, TrackFile, Artist
+from .models import Track, Playlist, PlayerSession, SessionTrack, PlaylistTrack, PlaylistAccess, User, TrackFile, \
+    Artist, Event
 
 
 class FileSerializer(serializers.ModelSerializer):
@@ -65,7 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'password']
         extra_kwargs = {
-            #'username': {'write_only': True},
+            # 'username': {'write_only': True},
             'password': {'write_only': True},
         }
 
@@ -108,4 +110,40 @@ class ArtistSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Artist
+        fields = '__all__'
+
+
+class EventCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = '__all__'
+        extra_kwargs = {
+            'author': {'read_only': True},
+        }
+
+    def create(self, validated_data):
+        author = self.context.get('request').user
+        validated_data.update({'author': author})
+        scratch_playlist: Playlist = validated_data.get('playlist')
+        playlist = Playlist.objects.create(
+            type=Playlist.Types.temporary,
+            name=str(uuid.uuid4()),
+            author=author
+        )
+        validated_data.update({'playlist': playlist})
+        # Clone tracks
+        if scratch_playlist:
+            for track in scratch_playlist.tracks.all():
+                track: PlaylistTrack
+                PlaylistTrack.objects.create(
+                    track=track.track,
+                    order=track.order,
+                    playlist=playlist
+                )
+        return Event.objects.create(**validated_data)
+
+
+class EventListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
         fields = '__all__'

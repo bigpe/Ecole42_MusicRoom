@@ -67,11 +67,11 @@ class PlaylistService:
 
     @Decorators.lookup_user
     def invite_user(self, user: User):
-        self.playlist.access_users.add(user)
+        self.playlist.playlist_access_users.add(user)
 
     @Decorators.lookup_user
     def revoke_user(self, user: User):
-        self.playlist.access_users.filter(user=user).delete()
+        self.playlist.playlist_access_users.filter(user=user).delete()
 
     def change_access_type(self, access_type: Playlist.AccessTypes):
         self.playlist.access_type = access_type

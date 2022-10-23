@@ -15,12 +15,15 @@ from django.db.models.manager import Manager
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
+from bootstrap.utils import BootstrapMixin
 from django_app.settings import MEDIA_ROOT
 
 
 class User(AbstractUser):
     #: Playlists
     playlists: Union[Playlist, Manager]
+    #: Events
+    events: Union[Event, Manager]
 
 
 @receiver(post_save, sender=User)
@@ -142,10 +145,12 @@ class Playlist(models.Model):
     class Types:
         default = 'default'  #: Default playlist e.g. favourites
         custom = 'custom'  #: Custom playlist, created by user
+        temporary = 'temporary'  #: System playlist, not shown at any list from API
 
     TypesChoice = (
         (Types.default, 'Default'),
         (Types.custom, 'Custom'),
+        (Types.temporary, 'Temporary'),
     )
 
     class AccessTypes:
@@ -166,7 +171,7 @@ class Playlist(models.Model):
     #: Playlist`s author
     author: User = models.ForeignKey(User, models.CASCADE, related_name='playlists')
     #: Users accessed to this playlist
-    access_users: Union[PlaylistAccess, Manager]
+    playlist_access_users: Union[PlaylistAccess, Manager]
     #: Tracks in this playlist
     tracks: Union[PlaylistTrack, Manager]
 
@@ -187,7 +192,7 @@ class PlaylistAccess(models.Model):
     #: User who access to playlist
     user: User = models.ForeignKey(User, models.CASCADE)
     #: Playlist instance
-    playlist: Playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='access_users')
+    playlist: Playlist = models.ForeignKey(Playlist, models.CASCADE, related_name='playlist_access_users')
 
 
 class SessionTrack(models.Model):
@@ -240,6 +245,8 @@ class PlayerSession(models.Model):
     mode: Modes = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)
     #: Player Session author
     author: User = models.ForeignKey(User, models.CASCADE)
+    #: Event
+    event: Event = models.ForeignKey(User, models.CASCADE, related_name='event_player_session', null=True, blank=True)
 
 
 @receiver(post_save, sender=PlayerSession)
@@ -253,3 +260,49 @@ def player_session_post_save(instance: PlayerSession, created, **kwargs):
     for i, playlist_track in enumerate(playlist_tracks):
         session_track = SessionTrack.objects.create(track=playlist_track.track, order=i)
         instance.track_queue.add(session_track)
+
+
+class Event(models.Model):
+    class AccessTypes(models.TextChoices):
+        public = 'public', 'Public'  #: Everyone can access
+        private = 'private', 'Private'  #: Only invited users can access
+
+    #: Event name
+    name = models.CharField(max_length=150)
+    #: Event`s author
+    author: User = models.ForeignKey(User, models.CASCADE, related_name='events')
+    #: Event access type
+    access_type: AccessTypes = models.CharField(max_length=50, choices=AccessTypes.choices, default=AccessTypes.public)
+    #: Event start date
+    start_date = models.DateTimeField()
+    #: Event end date
+    end_date = models.DateTimeField()
+    #: Event finished flag
+    is_finished = models.BooleanField(default=False)
+    #: Playlist from scratch, if not chosen, generate temporary empty new one
+    playlist: Playlist = models.ForeignKey(Playlist, models.CASCADE, null=True, blank=True, default=None)
+    #: Users accessed to this event
+    event_access_users: Union[PlaylistAccess, Manager]
+    #: Shared player session
+    event_player_session: Union[PlayerSession, Manager]
+
+    class Meta:
+        ordering = ['start_date']
+
+    def __str__(self):
+        return self.name
+
+
+class EventAccess(models.Model):
+    class AccessMode(models.TextChoices):
+        guest = 'guest', 'Only view'
+        moderator = 'moderator', 'Edit playlist, invite users'
+        administrator = 'administrator', "Edit playlist, invite users, change user's access mode"
+
+    #: User access mode
+    access_mode: AccessMode = models.CharField(max_length=50, choices=AccessMode.choices, default=AccessMode.guest)
+    #: User who access to event
+    user: User = models.ForeignKey(User, models.CASCADE)
+    #: Event instance
+    event: Event = models.ForeignKey(Event, models.CASCADE, related_name='event_access_users')
+

@@ -3,7 +3,7 @@ from music_room.serializers import PlaylistSerializer
 from ws.base import TargetsEnum, Message, BaseEvent, ActionSystem
 from ws.utils import ActionRef as Action, BaseConsumerRef as BaseConsumer
 from music_room.services import PlaylistService
-from .decorators import get_playlist_from_path, get_playlist
+from .decorators import get_playlist_from_path, get_playlist, only_for_author
 from .signatures import RequestPayload, ResponsePayload, RequestPayloadWrap
 from ws.base.utils import camel_to_dot
 
@@ -79,9 +79,8 @@ class PlaylistRetrieveConsumer(BaseConsumer):
         'revoke_from_playlist': RequestPayloadWrap.RevokeFromPlaylist,
     }
 
-    # TODO Add permission for connect (only for accessed users)
-
     @get_playlist_from_path
+    @only_for_author
     def after_connect(self, playlist: PlaylistModel):
         self.playlist_id = playlist.id
         self.broadcast_group = f'playlist-{playlist.id}'
@@ -176,7 +175,7 @@ class EventsList:
 
 class Examples:
     playlist_changed_response = Action(
-        event=str(EventsList.playlists_changed),
+        event=str(EventsList.playlist_changed),
         payload=ResponsePayload.PlaylistChanged(
             playlist=PlaylistSerializer(None).data,
             change_message='Someone add track to playlist').to_data(),

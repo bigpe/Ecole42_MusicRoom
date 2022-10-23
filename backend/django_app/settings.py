@@ -139,9 +139,9 @@ CHANNEL_LAYERS = {
 
 AUTH_USER_MODEL = 'music_room.User'
 
-import django_heroku
+import django_on_heroku
 
-django_heroku.settings(locals())
+django_on_heroku.settings(locals())
 
 PROJECT_NAME = 'Music Room API'
 

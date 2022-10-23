@@ -78,7 +78,7 @@ def get_playlist(f: Callable):
         playlist = Playlist.objects.filter(
             Q(author=self.consumer.get_user()) |
             Q(type=Playlist.AccessTypes.public) |
-            Q(access_users__user__in=[self.consumer.get_user()]),
+            Q(playlist_access_users__user__in=[self.consumer.get_user()]),
             id=payload.playlist_id
         ).first()
         if not playlist:

@@ -1,14 +1,15 @@
 from django.contrib.auth import get_user_model, authenticate, login
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Track, Playlist, PlayerSession, Artist
+from .models import Track, Playlist, PlayerSession, Artist, Event
 from .serializers import TrackSerializer, PlaylistSerializer, PlayerSessionSerializer, UserSerializer, \
-    TokenObtainPairSerializer, TokenRefreshSerializer, TokenResponseSerializer, ArtistSerializer
+    TokenObtainPairSerializer, TokenRefreshSerializer, TokenResponseSerializer, ArtistSerializer, EventCreateSerializer, \
+    EventListSerializer
 
 User = get_user_model()
 
@@ -36,7 +37,38 @@ class PlaylistListView(ListAPIView):
         if not self.request.user.is_authenticated:
             return self.queryset.all()
         return Playlist.objects.filter(
-            Q(access_type=Playlist.AccessTypes.public) | Q(access_users__user__in=[self.request.user])
+            (
+                Q(access_type=Playlist.AccessTypes.public) |
+                Q(playlist_access_users__user__in=[self.request.user]) |
+                Q(author=self.request.user)
+            ) &
+            (
+                Q(type__in=[Playlist.Types.default, Playlist.Types.custom])
+            )
+        )
+
+
+class PlaylistRetrieveView(RetrieveAPIView):
+    """
+    Playlist
+
+    Get info from accessed playlist
+    """
+    queryset = Playlist.objects.filter(access_type=Playlist.AccessTypes.public).all()
+    serializer_class = PlaylistSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return self.queryset.all()
+        return Playlist.objects.filter(
+            (
+                Q(access_type=Playlist.AccessTypes.public) |
+                Q(playlist_access_users__user__in=[self.request.user]) |
+                Q(author=self.request.user)
+            ) &
+            (
+                Q(type__in=[Playlist.Types.default, Playlist.Types.custom])
+            )
         )
 
 
@@ -51,7 +83,10 @@ class PlaylistOwnListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Playlist.objects.filter(author=self.request.user)
+        return Playlist.objects.filter(
+            author=self.request.user,
+            type__in=[Playlist.Types.default, Playlist.Types.custom]
+        )
 
 
 class PlayerSessionRetrieveView(RetrieveAPIView):
@@ -133,3 +168,33 @@ class ArtistRetrieveView(RetrieveAPIView):
     """
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
+
+
+class EventCreateView(CreateAPIView):
+    """
+    Event
+
+    Create new event
+    """
+    queryset = Event.objects.all()
+    serializer_class = EventCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class EventListView(ListAPIView):
+    """
+    Events
+
+    Get accessed events
+    """
+    queryset = Event.objects.filter(access_type=Event.AccessTypes.public).all()
+    serializer_class = EventListSerializer
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return self.queryset.all()
+        return Event.objects.filter(
+            Q(access_type=Event.AccessTypes.public) |
+            Q(event_access_users__user__in=[self.request.user]) |
+            Q(author=self.request.user)
+        )
