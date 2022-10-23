@@ -1,12 +1,12 @@
-django
+django==3.2.15
 djangorestframework
 mimesis
-channels
-daphne
+channels==3.0.1
+daphne==3.0.1
 sphinx
 sphinx-rtd-theme
 sphinx-autodoc-typehints
-django-heroku
+django-on-heroku
 drf-yasg
 drf-yasg[validation]
 djangorestframework-simplejwt
