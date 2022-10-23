@@ -1,4 +1,4 @@
-from music_room.serializers import PlaylistSerializer, EventListSerializer
+from music_room.serializers import PlaylistSerializer, EventListSerializer, EventSerializer
 from music_room.services import PlaylistService
 from music_room.services.event import EventService
 from ws.utils import BaseConsumerRef as BaseConsumer
@@ -30,21 +30,6 @@ class EventRetrieveConsumer(BaseConsumer):
         self.broadcast_group = f'event-{event.id}'
         self.join_group(self.broadcast_group)
 
-    class ChangeEvent(BaseEvent):
-        """Change already existed event"""
-        request_payload_type = RequestPayload.ModifyEvent
-        response_payload_type_initiator = ResponsePayload.EventChanged
-        hidden = False
-
-        @get_event
-        @only_for_administrator
-        def before_send(self, message: Message, payload: request_payload_type, event: Event):
-            event = EventService(event.id)
-            event.change(
-                name=payload.event_name,
-                access_type=payload.event_access_type
-            )
-
     class PlaylistChanged(BaseEvent):
         request_payload_type = RequestPayload.ModifyPlaylistTracks
         change_message = None
@@ -69,6 +54,37 @@ class EventRetrieveConsumer(BaseConsumer):
         @get_playlist
         def action_for_initiator(self, message: Message, payload: request_payload_type, playlist: PlaylistModel):
             return self.playlist(message, payload, playlist)
+
+    class EventChanged(BaseEvent):
+        request_payload_type = RequestPayload.ModifyEvent
+        target = TargetsEnum.for_all
+        hidden = True
+
+        @get_event
+        def action_for_target(self, message: Message, payload: request_payload_type, event: Event):
+            return Action(
+                event=str(EventsList.playlist_changed),
+                payload=ResponsePayload.EventChanged(
+                    event=EventSerializer(event).data,
+                    change_message='Someone change event data'
+                ),
+                system=self.event['system']
+            )
+
+    class ChangeEvent(EventChanged, BaseEvent):
+        """Change already existed event"""
+        request_payload_type = RequestPayload.ModifyEvent
+        response_payload_type_initiator = ResponsePayload.EventChanged
+        hidden = False
+
+        @get_event
+        @only_for_administrator
+        def before_send(self, message: Message, payload: request_payload_type, event: Event):
+            event = EventService(event.id)
+            event.change(
+                name=payload.event_name,
+                access_type=payload.event_access_type
+            )
 
     class AddTrack(PlaylistChanged, BaseEvent):
         """Add track to already existed playlist"""
@@ -100,7 +116,7 @@ class EventRetrieveConsumer(BaseConsumer):
             playlist = PlaylistService(playlist.id)
             playlist.remove_track(payload.track_id)
 
-    class InviteToEvent(BaseEvent):
+    class InviteToEvent(EventChanged, BaseEvent):
         """Invite someone to access this event"""
         request_payload_type = RequestPayload.ModifyEventAccess
         hidden = False
@@ -111,7 +127,7 @@ class EventRetrieveConsumer(BaseConsumer):
             event = EventService(event.id)
             event.invite_user(payload.user_id)
 
-    class RevokeFromEvent(BaseEvent):
+    class RevokeFromEvent(EventChanged, BaseEvent):
         """Revoke user's access from this event"""
         request_payload_type = RequestPayload.ModifyEventAccess
         hidden = False
@@ -139,6 +155,8 @@ class EventsList:
         EventRetrieveConsumer.ChangeEvent.__name__)
     playlist_changed: EventRetrieveConsumer.PlaylistChanged = camel_to_dot(
         EventRetrieveConsumer.PlaylistChanged.__name__)
+    event_changed: EventRetrieveConsumer.EventChanged = camel_to_dot(
+        EventRetrieveConsumer.EventChanged.__name__)
     add_track: EventRetrieveConsumer.AddTrack = camel_to_dot(EventRetrieveConsumer.AddTrack.__name__)
     remove_track: EventRetrieveConsumer.RemoveTrack = camel_to_dot(EventRetrieveConsumer.RemoveTrack.__name__)
     invite_to_event: EventRetrieveConsumer.InviteToEvent = camel_to_dot(
@@ -152,9 +170,10 @@ class EventsList:
 class Examples:
     event_change_event_request = Action(
         event=str(EventsList.change_event),
-        payload=ResponsePayload.EventChanged(
-            event=EventListSerializer(None).data,
-            change_message='Someone change event info').to_data(),
+        payload=RequestPayload.ModifyEvent(
+            event_name='Test',
+            event_access_type=Event.AccessTypes.public
+        ).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 
@@ -163,6 +182,14 @@ class Examples:
         payload=ResponsePayload.PlaylistChanged(
             playlist=PlaylistSerializer(None).data,
             change_message='Someone add track to playlist').to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
+    event_changed_response = Action(
+        event=str(EventsList.event_changed),
+        payload=ResponsePayload.EventChanged(
+            event=EventSerializer(None).data,
+            change_message='Someone change name of event').to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)
 

@@ -142,6 +142,12 @@ Playlist
 .. autoclass:: ws.event.signatures.ResponsePayload.PlaylistChanged
    :inherited-members:
 
+Event
+""""""""""""""""""""
+
+.. autoclass:: ws.event.signatures.ResponsePayload.EventChanged
+   :inherited-members:
+
 Examples
 +++++++++++++++++++++++++++
 
@@ -162,3 +168,4 @@ Response
 """"""""""""""""""""
 
 .. autoattribute:: Examples.event_playlist_changed_response
+.. autoattribute:: Examples.event_changed_response

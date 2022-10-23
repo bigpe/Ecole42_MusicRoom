@@ -26,8 +26,8 @@ def get_event(f: Callable):
         self.consumer: EventRetrieveConsumer
 
         try:
-            playlist = Event.objects.get(id=self.consumer.event_id)
-            return f(self, message, payload, playlist, *args)
+            event = Event.objects.get(id=self.consumer.event_id)
+            return f(self, message, payload, event, *args)
         except Event.DoesNotExist:
             return Action(event='error', payload={'message': 'Event not found'}, system=message.system.to_data())
 
