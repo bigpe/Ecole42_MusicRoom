@@ -5,7 +5,7 @@ from music_room.serializers import PlayerSessionSerializer
 from music_room.services.player import PlayerService
 from ws.base import TargetsEnum, Message, BaseEvent, camel_to_dot, ActionSystem
 from ws.utils import ActionRef as Action, BaseConsumerRef as BaseConsumer
-from .decorators import restore_player_session, check_player_session, only_for_author, get_player_service, get_playlist
+from .decorators import restore_player_session, check_player_session, get_player_service, get_playlist
 from .signatures import RequestPayload, ResponsePayload, CustomTargetEnum, RequestPayloadWrap
 
 
@@ -120,7 +120,6 @@ class PlayerConsumer(BaseConsumer):
         hidden = False
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.play_track(payload.track_id if payload.track_id else player_service.current_track)
 
@@ -132,7 +131,6 @@ class PlayerConsumer(BaseConsumer):
         hidden = False
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.delay_play_track(payload.track_id)
 
@@ -144,7 +142,6 @@ class PlayerConsumer(BaseConsumer):
         hidden = False
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.play_next()
 
@@ -156,7 +153,6 @@ class PlayerConsumer(BaseConsumer):
         hidden = False
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.play_previous()
 
@@ -168,7 +164,6 @@ class PlayerConsumer(BaseConsumer):
         hidden = False
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.shuffle()
 
@@ -180,7 +175,6 @@ class PlayerConsumer(BaseConsumer):
         hidden = False
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.pause_track()
 
@@ -192,7 +186,6 @@ class PlayerConsumer(BaseConsumer):
         hidden = False
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.resume_track()
 
@@ -204,7 +197,6 @@ class PlayerConsumer(BaseConsumer):
         hidden = False
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.stop_track()
 
@@ -213,7 +205,6 @@ class PlayerConsumer(BaseConsumer):
         request_payload_type = RequestPayload.SyncTrack
 
         @get_player_service
-        @only_for_author
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.sync_track(payload.progress)
 
