@@ -57,7 +57,7 @@ def get_playlist(f: Callable):
         self.consumer: EventRetrieveConsumer
 
         event = Event.objects.get(id=self.consumer.event_id)
-        playlist = Playlist.objects.get(id=event.playlist.id)
+        playlist = Playlist.objects.get(id=event.player_session.playlist.id)
         return f(self, message, payload, playlist, *args)
 
     return wrapper

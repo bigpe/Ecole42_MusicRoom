@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import uuid
 from io import FileIO
 from typing import List, Union
 
@@ -163,7 +164,7 @@ class Playlist(models.Model):
     )
 
     #: Playlist name
-    name = models.CharField(max_length=150)
+    name = models.CharField(max_length=150, default=str(uuid.uuid4))
     #: Playlist type
     type: Types = models.CharField(max_length=50, choices=TypesChoice, default=Types.custom)
     #: Playlist access type
@@ -245,8 +246,6 @@ class PlayerSession(models.Model):
     mode: Modes = models.CharField(max_length=50, choices=ModeChoice, default=Modes.normal)
     #: Player Session author
     author: User = models.ForeignKey(User, models.CASCADE)
-    #: Event
-    event: Event = models.ForeignKey(User, models.CASCADE, related_name='event_player_session', null=True, blank=True)
 
 
 @receiver(post_save, sender=PlayerSession)
@@ -279,12 +278,12 @@ class Event(models.Model):
     end_date = models.DateTimeField()
     #: Event finished flag
     is_finished = models.BooleanField(default=False)
-    #: Playlist from scratch, if not chosen, generate temporary empty new one
-    playlist: Playlist = models.ForeignKey(Playlist, models.CASCADE, null=True, blank=True, default=None)
+    #: Shared player session
+    player_session: PlayerSession = models.ForeignKey(
+        PlayerSession, models.CASCADE, null=True, blank=True, default=None
+    )
     #: Users accessed to this event
     event_access_users: Union[PlaylistAccess, Manager]
-    #: Shared player session
-    event_player_session: Union[PlayerSession, Manager]
 
     class Meta:
         ordering = ['start_date']

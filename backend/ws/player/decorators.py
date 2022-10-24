@@ -1,8 +1,8 @@
-from typing import Callable
+from typing import Callable, Union
 
 from django.db.models import Q
 
-from music_room.models import PlayerSession, Playlist
+from music_room.models import PlayerSession, Playlist, Event
 from music_room.services import PlayerService
 from ws.base import BaseEvent, BaseConsumer, Message
 from ws.utils import ActionRef as Action
@@ -24,15 +24,22 @@ def get_player_service(f: Callable):
 
 def restore_player_session(f: Callable):
     def wrapper(self: [BaseConsumer, BaseEvent], *args):
+        from .consumers import PlayerConsumer
+        from ..event.consumers import EventRetrieveConsumer
         consumer: BaseConsumer = self if isinstance(self, BaseConsumer) else self.consumer
+        consumer: Union[PlayerConsumer, EventRetrieveConsumer]
 
         if consumer.get_user().is_anonymous:
             return None
 
         player_session = PlayerSession.objects.filter(author=consumer.get_user()).first()
+
+        if consumer.multiplayer:
+            player_session = Event.objects.filter(id=consumer.event_id).first().player_session
+
         if isinstance(self, BaseEvent):
             return f(self, *args, player_session)
-        return f(self, player_session)
+        return f(self, *args, player_session)
 
     return wrapper
 

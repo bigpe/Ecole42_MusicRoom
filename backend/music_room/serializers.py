@@ -43,7 +43,7 @@ class PlaylistSerializer(serializers.ModelSerializer):
 class SessionTrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionTrack
-        fields = ['id', 'state', 'progress', 'track']
+        fields = ['id', 'state', 'progress', 'track', 'votes_count']
 
 
 class PlayerSessionSerializer(serializers.ModelSerializer):
@@ -114,32 +114,33 @@ class ArtistSerializer(serializers.ModelSerializer):
 
 
 class EventCreateSerializer(serializers.ModelSerializer):
+    playlist = serializers.IntegerField(required=False, default=0)
+
     class Meta:
         model = Event
         fields = '__all__'
         extra_kwargs = {
             'author': {'read_only': True},
+            'player_session': {'read_only': True},
         }
 
     def create(self, validated_data):
         author = self.context.get('request').user
         validated_data.update({'author': author})
-        scratch_playlist: Playlist = validated_data.get('playlist')
-        playlist = Playlist.objects.create(
-            type=Playlist.Types.temporary,
-            name=str(uuid.uuid4()),
-            author=author
-        )
-        validated_data.update({'playlist': playlist})
-        # Clone tracks
-        if scratch_playlist:
-            for track in scratch_playlist.tracks.all():
-                track: PlaylistTrack
-                PlaylistTrack.objects.create(
-                    track=track.track,
-                    order=track.order,
-                    playlist=playlist
-                )
+        scratch_playlist: Playlist = validated_data.pop('playlist')
+        try:
+            playlist = Playlist.objects.get(id=scratch_playlist, author=author)
+        except Playlist.DoesNotExist:
+            playlist = Playlist.objects.create(
+                type=Playlist.Types.temporary,
+                author=author,
+            )
+        validated_data.update({
+            'player_session': PlayerSession.objects.create(
+                playlist=playlist,
+                author=author
+            )
+        })
         return Event.objects.create(**validated_data)
 
 

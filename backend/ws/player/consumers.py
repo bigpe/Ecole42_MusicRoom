@@ -22,6 +22,7 @@ class PlayerConsumer(BaseConsumer):
     broadcast_group = 'player'
     authed = True
     custom_target_resolver = {CustomTargetEnum.for_accessed: for_accessed}
+    multiplayer = False
 
     request_type_resolver = {
         'create_session': RequestPayloadWrap.CreateSession,
@@ -216,6 +217,17 @@ class PlayerConsumer(BaseConsumer):
         def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
             player_service.sync_track(payload.progress)
 
+    class VoteTrack(SessionChanged, BaseEvent):
+        """Vote to next track"""
+        request_payload_type = RequestPayload.VoteTrack
+        response_payload_type_initiator = ResponsePayload.PlayerSession
+        response_payload_type_target = ResponsePayload.PlayerSession
+        hidden = False
+
+        @get_player_service
+        def before_send(self, message: Message, payload: request_payload_type, player_service: PlayerService):
+            player_service.vote(track=payload.track_id, user=message.initiator_user)
+
 
 class EventsList:
     session: PlayerConsumer.Session = camel_to_dot(PlayerConsumer.Session.__name__)
@@ -231,6 +243,7 @@ class EventsList:
     resume_track: PlayerConsumer.ResumeTrack = camel_to_dot(PlayerConsumer.ResumeTrack.__name__)
     stop_track: PlayerConsumer.StopTrack = camel_to_dot(PlayerConsumer.StopTrack.__name__)
     sync_track: PlayerConsumer.SyncTrack = camel_to_dot(PlayerConsumer.SyncTrack.__name__)
+    vote_track: PlayerConsumer.VoteTrack = camel_to_dot(PlayerConsumer.VoteTrack.__name__)
 
 
 class Examples:
@@ -309,5 +322,11 @@ class Examples:
     sync_track_request = Action(
         event=str(EventsList.sync_track),
         payload=RequestPayload.SyncTrack(progress=10.5, player_session_id=1).to_data(),
+        system=ActionSystem()
+    ).to_data(pop_system=True, to_json=True)
+
+    vote_track_request = Action(
+        event=str(EventsList.vote_track),
+        payload=RequestPayload.VoteTrack(player_session_id=1, track_id=1).to_data(),
         system=ActionSystem()
     ).to_data(pop_system=True, to_json=True)

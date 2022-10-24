@@ -17,6 +17,11 @@ class RequestPayload:
         track_id: int  #: Track id for push top of queue
 
     @dataclass
+    class VoteTrack(BasePayload):
+        player_session_id: int  #: Already started player session id
+        track_id: int  #: Track id for push top of queue
+
+    @dataclass
     class CreateSession(BasePayload):
         playlist_id: int  #: Already created playlist id
         shuffle: bool = False  #: If you need create session with shuffle tracks in playlist

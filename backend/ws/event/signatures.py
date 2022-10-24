@@ -7,9 +7,16 @@ from ws.base import BasePayload
 
 class RequestPayload:
     @dataclass
-    class ModifyPlaylistTracks(BasePayload):
-        """Modify playlist tracks"""
-        track_id: int  #: Track if for any actions with it (eg. remove, add)
+    class AddEventTrack(BasePayload):
+        """Add track to event"""
+        player_session_id: int  #: Player session id
+        track_id: int  #: Track id
+
+    @dataclass
+    class RemoveEventTrack(BasePayload):
+        """Remove track from event"""
+        player_session_id: int  #: Player session id
+        session_track_id: int  #: Session track if
 
     @dataclass
     class ModifyEvent(BasePayload):
@@ -32,13 +39,13 @@ class RequestPayload:
 class RequestPayloadWrap:
     @dataclass
     class AddTrack(BasePayload):
-        #: Add track to playlist signature mock for swift
-        add_track: Union[RequestPayload.ModifyPlaylistTracks, dict]
+        #: Add track to event session signature mock for swift
+        add_track: Union[RequestPayload.AddEventTrack, dict]
 
     @dataclass
     class RemoveTrack(BasePayload):
-        #: Remove track from playlist signature mock for swift
-        remove_track: Union[RequestPayload.ModifyPlaylistTracks, dict]
+        #: Remove track from event session signature mock for swift
+        remove_track: Union[RequestPayload.RemoveEventTrack, dict]
 
     @dataclass
     class InviteToEvent(BasePayload):

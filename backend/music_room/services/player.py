@@ -4,7 +4,7 @@ from typing import Callable
 
 from django.contrib.auth import get_user_model
 
-from music_room.models import PlayerSession, SessionTrack
+from music_room.models import PlayerSession, SessionTrack, Track
 
 User = get_user_model()
 
@@ -24,7 +24,7 @@ class PlayerService:
             return wrapper
 
         @staticmethod
-        def lookup_track(f: Callable):
+        def lookup_session_track(f: Callable):
             @wraps(f)
             def wrapper(self, track, *args):
                 if isinstance(track, int):
@@ -33,12 +33,22 @@ class PlayerService:
 
             return wrapper
 
+        @staticmethod
+        def lookup_track(f: Callable):
+            @wraps(f)
+            def wrapper(self, track, *args):
+                if isinstance(track, int):
+                    track = Track.objects.get(id=track)
+                return f(self, track, *args)
+
+            return wrapper
+
     @Decorators.lookup_player_session
     def __init__(self, player_session: [int, PlayerSession]):
         self.player_session: PlayerSession = player_session
 
-    @staticmethod
-    def vote(track: SessionTrack, user: User):
+    @Decorators.lookup_session_track
+    def vote(self, track: [int, SessionTrack], user: User):
         track.votes.remove(user) if user in track.votes.all() else track.votes.add(user)
         track.votes_count = track.votes.all().count()
         # If only one vote, is not affect the queue
@@ -69,7 +79,7 @@ class PlayerService:
             track.votes_count = 0
             track.save()
 
-    @Decorators.lookup_track
+    @Decorators.lookup_session_track
     def play_track(self, track: [int, SessionTrack]) -> SessionTrack:
         first_track = self.current_track
         next_track = track
@@ -93,7 +103,7 @@ class PlayerService:
         self.resort()
         return track
 
-    @Decorators.lookup_track
+    @Decorators.lookup_session_track
     def delay_play_track(self, track: [int, SessionTrack]) -> SessionTrack:
         self.current_track.order = -1
         track.order = 0
@@ -162,3 +172,15 @@ class PlayerService:
         for i, track in enumerate(self.player_session.track_queue.all()):
             track.order = i
             track.save()
+
+    @Decorators.lookup_track
+    def add_track(self, track: [int, Track]):
+        session_track = SessionTrack.objects.create(
+            track=track,
+            order=self.player_session.track_queue.all().count()
+        )
+        self.player_session.track_queue.add(session_track)
+
+    @Decorators.lookup_session_track
+    def remove_track(self, track: [int, SessionTrack]):
+        self.player_session.track_queue.remove(track)
