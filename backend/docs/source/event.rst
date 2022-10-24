@@ -22,6 +22,11 @@ Events list
 .. autoclass:: ws.event.EventsList
    :inherited-members:
    :undoc-members:
+.. autoclass:: ws.player.EventsList
+   :inherited-members:
+   :undoc-members:
+   :noindex:
+   :exclude-members: create_session, remove_session
 
 .. note::
     .. include:: events_detail_note.txt
@@ -43,7 +48,7 @@ Add Track
 
 .. seealso::
    :obj:`.Examples.event_add_track_request`
-   :obj:`.Examples.event_playlist_changed_response`
+   :obj:`.Examples.session_changed_response`
 .. autoclass:: ws.event.EventRetrieveConsumer.AddTrack
    :inherited-members:
 
@@ -54,7 +59,7 @@ Remove Track
 
 .. seealso::
    :obj:`.Examples.event_remove_track_request`
-   :obj:`.Examples.event_playlist_changed_response`
+   :obj:`.Examples.session_changed_response`
 .. autoclass:: ws.event.EventRetrieveConsumer.RemoveTrack
    :inherited-members:
 
@@ -91,10 +96,12 @@ Change User Access Mode
 Whats data send to socket?
 ++++++++++++++++++++++++++++
 
-Modify Playlist Tracks
+Modify Session Tracks
 """"""""""""""""""""""""""
 
-.. autoclass:: ws.event.signatures.RequestPayload.ModifyPlaylistTracks
+.. autoclass:: ws.event.signatures.RequestPayload.AddEventTrack
+   :inherited-members:
+.. autoclass:: ws.event.signatures.RequestPayload.RemoveEventTrack
    :inherited-members:
 .. autoclass:: ws.event.signatures.RequestPayloadWrap.AddTrack
    :inherited-members:
@@ -136,12 +143,6 @@ Modify Accessed Users
 Whats data receive from socket?
 +++++++++++++++++++++++++++++++++
 
-Playlist
-""""""""""""""""""""
-
-.. autoclass:: ws.event.signatures.ResponsePayload.PlaylistChanged
-   :inherited-members:
-
 Event
 """"""""""""""""""""
 
@@ -167,5 +168,4 @@ Requests
 Response
 """"""""""""""""""""
 
-.. autoattribute:: Examples.event_playlist_changed_response
 .. autoattribute:: Examples.event_changed_response
