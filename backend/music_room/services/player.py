@@ -47,8 +47,10 @@ class PlayerService:
     def __init__(self, player_session: [int, PlayerSession]):
         self.player_session: PlayerSession = player_session
 
-    @Decorators.lookup_session_track
-    def vote(self, track: [int, SessionTrack], user: User):
+    @staticmethod
+    def vote(track: [int, SessionTrack], user: User):
+        if isinstance(track, int):
+            track = SessionTrack.objects.get(id=track)
         track.votes.remove(user) if user in track.votes.all() else track.votes.add(user)
         track.votes_count = track.votes.all().count()
         # If only one vote, is not affect the queue
