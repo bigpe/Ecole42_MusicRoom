@@ -13,6 +13,7 @@
 		C314020528FB8E880011E122 /* Artist.swift in Sources */ = {isa = PBXBuildFile; fileRef = C314020428FB8E880011E122 /* Artist.swift */; };
 		C314020728FB92120011E122 /* ContentView+ViewModel-PlayerContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C314020628FB92120011E122 /* ContentView+ViewModel-PlayerContent.swift */; };
 		C31DB514287A7CFA00EAEA62 /* ContentView+AddPlaylistSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31DB513287A7CFA00EAEA62 /* ContentView+AddPlaylistSheet.swift */; };
+		C3257091290056910058850F /* PlaylistAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3257090290056910058850F /* PlaylistAccess.swift */; };
 		C33B7C14285E8F08000399BA /* PlayerEventsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C13285E8F08000399BA /* PlayerEventsList.swift */; };
 		C33B7C17285E906B000399BA /* PlaylistEventsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C16285E906B000399BA /* PlaylistEventsList.swift */; };
 		C33B7C19285EB170000399BA /* PlayerMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B7C18285EB170000399BA /* PlayerMessage.swift */; };
@@ -71,6 +72,7 @@
 		C314020428FB8E880011E122 /* Artist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artist.swift; sourceTree = "<group>"; };
 		C314020628FB92120011E122 /* ContentView+ViewModel-PlayerContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ViewModel-PlayerContent.swift"; sourceTree = "<group>"; };
 		C31DB513287A7CFA00EAEA62 /* ContentView+AddPlaylistSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+AddPlaylistSheet.swift"; sourceTree = "<group>"; };
+		C3257090290056910058850F /* PlaylistAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistAccess.swift; sourceTree = "<group>"; };
 		C33B7C13285E8F08000399BA /* PlayerEventsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEventsList.swift; sourceTree = "<group>"; };
 		C33B7C16285E906B000399BA /* PlaylistEventsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistEventsList.swift; sourceTree = "<group>"; };
 		C33B7C18285EB170000399BA /* PlayerMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerMessage.swift; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 				C33B7C1C285F8043000399BA /* PlayerSession.swift */,
 				C33B7C1E285F8349000399BA /* PlaylistTrack.swift */,
 				C33B7C20285F844C000399BA /* Playlist.swift */,
+				C3257090290056910058850F /* PlaylistAccess.swift */,
 				C33B7C24285F85E6000399BA /* Track.swift */,
 				C34EB8902883F65400D7389D /* Track+FLACFile.swift */,
 				C34EB8922883F69100D7389D /* Track+MP3File.swift */,
@@ -352,6 +355,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C36ABA19285BBBFC008D4D03 /* ContentView.swift in Sources */,
+				C3257091290056910058850F /* PlaylistAccess.swift in Sources */,
 				C31401FE28FB4D060011E122 /* TokenRequestError.swift in Sources */,
 				C3434AE0286F6E7900D07785 /* ControlButtonStyle.swift in Sources */,
 				C3535C53286A3A28007EA197 /* APICredential.swift in Sources */,
