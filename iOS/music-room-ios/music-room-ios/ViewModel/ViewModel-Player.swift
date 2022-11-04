@@ -1,5 +1,5 @@
 //
-//  ContentView+ViewModel-Player.swift
+//  ViewModel-Player.swift
 //  music-room-ios
 //
 //  Created by Nikita Arutyunov on 13.07.2022.
@@ -10,7 +10,7 @@ import SwiftUI
 import MediaPlayer
 import AVFoundation
 
-extension ContentView.ViewModel {
+extension ViewModel {
     func playCurrentTrack() {
         guard
             let currentTrackFile = currentTrackFile,

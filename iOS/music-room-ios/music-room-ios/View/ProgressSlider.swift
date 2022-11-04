@@ -10,7 +10,7 @@ import SwiftUI
 struct ProgressSlider: View {
     
     @Binding
-    var trackProgress: ContentView.ViewModel.TrackProgress
+    var trackProgress: ViewModel.TrackProgress
     
     @Binding
     var isTracking: Bool
@@ -77,7 +77,7 @@ struct ProgressSlider: View {
                             )
                         )
                         
-                        trackProgress = ContentView.ViewModel.TrackProgress(
+                        trackProgress = ViewModel.TrackProgress(
                             value: total * percentage,
                             total: total
                         )
@@ -105,7 +105,7 @@ struct ProgressSlider: View {
                             )
                         )
                         
-                        trackProgress = ContentView.ViewModel.TrackProgress(
+                        trackProgress = ViewModel.TrackProgress(
                             value: total * percentage,
                             total: total
                         )

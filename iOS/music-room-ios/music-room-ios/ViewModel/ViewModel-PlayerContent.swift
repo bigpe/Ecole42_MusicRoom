@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-extension ContentView.ViewModel {
+extension ViewModel {
     enum PlayerContent: Identifiable {
         case track(
             id: Int,

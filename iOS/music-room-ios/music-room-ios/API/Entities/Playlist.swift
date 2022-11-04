@@ -40,8 +40,6 @@ public struct Playlist: Codable, Identifiable {
     
     public let accessType: AccessType
     
-    public let accessUsers: [PlaylistAccess]
-    
     public let author: Int
     
     public init(
@@ -50,7 +48,6 @@ public struct Playlist: Codable, Identifiable {
         name: String,
         type: `Type`? = nil,
         accessType: AccessType,
-        accessUsers: [PlaylistAccess],
         author: Int
     ) {
         self.id = id
@@ -58,7 +55,6 @@ public struct Playlist: Codable, Identifiable {
         self.name = name
         self.type = type
         self.accessType = accessType
-        self.accessUsers = accessUsers
         self.author = author
     }
     
@@ -68,7 +64,6 @@ public struct Playlist: Codable, Identifiable {
         case name
         case type
         case accessType = "access_type"
-        case accessUsers = "playlist_access_users"
         case author
     }
     
