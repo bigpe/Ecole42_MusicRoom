@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct AddPlaylistMusicView: View {
+struct PlaylistMusicView: View {
     var api: API!
     
     @EnvironmentObject
     var viewModel: ViewModel
     
     @EnvironmentObject
-    var addPlaylistViewModel: AddPlaylistViewModel
+    var playlistViewModel: PlaylistViewModel
     
     var body: some View {
         NavigationView {
@@ -15,12 +15,12 @@ struct AddPlaylistMusicView: View {
                 viewModel.tracksPlayerContent
             ) { track in
                 Button {
-                    if addPlaylistViewModel.selectedAddMusicTracks.contains(track.id) {
-                        addPlaylistViewModel.selectedAddMusicTracks.removeAll(where: {
+                    if playlistViewModel.selectedAddMusicTracks.contains(track.id) {
+                        playlistViewModel.selectedAddMusicTracks.removeAll(where: {
                             $0 == track.id
                         })
                     } else {
-                        addPlaylistViewModel.selectedAddMusicTracks.append(track.id)
+                        playlistViewModel.selectedAddMusicTracks.append(track.id)
                     }
                 } label: {
                     ZStack {
@@ -50,7 +50,7 @@ struct AddPlaylistMusicView: View {
                             Spacer()
                         }
 
-                        if let index = addPlaylistViewModel.selectedAddMusicTracks
+                        if let index = playlistViewModel.selectedAddMusicTracks
                             .firstIndex(where: { $0 == track.id }) {
 
                             HStack(alignment: .center) {
@@ -75,19 +75,61 @@ struct AddPlaylistMusicView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
-                        addPlaylistViewModel.selectedPlayerContent.append(
-                            contentsOf: addPlaylistViewModel.selectedAddMusicTracks
-                                .compactMap { trackID in
-                                    viewModel.tracksPlayerContent.first(where: { $0.id == trackID })
+                        playlistViewModel.isLoadingAddMusic = true
+
+                        guard
+                            let playlistID = playlistViewModel.selectedPlaylist?.id,
+                            let playlistWebSocket = api.playlistWebSocket(
+                                playlistID: playlistID
+                            )
+                        else {
+                            return
+                        }
+
+                        Task {
+                            playlistViewModel.cancellable = viewModel.$ownPlaylists.sink {
+                                guard
+                                    let playlist = $0.first(where: {
+                                        $0.id == playlistID
+                                    })
+                                else {
+                                    return
                                 }
-                        )
 
-                        addPlaylistViewModel.selectedAddMusicTracks.removeAll()
+                                playlistViewModel.selectedPlaylist = playlist
+                            }
 
-                        addPlaylistViewModel.isShowingAddMusic = false
+                            for trackID in playlistViewModel.selectedAddMusicTracks {
+                                guard
+                                    let trackID = trackID
+                                else {
+                                    continue
+                                }
+
+                                try await playlistWebSocket.send(
+                                    PlaylistMessage(
+                                        event: .addTrack,
+                                        payload: .addTrack(track_id: trackID)
+                                    )
+                                )
+                            }
+
+                            await MainActor.run {
+                                playlistViewModel.selectedAddMusicTracks = []
+
+                                playlistViewModel.isLoadingAddMusic = false
+
+                                playlistViewModel.isShowingAddMusic = false
+                            }
+                        }
                     } label: {
-                        Text("Done")
-                            .fontWeight(.semibold)
+                        if !playlistViewModel.isLoadingAddMusic {
+                            Text("Done")
+                                .fontWeight(.semibold)
+                        } else {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                        }
                     }
 
                 }

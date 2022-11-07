@@ -46,12 +46,16 @@ struct AddPlaylistView: View {
                     id: \.index
                 ) { index, track in
                     HStack(alignment: .center, spacing: 16) {
-//                        cachedArtworkImage(track.name)
-                        Image(systemName: "scribble")
+                        viewModel.artworks[track.name, default: viewModel.placeholderArtwork]
                             .resizable()
                             .cornerRadius(4)
                             .frame(width: 60, height: 60)
                             .padding(.leading, -16)
+                            .onAppear {
+                                Task {
+                                    await viewModel.prepareArtwork(track.name)
+                                }
+                            }
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text(track.title ?? viewModel.defaultTitle)

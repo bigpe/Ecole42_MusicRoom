@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct PlaylistView: View {
+struct EventView: View {
     var api: API!
     
     @EnvironmentObject
     var viewModel: ViewModel
     
     @EnvironmentObject
-    var playlistViewModel: PlaylistViewModel
+    var eventViewModel: EventViewModel
     
     var focusedField: FocusState<Field?>.Binding
     
@@ -15,11 +15,11 @@ struct PlaylistView: View {
         NavigationView {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(spacing: 16) {
-                    if !playlistViewModel.isEditing {
-                        Text(playlistViewModel.selectedPlaylist?.name ?? "")
+                    if !eventViewModel.isEditing {
+                        Text(eventViewModel.selectedEvent?.name ?? "")
                             .font(.title)
                     } else {
-                        Picker(selection: $playlistViewModel.accessType) {
+                        Picker(selection: $eventViewModel.accessType) {
                             ForEach(Playlist.AccessType.allCases) { accessType in
                                 Text(accessType.description)
                             }
@@ -28,12 +28,12 @@ struct PlaylistView: View {
                         }
                         .pickerStyle(.segmented)
 
-                        TextField(text: $playlistViewModel.nameText) {
+                        TextField(text: $eventViewModel.nameText) {
                             Text("Playlist Name")
                         }
                         .textFieldStyle(.roundedBorder)
                         .textInputAutocapitalization(.sentences)
-                        .focused(focusedField, equals: .playlistName)
+                        .focused(focusedField, equals: .eventName)
                     }
                 }
 
@@ -43,7 +43,7 @@ struct PlaylistView: View {
                     Button {
                         Task {
                             guard
-                                let playlistID = playlistViewModel.selectedPlaylist?.id
+                                let eventID = eventViewModel.selectedEvent?.id
                             else {
                                 return
                             }
@@ -64,9 +64,9 @@ struct PlaylistView: View {
 
                             api.playlistWebSockets.removeValue(forKey: playlistID)
 
-                            let playlistName = playlistViewModel.selectedPlaylist?.name
+                            let playlistName = eventViewModel.selectedEvent?.name
 
-                            playlistViewModel.selectedPlaylist = nil
+                            eventViewModel.selectedEvent = nil
 
                             viewModel.interfaceState = .player
 
@@ -87,7 +87,7 @@ struct PlaylistView: View {
                     Button {
                         Task {
                             guard
-                                let playlistID = playlistViewModel.selectedPlaylist?.id
+                                let playlistID = eventViewModel.selectedEvent?.id
                             else {
                                 return
                             }
@@ -109,9 +109,9 @@ struct PlaylistView: View {
 
                             api.playlistWebSockets.removeValue(forKey: playlistID)
 
-                            let playlistName = playlistViewModel.selectedPlaylist?.name
+                            let playlistName = eventViewModel.selectedEvent?.name
 
-                            playlistViewModel.selectedPlaylist = nil
+                            eventViewModel.selectedEvent = nil
 
                             viewModel.interfaceState = .player
 
@@ -129,7 +129,7 @@ struct PlaylistView: View {
                 }
 
                 List(
-                    playlistViewModel.playerContent
+                    eventViewModel.playerContent
                 ) { track in
                     LazyHStack(alignment: .center, spacing: 16) {
                         viewModel.artworks[track.name, default: viewModel.placeholderArtwork]
@@ -157,11 +157,11 @@ struct PlaylistView: View {
                     }
                     .alignmentGuide(.listRowSeparatorLeading) { _ in 60 }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        if playlistViewModel.isEditable {
+                        if eventViewModel.isEditable {
                             Button(role: .destructive) {
                                 guard
                                     let trackID = track.id,
-                                    let playlistID = playlistViewModel.selectedPlaylist?.id,
+                                    let playlistID = eventViewModel.selectedEvent?.id,
                                     let playlistWebSocket = api.playlistWebSocket(
                                         playlistID: playlistID
                                     )
@@ -177,7 +177,7 @@ struct PlaylistView: View {
                                         )
                                     )
 
-                                    playlistViewModel.cancellable = viewModel.$ownPlaylists.sink {
+                                    eventViewModel.cancellable = viewModel.$ownPlaylists.sink {
                                         guard
                                             let playlist = $0.first(where: {
                                                 $0.id == playlistID
@@ -186,9 +186,9 @@ struct PlaylistView: View {
                                             return
                                         }
 
-                                        playlistViewModel.cancellable = nil
+                                        eventViewModel.cancellable = nil
 
-                                        playlistViewModel.selectedPlaylist = playlist
+                                        eventViewModel.selectedEvent = playlist
                                     }
                                 }
                             } label: {
@@ -199,12 +199,12 @@ struct PlaylistView: View {
                 }
                 .listStyle(.plain)
 
-                if playlistViewModel.isEditable {
+                if eventViewModel.isEditable {
                     HStack {
                         Button {
-                            playlistViewModel.showingDeleteConfirmation = true
+                            eventViewModel.showingDeleteConfirmation = true
                         } label: {
-                            if !playlistViewModel.isDeleteLoading {
+                            if !eventViewModel.isDeleteLoading {
                                 Label("Delete Playlist", systemImage: "trash.circle.fill")
                             } else {
                                 ProgressView()
@@ -216,7 +216,7 @@ struct PlaylistView: View {
                         Spacer()
 
                         Button {
-                            playlistViewModel.isShowingAddMusic = true
+                            eventViewModel.isShowingAddMusic = true
                         } label: {
                             Label("Add Music", systemImage: "plus.circle.fill")
                         }
@@ -232,21 +232,21 @@ struct PlaylistView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     Button {
-                        let playlistName = playlistViewModel.nameText
+                        let playlistName = eventViewModel.nameText
                             .trimmingCharacters(in: .whitespacesAndNewlines)
 
-                        let accessType = playlistViewModel.accessType
+                        let accessType = eventViewModel.accessType
 
                         guard
-                            playlistName == playlistViewModel.selectedPlaylist?.name,
-                            accessType == playlistViewModel.selectedPlaylist?.accessType
+                            playlistName == eventViewModel.selectedEvent?.name,
+                            accessType == eventViewModel.selectedEvent?.accessType
                         else {
-                            playlistViewModel.showingCancelConfirmation = true
+                            eventViewModel.showingCancelConfirmation = true
 
                             return
                         }
 
-                        playlistViewModel.selectedPlaylist = nil
+                        eventViewModel.selectedEvent = nil
                     } label: {
                         Text("Cancel")
                     }
@@ -254,21 +254,21 @@ struct PlaylistView: View {
                 }
 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    if playlistViewModel.isEditable {
+                    if eventViewModel.isEditable {
                         Button {
-                            if !playlistViewModel.isEditing {
-                                playlistViewModel.isEditing = true
+                            if !eventViewModel.isEditing {
+                                eventViewModel.isEditing = true
                             } else {
-                                let playlistName = playlistViewModel.nameText
+                                let playlistName = eventViewModel.nameText
                                     .trimmingCharacters(in: .whitespacesAndNewlines)
 
-                                let accessType = playlistViewModel.accessType
+                                let accessType = eventViewModel.accessType
 
                                 guard
-                                    playlistName != playlistViewModel.selectedPlaylist?.name ||
-                                        accessType != playlistViewModel.selectedPlaylist?.accessType
+                                    playlistName != eventViewModel.selectedEvent?.name ||
+                                        accessType != eventViewModel.selectedEvent?.accessType
                                 else {
-                                    playlistViewModel.isEditing = false
+                                    eventViewModel.isEditing = false
 
                                     return
                                 }
@@ -276,17 +276,17 @@ struct PlaylistView: View {
                                 guard
                                     !playlistName.isEmpty,
 //                                    !addPlaylistViewModel.isLoading, // TODO: Check
-                                    let playlistID = playlistViewModel.selectedPlaylist?.id,
+                                    let playlistID = eventViewModel.selectedEvent?.id,
                                     let playlistsWebSocket = api.playlistsWebSocket
                                 else {
                                     return
                                 }
 
-                                playlistViewModel.isLoading = true
+                                eventViewModel.isLoading = true
 
                                 Task {
                                     do {
-                                        playlistViewModel.cancellable = viewModel.$ownPlaylists.sink {
+                                        eventViewModel.cancellable = viewModel.$ownPlaylists.sink {
                                             guard
                                                 let playlist = $0.first(where: {
                                                     $0.id == playlistID
@@ -295,9 +295,9 @@ struct PlaylistView: View {
                                                 return
                                             }
 
-                                            playlistViewModel.cancellable = nil
+                                            eventViewModel.cancellable = nil
 
-                                            playlistViewModel.selectedPlaylist = playlist
+                                            eventViewModel.selectedEvent = playlist
                                         }
 
                                         do {
@@ -313,7 +313,7 @@ struct PlaylistView: View {
                                             )
 
                                             await MainActor.run {
-                                                playlistViewModel.isShowing = false
+                                                eventViewModel.isShowing = false
 
                                                 viewModel.toastType = .complete(Color.pink)
                                                 viewModel.toastTitle = "Playlist Saved"
@@ -336,20 +336,20 @@ struct PlaylistView: View {
 //                                            }
 
                                         await MainActor.run {
-                                            playlistViewModel.isEditing = false
-                                            playlistViewModel.isLoading = false
+                                            eventViewModel.isEditing = false
+                                            eventViewModel.isLoading = false
                                         }
                                     } catch {
                                         await MainActor.run {
-                                            playlistViewModel.isEditing = false
-                                            playlistViewModel.isLoading = false
+                                            eventViewModel.isEditing = false
+                                            eventViewModel.isLoading = false
                                         }
                                     }
                                 }
                             }
                         } label: {
-                            if !playlistViewModel.isLoading {
-                                if !playlistViewModel.isEditing {
+                            if !eventViewModel.isLoading {
+                                if !eventViewModel.isEditing {
                                     Text("Edit")
                                         .fontWeight(.semibold)
                                 } else {
@@ -366,7 +366,7 @@ struct PlaylistView: View {
             }
             .confirmationDialog(
                 "Delete Playlist?",
-                isPresented: $playlistViewModel.showingDeleteConfirmation,
+                isPresented: $eventViewModel.showingDeleteConfirmation,
                 titleVisibility: .visible
             ) {
 
@@ -375,14 +375,14 @@ struct PlaylistView: View {
                 Button(role: .destructive) {
                     Task {
                         guard
-                            let playlistID = playlistViewModel.selectedPlaylist?.id,
+                            let playlistID = eventViewModel.selectedEvent?.id,
                             let playlistWebSocket = api.playlistsWebSocket
                         else {
                             return
                         }
 
                         await MainActor.run {
-                            playlistViewModel.isDeleteLoading = true
+                            eventViewModel.isDeleteLoading = true
                         }
 
                         do {
@@ -398,16 +398,16 @@ struct PlaylistView: View {
                             )
 
                             await MainActor.run {
-                                playlistViewModel.isDeleteLoading = false
+                                eventViewModel.isDeleteLoading = false
 
                                 viewModel.toastType = .systemImage("trash.circle", Color.pink)
                                 viewModel.toastTitle = "Playlist Deleted"
-                                viewModel.toastSubtitle = playlistViewModel.selectedPlaylist?.name
+                                viewModel.toastSubtitle = eventViewModel.selectedEvent?.name
                                 viewModel.isToastShowing = true
                             }
                         } catch {
                             await MainActor.run {
-                                playlistViewModel.isDeleteLoading = false
+                                eventViewModel.isDeleteLoading = false
 
                                 viewModel.toastType = .error(Color.red)
                                 viewModel.toastTitle = "Oops..."
@@ -416,9 +416,9 @@ struct PlaylistView: View {
                             }
                         }
 
-                        playlistViewModel.showingDeleteConfirmation = false
+                        eventViewModel.showingDeleteConfirmation = false
 
-                        playlistViewModel.selectedPlaylist = nil
+                        eventViewModel.selectedEvent = nil
                     }
                 } label: {
                     Text("Yes")
@@ -429,14 +429,14 @@ struct PlaylistView: View {
         .accentColor(.pink)
         .interactiveDismissDisabled(
             {
-                let playlistName = playlistViewModel.nameText
+                let playlistName = eventViewModel.nameText
                     .trimmingCharacters(in: .whitespacesAndNewlines)
 
-                let accessType = playlistViewModel.accessType
+                let accessType = eventViewModel.accessType
 
                 guard
-                    playlistName == playlistViewModel.selectedPlaylist?.name,
-                    accessType == playlistViewModel.selectedPlaylist?.accessType
+                    playlistName == eventViewModel.selectedEvent?.name,
+                    accessType == eventViewModel.selectedEvent?.accessType
                 else {
                     return true
                 }
@@ -444,12 +444,12 @@ struct PlaylistView: View {
                 return false
             }(),
             onAttemptToDismiss: {
-                playlistViewModel.showingCancelConfirmation = true
+                eventViewModel.showingCancelConfirmation = true
             }
         )
         .confirmationDialog(
-            "Don't Save Playlist Edits?",
-            isPresented: $playlistViewModel.showingCancelConfirmation,
+            "Don't Save Event Edits?",
+            isPresented: $eventViewModel.showingCancelConfirmation,
             titleVisibility: .visible
         ) {
 
@@ -458,9 +458,9 @@ struct PlaylistView: View {
             Button(role: .destructive) {
                 Task {
                     await MainActor.run {
-                        playlistViewModel.showingCancelConfirmation = false
+                        eventViewModel.showingCancelConfirmation = false
 
-                        playlistViewModel.selectedPlaylist = nil
+                        eventViewModel.selectedEvent = nil
                     }
                 }
             } label: {
@@ -469,14 +469,7 @@ struct PlaylistView: View {
 
         }
         .onDisappear {
-            playlistViewModel.selectedPlaylist = nil
+            eventViewModel.selectedEvent = nil
         }
-        .sheet(isPresented: $playlistViewModel.isShowingAddMusic, content: {
-            PlaylistMusicView(
-                api: api
-            )
-            .environmentObject(viewModel)
-            .environmentObject(playlistViewModel)
-        })
     }
 }

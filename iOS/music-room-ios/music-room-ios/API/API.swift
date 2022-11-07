@@ -33,13 +33,15 @@ public class API {
     
     // MARK: - Web Socket
     
-    lazy var playerWebSocket = try? PlayerWebSocket(api: self)
+    lazy var playerWebSocket = PlayerWebSocket?.none // try? PlayerWebSocket(api: self)
     
-    lazy var playlistsWebSocket = try? PlaylistsWebSocket(api: self)
+    lazy var playlistsWebSocket = PlaylistsWebSocket?.none //try? PlaylistsWebSocket(api: self)
     
     lazy var playlistWebSockets = [Int: PlaylistWebSocket]()
     
     func playlistWebSocket(playlistID: Int) -> PlaylistWebSocket? {
+        return nil
+        
         guard
             let playlistWebSocket = playlistWebSockets[playlistID]
         else {
@@ -288,6 +290,60 @@ public class API {
         try await session.request(
             try artistWithIDURL(artistID),
             method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
+    }
+    
+    // MARK: - Events
+    
+    var eventURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "api/event/",
+                        relativeTo: baseURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func eventRequest() async throws -> [EventList] {
+        try await session.request(
+            try eventURL,
+            method: .get
+        )
+        .validate()
+        .serializingAPI()
+        .value
+    }
+    
+    // MARK: - Add Event
+    
+    var eventAddURL: URL {
+        get throws {
+            guard
+                let url =
+                    URL(
+                        string: "add/",
+                        relativeTo: try eventURL
+                    )
+            else { throw .api.invalidURL }
+            
+            return url
+        }
+    }
+    
+    public func eventAddRequest(eventCreate: EventCreate) async throws -> EventCreate {
+        try await session.request(
+            try eventAddURL,
+            method: .post,
+            parameters: eventCreate,
+            encoder: .apiJSON
         )
         .validate()
         .serializingAPI()
