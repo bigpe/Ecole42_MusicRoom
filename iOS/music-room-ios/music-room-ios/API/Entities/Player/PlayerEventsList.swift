@@ -9,12 +9,6 @@ import Foundation
 
 public enum PlayerEventsList: String, Codable {
     
-    // MARK: - Responses
-    
-    case session = "session"
-    
-    case sessionChanged = "session.changed"
-    
     // MARK: - Requests
     
     case createSession = "create.session"
@@ -38,4 +32,10 @@ public enum PlayerEventsList: String, Codable {
     case stopTrack = "stop.track"
     
     case syncTrack = "sync.track"
+    
+    // MARK: - Responses
+    
+    case session = "session"
+    
+    case sessionChanged = "session.changed"
 }

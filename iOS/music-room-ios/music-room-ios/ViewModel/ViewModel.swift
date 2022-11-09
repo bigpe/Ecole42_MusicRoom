@@ -7,6 +7,16 @@ import MediaPlayer
 @MainActor
 class ViewModel: ObservableObject {
     
+    // MARK: - Web Socket
+    
+    var playerWebSocket: PlayerWebSocket?
+    
+    var playlistsWebSocket: PlaylistsWebSocket?
+    
+    var playlistWebSocket: PlaylistWebSocket?
+    
+    var eventWebSocket: EventWebSocket?
+    
     // MARK: - Player Queue
     
     let playerQueue = DispatchQueue(
@@ -256,6 +266,35 @@ class ViewModel: ObservableObject {
     )?
         .withRenderingMode(.alwaysOriginal) ?? UIImage()
     
+    let placeholderCoverImage = generateImage(
+        CGSize(width: 1000, height: 1000),
+        rotatedContext: { size, context in
+            
+            context.clear(CGRect(origin: CGPoint(), size: size))
+            
+            let musicNoteIcon = UIImage(systemName: "music.note.list")?
+                .withConfiguration(UIImage.SymbolConfiguration(
+                    pointSize: 1000 * 0.375,
+                    weight: .medium
+                ))
+            ?? UIImage()
+            
+            drawIcon(
+                context: context,
+                size: size,
+                icon: musicNoteIcon,
+                iconSize: musicNoteIcon.size,
+                iconColor: UIColor(displayP3Red: 0.462, green: 0.458, blue: 0.474, alpha: 1),
+                backgroundColors: [
+                    UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
+                    UIColor(displayP3Red: 0.33, green: 0.325, blue: 0.349, alpha: 1),
+                ],
+                id: nil
+            )
+        }
+    )?
+        .withRenderingMode(.alwaysOriginal) ?? UIImage()
+    
     lazy var placeholderArtwork = Image(uiImage: placeholderArtworkImage)
     
     // MARK: - Track Progress
@@ -361,19 +400,7 @@ class ViewModel: ObservableObject {
         
         Task {
             do {
-                do {
-                    try await updateUsers()
-                } catch {
-                    debugPrint(error)
-                }
-                
-                do {
-                    try await updateArtists()
-                } catch {
-                    debugPrint(error)
-                }
-                
-                try await updateTracks()
+                try await updateUsers()
             } catch {
                 debugPrint(error)
             }
@@ -381,14 +408,35 @@ class ViewModel: ObservableObject {
         
         Task {
             do {
-                try await updatePlayerSession()
+                try await updateArtists()
             } catch {
                 debugPrint(error)
             }
         }
         
-        subscribeToPlayer()
-        subscribeToPlaylists()
+        Task {
+            do {
+                try await updateTracks()
+            } catch {
+                debugPrint(error)
+            }
+        }
+        
+//        Task {
+//            do {
+//                try await updatePlayerSession()
+//            } catch {
+//                debugPrint(error)
+//            }
+//        }
+        
+        if playerWebSocket == nil, eventWebSocket == nil {
+            subscribeToPlayer()
+        }
+        
+        if playlistsWebSocket == nil {
+            subscribeToPlaylists()
+        }
     }
     
     // MARK: - Own Playlists
@@ -458,7 +506,7 @@ class ViewModel: ObservableObject {
     }
     
     @Published
-    var events = [EventList]()
+    var events = [Event]()
     
     func updateEvents() async throws {
         Task {
@@ -472,12 +520,12 @@ class ViewModel: ObservableObject {
         } catch {
             debugPrint(error)
             
-            try await DiskCacheService.updateEntity([EventList]?.none, name: "All")
+            try await DiskCacheService.updateEntity([Event]?.none, name: "All")
         }
     }
     
     @MainActor
-    func saveEvents(_ events: [EventList]) async throws {
+    func saveEvents(_ events: [Event]) async throws {
         self.events = events
         
         try await DiskCacheService.updateEntity(events, name: "All")
@@ -595,41 +643,21 @@ class ViewModel: ObservableObject {
     @Published
     var playerSession: PlayerSession? {
         didSet {
-            withAnimation {
-                currentPlayerContent = { () -> PlayerContent? in
-                    guard
-                        let playerSession,
-                        let sessionTrack = playerSession.trackQueue.first,
-                        let track = track(byID: sessionTrack.track),
-                        let trackID = track.id,
-                        let artist = artist(byID: track.artist),
-                        let playerSessionID = playerSession.id,
-                        let sessionTrackID = sessionTrack.id
-                    else {
-                        return nil
-                    }
-                    
-                    return .track(
-                        id: trackID,
-                        title: track.name,
-                        artist: artist.name,
-                        flacFile: track.flacFile,
-                        mp3File: track.mp3File,
-                        progress: sessionTrack.progress ?? 0,
-                        playerSessionID: playerSessionID,
-                        sessionTrackID: sessionTrackID,
-                        sessionTrackState: sessionTrack.state
-                    )
-                }()
+            Task {
+                try await DiskCacheService.updateEntity(playerSession, name: "")
+            }
+            
+            Task {
+                if tracks.isEmpty {
+                    try await updateTracks()
+                }
                 
-                queuedPlayerContent = {
-                    guard let playerSession else { return [] }
-                    
-                    return playerSession
-                        .trackQueue
-                        .dropFirst()
-                        .compactMap { (sessionTrack) -> PlayerContent? in
+                await MainActor.run { [unowned self] in
+                    withAnimation {
+                        currentPlayerContent = { () -> PlayerContent? in
                             guard
+                                let playerSession,
+                                let sessionTrack = playerSession.trackQueue.first,
                                 let track = track(byID: sessionTrack.track),
                                 let trackID = track.id,
                                 let artist = artist(byID: track.artist),
@@ -650,19 +678,53 @@ class ViewModel: ObservableObject {
                                 sessionTrackID: sessionTrackID,
                                 sessionTrackState: sessionTrack.state
                             )
+                        }()
+                        
+                        queuedPlayerContent = {
+                            guard let playerSession else { return [] }
+                            
+                            return playerSession
+                                .trackQueue
+                                .dropFirst()
+                                .compactMap { (sessionTrack) -> PlayerContent? in
+                                    guard
+                                        let track = track(byID: sessionTrack.track),
+                                        let trackID = track.id,
+                                        let artist = artist(byID: track.artist),
+                                        let playerSessionID = playerSession.id,
+                                        let sessionTrackID = sessionTrack.id
+                                    else {
+                                        return nil
+                                    }
+                                    
+                                    return .track(
+                                        id: trackID,
+                                        title: track.name,
+                                        artist: artist.name,
+                                        flacFile: track.flacFile,
+                                        mp3File: track.mp3File,
+                                        progress: sessionTrack.progress ?? 0,
+                                        playerSessionID: playerSessionID,
+                                        sessionTrackID: sessionTrackID,
+                                        sessionTrackState: sessionTrack.state
+                                    )
+                                }
+                        }()
+                        
+                        switch playerSession?.mode {
+                            
+                        case .normal:
+                            repeatState = .off
+                            
+                        case .repeat:
+                            repeatState = .on
+                            
+                        default:
+                            break
                         }
-                }()
-                
-                switch playerSession?.mode {
-                    
-                case .normal:
-                    repeatState = .off
-                    
-                case .repeat:
-                    repeatState = .on
-                    
-                default:
-                    break
+                        
+//                        playCurrentTrack()
+                    }
                 }
             }
         }
@@ -791,7 +853,7 @@ class ViewModel: ObservableObject {
     
     func auth(_ username: String, _ password: String) async throws {
         if case .failure(let error) = try await api.authRequest(
-            TokenObtainPairModel(
+            TokenObtainPair(
                 username: username,
                 password: password
             )
@@ -841,7 +903,7 @@ class ViewModel: ObservableObject {
         api.signOut()
     }
     
-    // MARK: - Player WebSocket
+    // MARK: - Player Web Socket
     
     func createSession(playlistID: Int, shuffle: Bool) async throws {
         try await api.playerWebSocket?.send(PlayerMessage(
@@ -872,13 +934,23 @@ class ViewModel: ObservableObject {
         
         playCurrentTrack()
         
-        try await api.playerWebSocket?.send(PlayerMessage(
-            event: .playPreviousTrack,
-            payload: .playPreviousTrack(
-                player_session_id: playerSessionID,
-                track_id: currentSessionTrackID
-            )
-        ))
+        if let playerWebSocket {
+            try await playerWebSocket.send(PlayerMessage(
+                event: .playPreviousTrack,
+                payload: .playPreviousTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentSessionTrackID
+                )
+            ))
+        } else if let eventWebSocket {
+            try await eventWebSocket.send(EventMessage(
+                event: .playPreviousTrack,
+                payload: .playPreviousTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentSessionTrackID
+                )
+            ))
+        }
     }
     
     func resume() async throws {
@@ -891,13 +963,23 @@ class ViewModel: ObservableObject {
         
         playCurrentTrack()
         
-        _ = try await api.playerWebSocket?.send(PlayerMessage(
-            event: .resumeTrack,
-            payload: .resumeTrack(
-                player_session_id: playerSessionID,
-                track_id: currentSessionTrackID
-            )
-        ))
+        if let playerWebSocket {
+            try await playerWebSocket.send(PlayerMessage(
+                event: .resumeTrack,
+                payload: .resumeTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentSessionTrackID
+                )
+            ))
+        } else if let eventWebSocket {
+            try await eventWebSocket.send(EventMessage(
+                event: .resumeTrack,
+                payload: .resumeTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentSessionTrackID
+                )
+            ))
+        }
     }
     
     func pause() async throws {
@@ -910,13 +992,23 @@ class ViewModel: ObservableObject {
         
         try await pauseCurrentTrack()
         
-        try await api.playerWebSocket?.send(PlayerMessage(
-            event: .pauseTrack,
-            payload: .pauseTrack(
-                player_session_id: playerSessionID,
-                track_id: currentSessionTrackID
-            )
-        ))
+        if let playerWebSocket {
+            try await playerWebSocket.send(PlayerMessage(
+                event: .pauseTrack,
+                payload: .pauseTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentSessionTrackID
+                )
+            ))
+        } else if let eventWebSocket {
+            try await eventWebSocket.send(EventMessage(
+                event: .pauseTrack,
+                payload: .pauseTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentSessionTrackID
+                )
+            ))
+        }
     }
     
     func forward() async throws {
@@ -934,13 +1026,23 @@ class ViewModel: ObservableObject {
         
         playCurrentTrack()
         
-        try await api.playerWebSocket?.send(PlayerMessage(
-            event: .playNextTrack,
-            payload: .playNextTrack(
-                player_session_id: playerSessionID,
-                track_id: currentSessionTrackID
-            )
-        ))
+        if let playerWebSocket {
+            try await playerWebSocket.send(PlayerMessage(
+                event: .playNextTrack,
+                payload: .playNextTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentSessionTrackID
+                )
+            ))
+        } else if let eventWebSocket {
+            try await eventWebSocket.send(EventMessage(
+                event: .playNextTrack,
+                payload: .playNextTrack(
+                    player_session_id: playerSessionID,
+                    track_id: currentSessionTrackID
+                )
+            ))
+        }
     }
     
     func playTrack(sessionTrackID: Int) async throws {
@@ -950,13 +1052,23 @@ class ViewModel: ObservableObject {
             throw .api.custom(errorDescription: "")
         }
         
-        try await api.playerWebSocket?.send(PlayerMessage(
-            event: .playTrack,
-            payload: .playTrack(
-                player_session_id: playerSessionID,
-                track_id: sessionTrackID
-            )
-        ))
+        if let playerWebSocket {
+            try await playerWebSocket.send(PlayerMessage(
+                event: .playTrack,
+                payload: .playTrack(
+                    player_session_id: playerSessionID,
+                    track_id: sessionTrackID
+                )
+            ))
+        } else if let eventWebSocket {
+            try await eventWebSocket.send(EventMessage(
+                event: .playTrack,
+                payload: .playTrack(
+                    player_session_id: playerSessionID,
+                    track_id: sessionTrackID
+                )
+            ))
+        }
     }
     
     func delayPlayTrack(sessionTrackID: Int) async throws {
@@ -966,13 +1078,23 @@ class ViewModel: ObservableObject {
             throw .api.custom(errorDescription: "")
         }
         
-        try await api.playerWebSocket?.send(PlayerMessage(
-            event: .delayPlayTrack,
-            payload: .delayPlayTrack(
-                player_session_id: playerSessionID,
-                track_id: sessionTrackID
-            )
-        ))
+        if let playerWebSocket {
+            try await playerWebSocket.send(PlayerMessage(
+                event: .delayPlayTrack,
+                payload: .delayPlayTrack(
+                    player_session_id: playerSessionID,
+                    track_id: sessionTrackID
+                )
+            ))
+        } else if let eventWebSocket {
+            try await eventWebSocket.send(EventMessage(
+                event: .delayPlayTrack,
+                payload: .delayPlayTrack(
+                    player_session_id: playerSessionID,
+                    track_id: sessionTrackID
+                )
+            ))
+        }
     }
     
     func shuffle() async throws {
@@ -984,44 +1106,56 @@ class ViewModel: ObservableObject {
         }
         
         do {
-            try await api.playerWebSocket?.send(PlayerMessage(
-                event: .shuffle,
-                payload: .shuffle(
-                    player_session_id: playerSessionID,
-                    track_id: currentSessionTrackID
-                )
-            ))
+            if let playerWebSocket {
+                try await playerWebSocket.send(PlayerMessage(
+                    event: .shuffle,
+                    payload: .shuffle(
+                        player_session_id: playerSessionID,
+                        track_id: currentSessionTrackID
+                    )
+                ))
+            } else if let eventWebSocket {
+                try await eventWebSocket.send(EventMessage(
+                    event: .shuffle,
+                    payload: .shuffle(
+                        player_session_id: playerSessionID,
+                        track_id: currentSessionTrackID
+                    )
+                ))
+            }
         } catch {
             debugPrint(error)
         }
     }
     
     func subscribeToPlayer() {
-        if let playerWebSocket = api.playerWebSocket, !playerWebSocket.isSubscribed {
+        trackProgress = TrackProgress(value: 0, total: trackProgress.total)
+        
+        player.pause()
+        playerState = .paused
+        
+        eventWebSocket?.close()
+        eventWebSocket = nil
+        
+        playerWebSocket?.close()
+        
+        playerWebSocket = api.playerWebSocket
+        
+        if let playerWebSocket, !playerWebSocket.isSubscribed {
             playerWebSocket
                 .onReceive { [unowned self] (message) in
+                    debugPrint(message)
+                    
                     switch message.payload {
                         
                     case .session(let playerSession):
-                        if let playerSession = playerSession {
-                            print(playerSession.trackQueue.map { $0.id! })
-                        }
-                        
-                        Task { [unowned self] in
-                            await MainActor.run { [unowned self] in
-                                self.playerSession = playerSession
-                            }
+                        Task { @MainActor in
+                            self.playerSession = playerSession
                         }
                         
                     case .sessionChanged(let playerSession):
-                        if let playerSession = playerSession {
-                            print(playerSession.trackQueue.map { $0.id! })
-                        }
-                        
-                        Task { [unowned self] in
-                            await MainActor.run { [unowned self] in
-                                self.playerSession = playerSession
-                            }
+                        Task { @MainActor in
+                            self.playerSession = playerSession
                         }
                         
                     default:
@@ -1032,7 +1166,11 @@ class ViewModel: ObservableObject {
     }
     
     func subscribeToPlaylists() {
-        if let playlistsWebSocket = api.playlistsWebSocket, !playlistsWebSocket.isSubscribed {
+        playlistsWebSocket?.close()
+        
+        playlistsWebSocket = api.playlistsWebSocket
+        
+        if let playlistsWebSocket, !playlistsWebSocket.isSubscribed {
             playlistsWebSocket
                 .onReceive { [unowned self] (message) in
                     switch message.payload {
@@ -1049,7 +1187,11 @@ class ViewModel: ObservableObject {
     }
     
     func subscribeToPlaylist(playlistID: Int) {
-        if let playlistWebSocket = api.playlistWebSocket(playlistID: playlistID), !playlistWebSocket.isSubscribed {
+        playlistWebSocket?.close()
+        
+        playlistWebSocket = api.playlistWebSocket(playlistID: playlistID)
+        
+        if let playlistWebSocket, !playlistWebSocket.isSubscribed {
             playlistWebSocket
                 .onReceive { [unowned self] (message) in
                     switch message.payload {
@@ -1078,6 +1220,41 @@ class ViewModel: ObservableObject {
                                     try await saveOwnPlaylists(ownPlaylists)
                                 }
                             }
+                        }
+                        
+                    default:
+                        break
+                    }
+                }
+        }
+    }
+    
+    func subscribeToEvent(eventID: Int) {
+        trackProgress = TrackProgress(value: 0, total: trackProgress.total)
+        player.pause()
+        playerState = .paused
+        
+        playerWebSocket?.close()
+        playerWebSocket = nil
+        
+        eventWebSocket?.close()
+        
+        eventWebSocket = api.eventWebSocket(eventID: eventID)
+        
+        if let eventWebSocket, !eventWebSocket.isSubscribed {
+            eventWebSocket
+                .onReceive { [unowned self] (message) in
+                    debugPrint(message)
+                    
+                    switch message.payload {
+                    case .session(let playerSession):
+                        Task { @MainActor in
+                            self.playerSession = playerSession
+                        }
+                        
+                    case .sessionChanged(let playerSession):
+                        Task { @MainActor in
+                            self.playerSession = playerSession
                         }
                         
                     default:

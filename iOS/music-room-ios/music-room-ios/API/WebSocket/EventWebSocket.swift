@@ -1,6 +1,6 @@
 import Foundation
 
-public class PlayerWebSocket {
+public class EventWebSocket {
     
     private weak var api: API!
     
@@ -12,7 +12,7 @@ public class PlayerWebSocket {
     
     // MARK: - Send Event
     
-    public func send(_ message: PlayerMessage) async throws {
+    public func send(_ message: EventMessage) async throws {
         let encodedMessageData = try API.Encoder().encode(message)
         
         guard
@@ -28,7 +28,7 @@ public class PlayerWebSocket {
     
     private var receiveUUID: UUID?
     
-    private var receiveBlock: ((PlayerMessage) -> Void)? {
+    private var receiveBlock: ((EventMessage) -> Void)? {
         didSet {
             guard
                 receiveBlock != nil
@@ -63,13 +63,13 @@ public class PlayerWebSocket {
                 case let .string(rawValue) = message,
                 let data = rawValue.data(using: .utf8)
             else {
-                throw .api.custom(errorDescription: "Player WebSocket")
+                throw .api.custom(errorDescription: "Event WebSocket")
             }
             
             do {
-                let playerMessage = try API.Decoder().decode(PlayerMessage.self, from: data)
+                let eventMessage = try API.Decoder().decode(EventMessage.self, from: data)
                 
-                receiveBlock(playerMessage)
+                receiveBlock(eventMessage)
             } catch {
                 
                 print(rawValue, "\n\n")
@@ -82,7 +82,7 @@ public class PlayerWebSocket {
     
     // MARK: - Events
     
-    public func onReceive(_ block: @escaping (PlayerMessage) -> Void) {
+    public func onReceive(_ block: @escaping (EventMessage) -> Void) {
         receiveBlock = block
     }
     
@@ -96,11 +96,11 @@ public class PlayerWebSocket {
     
     // MARK: - Init with API
     
-    public init(api: API) throws {
+    public init(api: API, eventID: Int) throws {
         guard
             let url =
                 URL(
-                    string: "ws/player/",
+                    string: "ws/event/\(eventID)/",
                     relativeTo: api.baseURL
                 ),
             let accessToken = api.keychainCredential?.token.access

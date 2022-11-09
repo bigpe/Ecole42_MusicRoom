@@ -16,7 +16,7 @@ struct AddEventView: View {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(spacing: 16) {
                     Picker(selection: $addEventViewModel.accessType) {
-                        ForEach(Playlist.AccessType.allCases) { accessType in
+                        ForEach(EventCreate.AccessType.allCases) { accessType in
                             Text(accessType.description)
                         }
                     } label: {
@@ -31,6 +31,77 @@ struct AddEventView: View {
                     .textInputAutocapitalization(.sentences)
                     .focused(focusedField, equals: .addEventName)
                 }
+                
+                GroupBox {
+                    Button {
+                        addEventViewModel.isShowingPlaylistSelect = true
+                    } label: {
+                        if let playlist = addEventViewModel.selectedPlaylist {
+                            HStack(alignment: .center, spacing: 16) {
+                                Image(uiImage: playlist.cover)
+                                    .resizable()
+                                    .cornerRadius(4)
+                                    .frame(width: 60, height: 60)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(playlist.name)
+                                        .foregroundColor(viewModel.primaryControlsColor)
+                                        .font(.system(size: 18, weight: .medium))
+                                    
+                                    if let user = viewModel.user(byID: playlist.author) {
+                                        Text("@\(user.username)")
+                                            .foregroundColor(viewModel.secondaryControlsColor)
+                                            .font(.system(size: 16, weight: .regular))
+                                    } else if viewModel.ownPlaylists
+                                        .contains(where: { $0.id == playlist.id }) {
+                                        Text("Yours")
+                                            .foregroundColor(viewModel.secondaryControlsColor)
+                                            .font(.system(size: 16, weight: .regular))
+                                    }
+                                }
+                                
+                                Spacer()
+                            }
+                        } else {
+                            HStack(alignment: .center, spacing: 16) {
+                                Image(uiImage: viewModel.placeholderCoverImage)
+                                    .resizable()
+                                    .cornerRadius(4)
+                                    .frame(width: 60, height: 60)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Choose a Playlist")
+                                        .foregroundColor(viewModel.primaryControlsColor)
+                                        .font(.system(size: 18, weight: .medium))
+                                }
+                                
+                                Spacer()
+                            }
+                        }
+                    }
+                } label: {
+                    Label("Event Playlist", systemImage: "music.note.list")
+                }
+                
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 4) {
+                        DatePicker(
+                            "Starts at",
+                            selection: $addEventViewModel.startDate,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                        
+                        DatePicker(
+                            "Ends at",
+                            selection: $addEventViewModel.endDate,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                    }
+                } label: {
+                    Label("Event Time", systemImage: "calendar.badge.clock")
+                }
+                
+                Spacer()
             }
             .padding(.horizontal, 16)
             .navigationBarTitle("New Event")
@@ -57,19 +128,27 @@ struct AddEventView: View {
 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button {
+                        guard
+                            let selectedPlaylistID = addEventViewModel.selectedPlaylist?.id
+                        else {
+                            return
+                        }
+                        
                         let eventName = addEventViewModel.nameText
                             .trimmingCharacters(in: .whitespacesAndNewlines)
 
                         let accessType = addEventViewModel.accessType
+                        
+                        let startDate = addEventViewModel.startDate
+                        let endDate = addEventViewModel.endDate
 
                         guard
                             !eventName.isEmpty,
+                            endDate > startDate,
                             !addEventViewModel.isLoading
                         else {
                             return
                         }
-
-                        let eventUUID = UUID()
                         
                         Task {
                             do {
@@ -79,11 +158,11 @@ struct AddEventView: View {
                                 
                                 let eventCreate = try await api.eventAddRequest(
                                     eventCreate: EventCreate(
-                                        playlist: 0,
+                                        playlist: selectedPlaylistID,
                                         name: eventName,
                                         accessType: accessType,
-                                        startDate: Date(),
-                                        endDate: Date()
+                                        startDate: startDate,
+                                        endDate: endDate
                                     )
                                 )
 
@@ -149,13 +228,20 @@ struct AddEventView: View {
         .onDisappear {
             addEventViewModel.reset()
         }
+        .sheet(isPresented: $addEventViewModel.isShowingPlaylistSelect, content: {
+            AddEventPlaylistView(
+                api: api
+            )
+            .environmentObject(viewModel)
+            .environmentObject(addEventViewModel)
+        })
         .confirmationDialog(
-            "Don't Save New Playlist?",
+            "Don't Save New Event?",
             isPresented: $addEventViewModel.showingCancelConfirmation,
             titleVisibility: .visible
         ) {
 
-            // MARK: - Add Playlist Dismiss Confirmation Dialog
+            // MARK: - Add Event Dismiss Confirmation Dialog
 
             Button(role: .destructive) {
                 Task {

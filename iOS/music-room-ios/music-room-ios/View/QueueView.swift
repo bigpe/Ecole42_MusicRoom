@@ -93,6 +93,7 @@ struct QueueView: View {
                         } label: {
                             HStack(alignment: .center, spacing: 14) {
                                 viewModel.artworks[track.name, default: viewModel.placeholderArtwork]
+                                    .resizable()
                                     .cornerRadius(4)
                                     .frame(
                                         width: viewModel.playlistQueueArtworkWidth,
@@ -127,6 +128,10 @@ struct QueueView: View {
                                     
                                     Task {
                                         try await viewModel.delayPlayTrack(
+                                            sessionTrackID: sessionTrackID
+                                        )
+                                        
+                                        try await viewModel.playTrack(
                                             sessionTrackID: sessionTrackID
                                         )
                                     }

@@ -85,6 +85,42 @@ struct PlayerView: View {
                 
                 Spacer()
                 
+                if viewModel.eventWebSocket?.isSubscribed ?? false {
+                    Menu {
+                        Section("Party") {
+                            Button {
+                                viewModel.subscribeToPlayer()
+                            } label: {
+                                Label("Disconnect", systemImage: "xmark.circle")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "party.popper.fill")
+                            .foregroundColor(viewModel.primaryControlsColor)
+                            .font(.system(.caption, design: .rounded))
+                            .fontWeight(.semibold)
+                            .dynamicTypeSize(.large)
+                            .background(
+                                viewModel.primaryControlsColor,
+                                in: RoundedRectangle(cornerRadius: 2)
+                                    .inset(by: -6)
+                            )
+                            .mask(alignment: .center) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .inset(by: -6)
+                                    .overlay(alignment: .center) {
+                                        Image(systemName: "party.popper.fill")
+                                            .foregroundColor(viewModel.primaryControlsColor)
+                                            .font(.system(.caption, design: .rounded))
+                                            .fontWeight(.semibold)
+                                            .dynamicTypeSize(.large)
+                                            .blendMode(.destinationOut)
+                                    }
+                            }
+                            .padding(6)
+                    }
+                }
+                
                 Button {
                     switch viewModel.playerQuality {
                     case .standard:

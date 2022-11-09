@@ -1,13 +1,6 @@
-//
-//  TokenResponseModel.swift
-//  music-room-ios
-//
-//  Created by Nikita Arutyunov on 14.07.2022.
-//
-
 import Foundation
 
-public struct TokenResponseModel: Codable, Hashable {
+public struct Token: Codable, Hashable {
     public var access: String
     
     public var refresh: String

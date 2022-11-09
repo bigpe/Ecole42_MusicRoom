@@ -33,26 +33,20 @@ public class API {
     
     // MARK: - Web Socket
     
-    lazy var playerWebSocket = PlayerWebSocket?.none // try? PlayerWebSocket(api: self)
+    var playerWebSocket: PlayerWebSocket? {
+        try? PlayerWebSocket(api: self)
+    }
     
-    lazy var playlistsWebSocket = PlaylistsWebSocket?.none //try? PlaylistsWebSocket(api: self)
-    
-    lazy var playlistWebSockets = [Int: PlaylistWebSocket]()
+    var playlistsWebSocket: PlaylistsWebSocket? {
+        try? PlaylistsWebSocket(api: self)
+    }
     
     func playlistWebSocket(playlistID: Int) -> PlaylistWebSocket? {
-        return nil
-        
-        guard
-            let playlistWebSocket = playlistWebSockets[playlistID]
-        else {
-            let playlistWebSocket = try? PlaylistWebSocket(api: self, playlistID: playlistID)
-            
-            playlistWebSockets[playlistID] = playlistWebSocket
-            
-            return playlistWebSocket
-        }
-        
-        return playlistWebSocket
+        try? PlaylistWebSocket(api: self, playlistID: playlistID)
+    }
+    
+    func eventWebSocket(eventID: Int) -> EventWebSocket? {
+        return try? EventWebSocket(api: self, eventID: eventID)
     }
     
     // MARK: - Authentication
@@ -120,9 +114,9 @@ public class API {
     }
     
     public func authRequest(
-        _ parameters: TokenObtainPairModel
+        _ parameters: TokenObtainPair
     ) async throws -> Result<APICredential, TokenRequestError> {
-        let result: Result<TokenResponseModel, TokenRequestError> = try await AF.request(
+        let result: Result<Token, TokenRequestError> = try await AF.request(
             try authURL,
             method: .post,
             parameters: parameters,
@@ -162,7 +156,7 @@ public class API {
     }
     
     public func refreshRequest(
-        _ parameters: TokenRefreshModel
+        _ parameters: TokenRefresh
     ) async throws -> APICredential {
         let apiCredential = APICredential(
             token:
@@ -183,7 +177,7 @@ public class API {
     }
     
     public func refreshToken(_ token: String) async throws -> APICredential {
-        try await refreshRequest(TokenRefreshModel(refresh: token))
+        try await refreshRequest(TokenRefresh(refresh: token))
     }
     
     // MARK: - Sign Out
@@ -312,7 +306,7 @@ public class API {
         }
     }
     
-    public func eventRequest() async throws -> [EventList] {
+    public func eventRequest() async throws -> [Event] {
         try await session.request(
             try eventURL,
             method: .get

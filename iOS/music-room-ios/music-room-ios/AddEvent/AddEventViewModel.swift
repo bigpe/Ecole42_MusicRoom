@@ -13,6 +13,9 @@ class AddEventViewModel: ObservableObject {
     var isLoading = false
     
     @Published
+    var isShowingPlaylistSelect = false
+    
+    @Published
     var showingCancelConfirmation = false
     
     // MARK: - Data
@@ -25,6 +28,12 @@ class AddEventViewModel: ObservableObject {
     
     @Published
     var selectedPlaylist: Playlist?
+    
+    @Published
+    var startDate = Date()
+    
+    @Published
+    var endDate = Date()
     
     func reset() {
         nameText = ""

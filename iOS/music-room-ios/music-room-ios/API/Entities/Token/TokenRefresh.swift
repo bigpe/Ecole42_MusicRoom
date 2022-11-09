@@ -1,13 +1,6 @@
-//
-//  TokenRefreshModel.swift
-//  music-room-ios
-//
-//  Created by Nikita Arutyunov on 04.07.2022.
-//
-
 import Foundation
 
-public struct TokenRefreshModel: Codable, Hashable {
+public struct TokenRefresh: Codable, Hashable {
     public var access: String?
     
     public var refresh: String

@@ -1,10 +1,3 @@
-//
-//  PlaylistWebSocket.swift
-//  music-room-ios
-//
-//  Created by Nikita Arutyunov on 12.07.2022.
-//
-
 import Foundation
 
 public class PlaylistWebSocket {
@@ -91,6 +84,14 @@ public class PlaylistWebSocket {
     
     public func onReceive(_ block: @escaping (PlaylistMessage) -> Void) {
         receiveBlock = block
+    }
+    
+    // MARK: - Unsubscribe
+    
+    public func close() {
+        webSocketTask.cancel()
+        
+        receiveBlock = nil
     }
     
     // MARK: - Init with API

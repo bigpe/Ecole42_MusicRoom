@@ -1,10 +1,3 @@
-//
-//  PlaylistEventsList.swift
-//  music-room-ios
-//
-//  Created by Nikita Arutyunov on 19.06.2022.
-//
-
 import Foundation
 
 public enum PlaylistEventsList: String, Codable {

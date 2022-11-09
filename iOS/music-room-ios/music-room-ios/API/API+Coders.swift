@@ -21,14 +21,21 @@ extension API {
                     let dateTimeFormatter = DateFormatter()
                     
                     dateTimeFormatter.calendar = Calendar(identifier: .iso8601)
-                    dateTimeFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
+                    dateTimeFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssXXXXX"
+                    
+                    let dateTimeWithSecondsFormatter = DateFormatter()
+                    
+                    dateTimeWithSecondsFormatter.calendar = Calendar(identifier: .iso8601)
+                    dateTimeWithSecondsFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
                     
                     let dateDayFormatter = DateFormatter()
                     
                     dateDayFormatter.calendar = Calendar(identifier: .iso8601)
                     dateDayFormatter.dateFormat = "yyyy-MM-dd"
                     
-                    if let dateTime = dateTimeFormatter.date(from: dateText) {
+                    if let dateTimeWithSeconds = dateTimeWithSecondsFormatter.date(from: dateText) {
+                        return dateTimeWithSeconds
+                    } else if let dateTime = dateTimeFormatter.date(from: dateText) {
                         return dateTime
                     } else if let dateDay = dateDayFormatter.date(from: dateText) {
                         return dateDay

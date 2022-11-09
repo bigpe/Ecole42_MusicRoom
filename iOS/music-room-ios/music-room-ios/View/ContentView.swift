@@ -242,6 +242,7 @@ struct ContentView: View {
             viewModel.api = api
             
             playlistViewModel.viewModel = viewModel
+            eventViewModel.viewModel = viewModel
             
             if viewModel.isAuthorized {
                 viewModel.updateData()

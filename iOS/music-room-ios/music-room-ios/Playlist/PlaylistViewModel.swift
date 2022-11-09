@@ -58,7 +58,8 @@ class PlaylistViewModel: ObservableObject {
     @Published
     var selectedPlaylist: Playlist? {
         didSet {
-            if let selectedPlaylist = selectedPlaylist {
+            if let selectedPlaylist = selectedPlaylist,
+               let selectedPlaylistID = selectedPlaylist.id {
                 if !isEditing {
                     nameText = selectedPlaylist.name
                     accessType = selectedPlaylist.accessType
@@ -85,6 +86,9 @@ class PlaylistViewModel: ObservableObject {
                     isEditable = selectedPlaylist.author == userID
                 }
             } else {
+                viewModel.playlistWebSocket?.close()
+                viewModel.playlistWebSocket = nil
+                
                 nameText = ""
                 accessType = .private
                 

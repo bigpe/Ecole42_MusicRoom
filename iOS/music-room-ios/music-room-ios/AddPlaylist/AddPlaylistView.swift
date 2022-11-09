@@ -138,9 +138,7 @@ struct AddPlaylistView: View {
 
                                         Task {
                                             guard
-                                                let playlistWebSocket = api.playlistWebSocket(
-                                                    playlistID: playlistID
-                                                )
+                                                let playlistWebSocket = viewModel.playlistWebSocket
                                             else {
                                                 return
                                             }

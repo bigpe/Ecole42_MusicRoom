@@ -39,93 +39,95 @@ struct PlaylistView: View {
 
                 Divider()
 
-                HStack {
-                    Button {
-                        Task {
-                            guard
-                                let playlistID = playlistViewModel.selectedPlaylist?.id
-                            else {
-                                return
-                            }
+                if !playlistViewModel.isEditing {
+                    HStack {
+                        Button {
+                            Task {
+                                guard
+                                    let playlistID = playlistViewModel.selectedPlaylist?.id
+                                else {
+                                    return
+                                }
 
-                            do {
-                                try await viewModel.createSession(
-                                    playlistID: playlistID,
-                                    shuffle: false
-                                )
-                            } catch {
+                                do {
+                                    try await viewModel.createSession(
+                                        playlistID: playlistID,
+                                        shuffle: false
+                                    )
+                                } catch {
+                                    await MainActor.run {
+                                        viewModel.toastType = .error(Color.red)
+                                        viewModel.toastTitle = "Oops..."
+                                        viewModel.toastSubtitle = error.localizedDescription
+                                        viewModel.isToastShowing = true
+                                    }
+                                }
+
+                                let playlistName = playlistViewModel.selectedPlaylist?.name
+
+                                playlistViewModel.selectedPlaylist = nil
+                                
+                                viewModel.subscribeToPlayer()
+
+                                viewModel.interfaceState = .player
+
                                 await MainActor.run {
-                                    viewModel.toastType = .error(Color.red)
-                                    viewModel.toastTitle = "Oops..."
-                                    viewModel.toastSubtitle = error.localizedDescription
+                                    viewModel.toastType = .systemImage("play.circle", Color.pink)
+                                    viewModel.toastTitle = playlistName
+                                    viewModel.toastSubtitle = "Now Playing"
                                     viewModel.isToastShowing = true
                                 }
                             }
-
-                            api.playlistWebSockets.removeValue(forKey: playlistID)
-
-                            let playlistName = playlistViewModel.selectedPlaylist?.name
-
-                            playlistViewModel.selectedPlaylist = nil
-
-                            viewModel.interfaceState = .player
-
-                            await MainActor.run {
-                                viewModel.toastType = .systemImage("play.circle", Color.pink)
-                                viewModel.toastTitle = playlistName
-                                viewModel.toastSubtitle = "Now Playing"
-                                viewModel.isToastShowing = true
-                            }
+                        } label: {
+                            Label("Play Now", systemImage: "play.circle.fill")
                         }
-                    } label: {
-                        Label("Play Now", systemImage: "play.circle.fill")
-                    }
-                    .tint(.pink)
+                        .tint(.pink)
 
-                    Spacer()
+                        Spacer()
 
-                    Button {
-                        Task {
-                            guard
-                                let playlistID = playlistViewModel.selectedPlaylist?.id
-                            else {
-                                return
-                            }
+                        Button {
+                            Task {
+                                guard
+                                    let playlistID = playlistViewModel.selectedPlaylist?.id
+                                else {
+                                    return
+                                }
 
-                            do {
-                                try await viewModel.createSession(
-                                    playlistID: playlistID,
-                                    shuffle: true
-                                )
-                            } catch {
+                                do {
+                                    try await viewModel.createSession(
+                                        playlistID: playlistID,
+                                        shuffle: true
+                                    )
+                                } catch {
+
+                                    await MainActor.run {
+                                        viewModel.toastType = .error(Color.red)
+                                        viewModel.toastTitle = "Oops..."
+                                        viewModel.toastSubtitle = error.localizedDescription
+                                        viewModel.isToastShowing = true
+                                    }
+                                }
+
+                                let playlistName = playlistViewModel.selectedPlaylist?.name
+
+                                playlistViewModel.selectedPlaylist = nil
+                                
+                                viewModel.subscribeToPlayer()
+
+                                viewModel.interfaceState = .player
 
                                 await MainActor.run {
-                                    viewModel.toastType = .error(Color.red)
-                                    viewModel.toastTitle = "Oops..."
-                                    viewModel.toastSubtitle = error.localizedDescription
+                                    viewModel.toastType = .systemImage("shuffle.circle", Color.pink)
+                                    viewModel.toastTitle = playlistName
+                                    viewModel.toastSubtitle = "Shuffle"
                                     viewModel.isToastShowing = true
                                 }
                             }
-
-                            api.playlistWebSockets.removeValue(forKey: playlistID)
-
-                            let playlistName = playlistViewModel.selectedPlaylist?.name
-
-                            playlistViewModel.selectedPlaylist = nil
-
-                            viewModel.interfaceState = .player
-
-                            await MainActor.run {
-                                viewModel.toastType = .systemImage("shuffle.circle", Color.pink)
-                                viewModel.toastTitle = playlistName
-                                viewModel.toastSubtitle = "Shuffle"
-                                viewModel.isToastShowing = true
-                            }
+                        } label: {
+                            Label("Shuffle", systemImage: "shuffle.circle.fill")
                         }
-                    } label: {
-                        Label("Shuffle", systemImage: "shuffle.circle.fill")
+                        .tint(.pink)
                     }
-                    .tint(.pink)
                 }
 
                 List(
@@ -162,9 +164,7 @@ struct PlaylistView: View {
                                 guard
                                     let trackID = track.id,
                                     let playlistID = playlistViewModel.selectedPlaylist?.id,
-                                    let playlistWebSocket = api.playlistWebSocket(
-                                        playlistID: playlistID
-                                    )
+                                    let playlistWebSocket = viewModel.playlistWebSocket
                                 else {
                                     return
                                 }
@@ -199,7 +199,7 @@ struct PlaylistView: View {
                 }
                 .listStyle(.plain)
 
-                if playlistViewModel.isEditable {
+                if playlistViewModel.isEditable, !playlistViewModel.isEditing {
                     HStack {
                         Button {
                             playlistViewModel.showingDeleteConfirmation = true
@@ -376,7 +376,7 @@ struct PlaylistView: View {
                     Task {
                         guard
                             let playlistID = playlistViewModel.selectedPlaylist?.id,
-                            let playlistWebSocket = api.playlistsWebSocket
+                            let playlistsWebSocket = viewModel.playlistsWebSocket
                         else {
                             return
                         }
@@ -386,7 +386,7 @@ struct PlaylistView: View {
                         }
 
                         do {
-                            try await playlistWebSocket.send(
+                            try await playlistsWebSocket.send(
                                 PlaylistsMessage(
                                     event: .removePlaylist,
                                     payload: .removePlaylist(

@@ -170,16 +170,28 @@ extension ViewModel {
                     return
                 }
                 
-                Task {
-                    try await self.api.playerWebSocket?.send(
-                        PlayerMessage(
-                            event: .syncTrack,
-                            payload: .syncTrack(
-                                player_session_id: sessionID,
-                                progress: Int(value)
+                Task { [unowned self] in
+                    if let playerWebSocket = self.playerWebSocket {
+                        try await playerWebSocket.send(
+                            PlayerMessage(
+                                event: .syncTrack,
+                                payload: .syncTrack(
+                                    player_session_id: sessionID,
+                                    progress: Int(value)
+                                )
                             )
                         )
-                    )
+                    } else if let eventWebSocket = self.eventWebSocket {
+                        try await eventWebSocket.send(
+                            EventMessage(
+                                event: .syncTrack,
+                                payload: .syncTrack(
+                                    player_session_id: sessionID,
+                                    progress: Int(value)
+                                )
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -210,15 +222,27 @@ extension ViewModel {
             return Int(seconds)
         }()
         
-        try await self.api.playerWebSocket?.send(
-            PlayerMessage(
-                event: .syncTrack,
-                payload: .syncTrack(
-                    player_session_id: sessionID,
-                    progress: value
+        if let playerWebSocket {
+            try await playerWebSocket.send(
+                PlayerMessage(
+                    event: .syncTrack,
+                    payload: .syncTrack(
+                        player_session_id: sessionID,
+                        progress: value
+                    )
                 )
             )
-        )
+        } else if let eventWebSocket {
+            try await eventWebSocket.send(
+                EventMessage(
+                    event: .syncTrack,
+                    payload: .syncTrack(
+                        player_session_id: sessionID,
+                        progress: value
+                    )
+                )
+            )
+        }
     }
     
     func updateNowPlayingInfo() {

@@ -9,10 +9,10 @@ import Alamofire
 import Foundation
 
 public struct APICredential: Codable, AuthenticationCredential {
-    public let token: TokenResponseModel
+    public let token: Token
     
     public init(
-        token: TokenResponseModel
+        token: Token
     ) {
         self.token = token
     }

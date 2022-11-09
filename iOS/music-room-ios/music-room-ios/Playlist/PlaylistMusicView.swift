@@ -79,9 +79,7 @@ struct PlaylistMusicView: View {
 
                         guard
                             let playlistID = playlistViewModel.selectedPlaylist?.id,
-                            let playlistWebSocket = api.playlistWebSocket(
-                                playlistID: playlistID
-                            )
+                            let playlistWebSocket = viewModel.playlistWebSocket
                         else {
                             return
                         }

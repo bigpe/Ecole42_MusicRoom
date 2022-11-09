@@ -1,10 +1,18 @@
 import Foundation
 import UIKit
 
-public struct EventList: Codable, Identifiable {
+public struct Playlist: Codable, Identifiable, Equatable {
     public let id: Int?
     
+    public let tracks: [PlaylistTrack]
+    
     public let name: String
+    
+    public enum `Type`: String, Codable {
+        case `default`, custom
+    }
+    
+    public let type: `Type`?
     
     public enum AccessType: String, Codable, CaseIterable, Identifiable, CustomStringConvertible {
         case `public`, `private`
@@ -25,45 +33,31 @@ public struct EventList: Codable, Identifiable {
     
     public let accessType: AccessType
     
-    public let startDate: Date
-    
-    public let endDate: Date
-    
-    public let isFinished: Bool?
-    
     public let author: Int
-    
-    public let playerSession: Int?
     
     public init(
         id: Int? = nil,
+        tracks: [PlaylistTrack],
         name: String,
+        type: `Type`? = nil,
         accessType: AccessType,
-        startDate: Date,
-        endDate: Date,
-        isFinished: Bool? = nil,
-        author: Int,
-        playerSession: Int? = nil
+        author: Int
     ) {
         self.id = id
+        self.tracks = tracks
         self.name = name
+        self.type = type
         self.accessType = accessType
-        self.startDate = startDate
-        self.endDate = endDate
-        self.isFinished = isFinished
         self.author = author
-        self.playerSession = playerSession
     }
     
     enum CodingKeys: String, CodingKey {
         case id
+        case tracks
         case name
+        case type
         case accessType = "access_type"
-        case startDate = "start_date"
-        case endDate = "end_date"
-        case isFinished = "is_finished"
         case author
-        case playerSession = "player_session"
     }
     
     var cover: UIImage {
@@ -75,7 +69,7 @@ public struct EventList: Codable, Identifiable {
                 
                 let cornerIconPointSize = contextSize.width * 0.175
 
-                let musicNoteIcon = UIImage(systemName: "party.popper.fill")?
+                let musicNoteIcon = UIImage(systemName: "music.note.list")?
                     .withConfiguration(UIImage.SymbolConfiguration(
                         pointSize: cornerIconPointSize,
                         weight: .regular
